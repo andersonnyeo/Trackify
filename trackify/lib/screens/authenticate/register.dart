@@ -1,18 +1,20 @@
 import 'package:flutter/material.dart';
 import 'package:trackify/services/auth.dart';
 
-class SignIn extends StatefulWidget {
+class Register extends StatefulWidget {
+  const Register({super.key});
+
   @override
-  _SignInState createState() => _SignInState();
+  State<Register> createState() => _RegisterState();
 }
 
-class _SignInState extends State<SignIn> {
+class _RegisterState extends State<Register> {
 
   final AuthService _auth = AuthService();
 
   // text field state
   String email = '';
-  String password = ''; 
+  String password = '';   
 
   @override
   Widget build(BuildContext context) {
@@ -21,7 +23,7 @@ class _SignInState extends State<SignIn> {
       appBar: AppBar(
         backgroundColor: Colors.brown[400],
         elevation: 0.0,
-        title: const Text('Sign in to Trackify'),
+        title: const Text('Sign up to Trackify'),
       ),
       body: Container(
         padding: const EdgeInsets.symmetric(vertical: 20.0, horizontal: 50.0),
@@ -48,7 +50,7 @@ class _SignInState extends State<SignIn> {
                   foregroundColor: Colors.white,
                 ),
                 child: const Text(
-                  'Sign in',
+                  'Register',
                   style: TextStyle(color: Colors.white),
                 ),
                 onPressed: () async {
