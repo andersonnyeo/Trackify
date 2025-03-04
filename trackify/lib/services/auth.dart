@@ -7,10 +7,9 @@ class AuthService {
   // final FirebaseAuth _auth = FirebaseAuth.instance;
   final firebase_auth.FirebaseAuth _auth = firebase_auth.FirebaseAuth.instance;
 
+
+
   // create user obj based on FirebaseUser
-  // User _userFromFirebaseUser (FirebaseUser user) {
-  //   return user != null ? User(uid: user.uid) :
-  // }
   User? _userFromFirebaseUser(firebase_auth.User? user) {
     return user != null ? User(uid: user.uid) : null;
   }
@@ -53,6 +52,16 @@ class AuthService {
 
   // register with email and password
 
+
+
   // sign out
+  Future signOut() async {
+    try {
+      return await _auth.signOut();
+    } catch(e){
+      print(e.toString());
+      return null;
+    }
+  }
 
 }

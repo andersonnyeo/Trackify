@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'package:trackify/screens/authenticate/authenticate.dart';
+import 'package:trackify/models/user.dart';
+import 'package:trackify/screens/home/home.dart';
 
 
 class Wrapper extends StatelessWidget {
@@ -8,8 +11,15 @@ class Wrapper extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
 
+    final User? user = Provider.of<User?>(context); // Allow nullable User
+    
+
 
     // return either Home or Authenticate widget
-    return const Authenticate();
+    if (user == null) {
+      return const Authenticate();
+    } else {
+      return Home();
+    }
   }
 }
