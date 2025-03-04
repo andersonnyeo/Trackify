@@ -1,4 +1,3 @@
-// import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_auth/firebase_auth.dart' as firebase_auth;
 import 'package:trackify/models/user.dart';
 
@@ -36,16 +35,6 @@ class AuthService {
     }
   }
 
-  // Future signInAnon() async {
-  //   try {
-  //     UserCredential result = await _auth.signInAnonymously();
-  //     User? user = result.user;
-  //     return user;
-  //   } catch (e) {
-  //     print(e.toString());
-  //     return null;
-  //   }
-  // }
 
   // sign in with email and password
   Future signInWithEmailAndPassword(String email, String password) async {
