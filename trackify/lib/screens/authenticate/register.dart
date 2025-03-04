@@ -2,7 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:trackify/services/auth.dart';
 
 class Register extends StatefulWidget {
-  const Register({super.key});
+  
+
+  final Function toggleView;
+  const Register({super.key, required this.toggleView}); 
 
   @override
   State<Register> createState() => _RegisterState();
@@ -24,6 +27,15 @@ class _RegisterState extends State<Register> {
         backgroundColor: Colors.brown[400],
         elevation: 0.0,
         title: const Text('Sign up to Trackify'),
+        actions: <Widget>[
+          TextButton.icon(
+            icon: const Icon(Icons.person),
+            label: const Text('Sign In'),
+            onPressed: () {
+              widget.toggleView();
+            },
+          )
+        ],
       ),
       body: Container(
         padding: const EdgeInsets.symmetric(vertical: 20.0, horizontal: 50.0),

@@ -2,6 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:trackify/services/auth.dart';
 
 class SignIn extends StatefulWidget {
+
+
+  final Function toggleView;
+  const SignIn({super.key, required this.toggleView}); 
+
+
   @override
   _SignInState createState() => _SignInState();
 }
@@ -22,6 +28,15 @@ class _SignInState extends State<SignIn> {
         backgroundColor: Colors.brown[400],
         elevation: 0.0,
         title: const Text('Sign in to Trackify'),
+        actions: <Widget>[
+          TextButton.icon(
+            icon: const Icon(Icons.person),
+            label: const Text('Register'),
+            onPressed: () {
+              widget.toggleView();
+            },
+          )
+        ],
       ),
       body: Container(
         padding: const EdgeInsets.symmetric(vertical: 20.0, horizontal: 50.0),
