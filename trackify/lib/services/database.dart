@@ -1,4 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:trackify/models/trackify.dart';
 
 class DatabaseService {
 
@@ -16,5 +17,28 @@ class DatabaseService {
     });
 
   }
+
+
+  // brew list from snapshot
+  List<Trackify> _trackifyListFromSnapshot(QuerySnapshot snapshot) {
+    return snapshot.docs.map((doc) {
+      // Cast doc.data() to a Map for safe access
+      final data = doc.data() as Map<String, dynamic>?;
+
+      return Trackify(
+        name: data?['name'] ?? 'Unnamed',
+        strength: data?['strength'] ?? 0,
+        sugars: data?['sugars'] ?? '0',
+      );
+    }).toList();
+  }
+
+
+  // get trackify stream
+  Stream <List<Trackify>> get trackify {
+    return trackifyCollection.snapshots()
+    .map(_trackifyListFromSnapshot);
+  }
+
 
 }
