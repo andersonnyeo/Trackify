@@ -27,18 +27,5 @@ class _TrackifyListState extends State<TrackifyList> {
     });
 
     return Container();
-
-  //   final items = trackify.docs;
-
-  //   return ListView.builder(
-  //     itemCount: items.length,
-  //     itemBuilder: (context, index) {
-  //       var item = items[index].data() as Map<String, dynamic>;
-  //       return ListTile(
-  //         title: Text(item['name'] ?? 'Unnamed item'),
-  //         subtitle: Text(item['description'] ?? 'No description'),
-  //       );
-  //     },
-  //   );
   }
 }
