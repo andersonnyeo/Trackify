@@ -1,5 +1,6 @@
 import 'package:firebase_auth/firebase_auth.dart' as firebase_auth;
 import 'package:trackify/models/user.dart';
+import 'package:trackify/services/database.dart';
 
 class AuthService {
 
@@ -54,7 +55,19 @@ class AuthService {
     try {
       firebase_auth.UserCredential result = await _auth.createUserWithEmailAndPassword(email: email, password: password);
       firebase_auth.User? user = result.user;
-      return _userFromFirebaseUser(user);
+
+      // create a new document for the user with the uid
+      
+      // await DatabaseService(uid: user.uid).updateUserData('0', 'new crew member', 100);
+      // return _userFromFirebaseUser(user);
+
+      if (user != null) {
+        // Create a new document for the user with the UID
+        await DatabaseService(uid: user.uid).updateUserData('0', 'new crew member', 100);
+        return _userFromFirebaseUser(user);
+      } else {
+        return null;
+      }
     }catch(e){
       print(e.toString());
       return null;
