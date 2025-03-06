@@ -28,33 +28,50 @@ class Home extends StatelessWidget {
       initialData: null,
       catchError: (_, __) => null,
       child: Scaffold(
-        backgroundColor: Colors.brown[50],
+        backgroundColor: Colors.purple[50],
         appBar: AppBar(
-          title: const Text('Trackify'),
-          backgroundColor: Colors.brown[400],
+          title: const Text('Trackify',
+            style: TextStyle(
+                color: Colors.white, 
+                fontWeight: FontWeight.bold
+                )
+          ), 
+          // centerTitle: true,
+          backgroundColor: Colors.deepPurple,
           elevation: 0.0,
+          
           actions: <Widget>[
             TextButton.icon(
-              icon: const Icon(Icons.person),
-              label: const Text('logout'),
+              icon: const Icon(Icons.person, color: Colors.white),
+              label: const Text('logout',
+                style: TextStyle(
+                  color: Colors.white, 
+                  fontWeight: FontWeight.bold
+                )
+              ),
               onPressed: () async{
-                await _auth .signOut();
+                await _auth.signOut();
               },
             ),
             TextButton.icon(
-              icon: const Icon(Icons.settings),
-              label: const Text('settings'),
+              icon: const Icon(Icons.settings, color: Colors.white),
+              label: const Text('settings',
+                style: TextStyle(
+                  color: Colors.white, 
+                  fontWeight: FontWeight.bold
+                )
+              ),
               onPressed: () => _showSettingsPanel(),
-              )
+            )
           ],
         ),
         body: Container(
-          decoration: const BoxDecoration(
-            image: DecorationImage(
-              image: AssetImage('assets/coffee_bg.png'),
-              fit: BoxFit.cover,
-              )
-          ),
+          // decoration: const BoxDecoration(
+          //   image: DecorationImage(
+          //     image: AssetImage('assets/coffee_bg.png'),
+          //     fit: BoxFit.cover,
+          //     )
+          // ),
           child: const TrackifyList()
           ),
       ),
