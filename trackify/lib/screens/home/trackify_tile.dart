@@ -18,6 +18,7 @@ class TrackifyTile extends StatelessWidget {
           leading: CircleAvatar(
             radius: 25.0,
             backgroundColor: Colors.brown[trackify.strength],
+            backgroundImage: const AssetImage('assets/coffee_icon.png'),
           ),
           title: Text(trackify.name),
           subtitle: Text('Takes ${trackify.sugars} sugar(s)'),
