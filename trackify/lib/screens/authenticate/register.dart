@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:trackify/screens/authenticate/forgot_password_page.dart';
 import 'package:trackify/services/auth.dart';
 import 'package:trackify/shared/constants.dart';
 import 'package:trackify/shared/loading.dart';
@@ -26,10 +27,9 @@ class _RegisterState extends State<Register> {
 
   @override
   Widget build(BuildContext context) {
-    return loading ? Loading() : Scaffold(
-      backgroundColor: Colors.brown[100],
+    return loading ? const Loading() : Scaffold(
       appBar: AppBar(
-        backgroundColor: Colors.brown[400],
+        backgroundColor: Colors.purple[200],
         elevation: 0.0,
         title: const Text('Sign up to Trackify'),
         actions: <Widget>[
@@ -66,6 +66,36 @@ class _RegisterState extends State<Register> {
                 },
               ),
               const SizedBox(height: 20.0),
+
+              
+              // Forgot password function
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 25.0),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.end,
+                  children: [
+                    GestureDetector(
+                      onTap: () {
+                        Navigator.push(context, MaterialPageRoute(builder: (context) {
+                          return const ForgotPasswordPage();
+                        }));
+                      },
+                      child: const Text(
+                        'Forgot Password?',
+                        style: TextStyle(
+                          color: Colors.blue,
+                          fontWeight: FontWeight.bold,
+                        ),
+                        ),
+                    ),
+                  ],
+                ),
+              ),
+
+              const SizedBox(height: 20.0),
+
+
+
               ElevatedButton (
                 style: ElevatedButton.styleFrom(
                   backgroundColor: Colors.pink[400], // Updated property name
