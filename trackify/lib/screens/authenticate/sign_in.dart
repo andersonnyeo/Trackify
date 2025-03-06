@@ -35,7 +35,8 @@ class _SignInState extends State<SignIn> {
               style: TextStyle(
                 color: Colors.white, 
                 fontWeight: FontWeight.bold
-                )),
+                )
+              ),
               centerTitle: true,
             ),
             body: SingleChildScrollView(
