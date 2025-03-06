@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:trackify/models/trackify.dart';
+import 'package:trackify/screens/home/trackify_tile.dart';
 
 class TrackifyList extends StatefulWidget {
   const TrackifyList({super.key});
@@ -19,13 +20,19 @@ class _TrackifyListState extends State<TrackifyList> {
       return const Center(child: CircularProgressIndicator());
     }
 
-    trackify.forEach((trackify){
-      print(trackify.name);
-      print(trackify.sugars);
-      print(trackify.strength);
 
-    });
 
-    return Container();
+
+
+
+    return ListView.builder(
+      itemCount: trackify.length,
+      itemBuilder: (content, index) {
+        
+        return TrackifyTile(trackify: trackify[index]);
+
+
+      },
+    );
   }
 }

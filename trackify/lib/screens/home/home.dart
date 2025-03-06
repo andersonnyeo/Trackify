@@ -19,7 +19,7 @@ class Home extends StatelessWidget {
       child: Scaffold(
         backgroundColor: Colors.brown[50],
         appBar: AppBar(
-          title: const Text('Brew Crew'),
+          title: const Text('Trackify'),
           backgroundColor: Colors.brown[400],
           elevation: 0.0,
           actions: <Widget>[
