@@ -1,5 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:trackify/models/trackify.dart';
+import 'package:trackify/models/user.dart';
 
 class DatabaseService {
 
@@ -34,10 +35,33 @@ class DatabaseService {
   }
 
 
+  // UserData from snapshot
+  UserData _userDataFromSnapshot(DocumentSnapshot snapshot) {
+    final data = snapshot.data() as Map<String, dynamic>?; // Safe casting
+
+    return UserData(
+      uid: uid,
+      name: data?['name'] ?? 'Unnamed',
+      sugars: data?['sugars'] ?? '0',
+      strength: data?['strength'] ?? 0,
+    );
+  }
+
+  
+
+
+
   // get trackify stream
   Stream <List<Trackify>> get trackify {
     return trackifyCollection.snapshots()
     .map(_trackifyListFromSnapshot);
+  }
+
+
+
+  // get user doc stream
+  Stream<UserData> get userData {
+    return trackifyCollection.doc(uid).snapshots().map(_userDataFromSnapshot);
   }
 
 
