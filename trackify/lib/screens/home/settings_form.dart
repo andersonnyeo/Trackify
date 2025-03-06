@@ -68,14 +68,7 @@ class _SettingsFormState extends State<SettingsForm> {
           ),
           
 
-
-
-
-
-
-
-
-
+          // Submit button 
           ElevatedButton  (
             style: ElevatedButton.styleFrom(
               backgroundColor: Colors.pink[400], // Button color
