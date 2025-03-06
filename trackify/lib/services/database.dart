@@ -47,10 +47,6 @@ class DatabaseService {
     );
   }
 
-  
-
-
-
   // get trackify stream
   Stream <List<Trackify>> get trackify {
     return trackifyCollection.snapshots()
