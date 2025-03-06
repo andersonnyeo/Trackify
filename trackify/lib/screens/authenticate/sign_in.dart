@@ -42,7 +42,7 @@ class _SignInState extends State<SignIn> {
             children: <Widget>[
 
               const SizedBox(height: 50),
-              const Icon(Icons.person, size: 80),
+              const Icon(Icons.login, size: 80),
               const SizedBox(height: 10),
 
               // Title
@@ -62,7 +62,16 @@ class _SignInState extends State<SignIn> {
               const SizedBox(height: 30),
 
               TextFormField(
-                decoration: textInputDecoration.copyWith(hintText: 'Email'),
+                decoration: textInputDecoration.copyWith(
+                  hintText: 'Email',
+                  prefixIcon: const Icon(Icons.email, color: Colors.deepPurple),
+                  filled: true,
+                  fillColor: Colors.grey[100],
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    borderSide: BorderSide.none,
+                    ),
+                  ),
                 validator: (val) => val!.isEmpty ? 'Enter an email' : null,
                 onChanged: (val) {
                   setState(() => email = val);
@@ -70,7 +79,16 @@ class _SignInState extends State<SignIn> {
               ),
               const SizedBox(height: 20.0),
               TextFormField(
-                decoration: textInputDecoration.copyWith(hintText: 'Password'),
+                decoration: textInputDecoration.copyWith(
+                  hintText: 'Password',
+                  prefixIcon: const Icon(Icons.lock, color: Colors.deepPurple),
+                  filled: true,
+                  fillColor: Colors.grey[100],
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    borderSide: BorderSide.none,
+                    ),
+                  ),
                 obscureText: true,
                 validator: (val) => val!.length < 6 ? 'Enter a password 6+ chars long' : null,
                 onChanged: (val) {
@@ -80,26 +98,21 @@ class _SignInState extends State<SignIn> {
               const SizedBox(height: 20.0),
 
               // Forgot password function
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 25.0),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.end,
-                  children: [
-                    GestureDetector(
-                      onTap: () {
-                        Navigator.push(context, MaterialPageRoute(builder: (context) {
-                          return ForgotPasswordPage();
-                        }));
-                      },
-                      child: const Text(
-                        'Forgot Password?',
-                        style: TextStyle(
-                          color: Colors.blue,
-                          fontWeight: FontWeight.bold,
-                        ),
-                        ),
+              Align(
+                alignment: Alignment.centerRight,
+                child: GestureDetector(
+                  onTap: () {
+                    Navigator.push(context, MaterialPageRoute(builder: (context) {
+                      return const ForgotPasswordPage();
+                    }));
+                  },
+                  child: const Text(
+                    'Forgot Password?',
+                    style: TextStyle(
+                      color: Colors.blue,
+                      fontWeight: FontWeight.bold,
                     ),
-                  ],
+                  ),
                 ),
               ),
 
@@ -108,12 +121,18 @@ class _SignInState extends State<SignIn> {
 
               ElevatedButton (
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.pink[400], // Updated property name
-                  foregroundColor: Colors.white,
+                  backgroundColor: Colors.deepPurple,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  padding: const EdgeInsets.symmetric(vertical: 14),
+                  minimumSize: const Size(double.infinity, 50),
                 ),
                 child: const Text(
                   'Sign in',
-                  style: TextStyle(color: Colors.white),
+                  style: TextStyle(
+                    fontSize: 16, 
+                    color: Colors.white),
                 ),
                 onPressed: () async {
                   if (_formKey.currentState!.validate()){
