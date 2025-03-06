@@ -12,6 +12,16 @@ class Home extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+
+    void _showSettingsPanel() {
+      showModalBottomSheet(context: context, builder: (context){
+        return Container(
+          padding: const EdgeInsets.symmetric(vertical: 20.0, horizontal: 60.0),
+          child: const Text('bottom sheet'),
+        );
+      });
+    }
+
     return StreamProvider<List<Trackify>?>.value(
       value: DatabaseService(uid: "").trackify,
       initialData: null,
@@ -29,7 +39,12 @@ class Home extends StatelessWidget {
               onPressed: () async{
                 await _auth .signOut();
               },
-            )
+            ),
+            TextButton.icon(
+              icon: const Icon(Icons.settings),
+              label: const Text('settings'),
+              onPressed: () => _showSettingsPanel(),
+              )
           ],
         ),
         body: const TrackifyList(),

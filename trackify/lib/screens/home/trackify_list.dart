@@ -20,18 +20,11 @@ class _TrackifyListState extends State<TrackifyList> {
       return const Center(child: CircularProgressIndicator());
     }
 
-
-
-
-
-
     return ListView.builder(
       itemCount: trackify.length,
       itemBuilder: (content, index) {
         
         return TrackifyTile(trackify: trackify[index]);
-
-
       },
     );
   }
