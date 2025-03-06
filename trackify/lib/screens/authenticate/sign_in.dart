@@ -40,7 +40,27 @@ class _SignInState extends State<SignIn> {
           key: _formKey,
           child: Column(
             children: <Widget>[
-              const SizedBox(height: 20.0),
+
+              const SizedBox(height: 50),
+              const Icon(Icons.person, size: 80),
+              const SizedBox(height: 10),
+
+              // Title
+              const Text(
+                'Welcome to Trackify',
+                style: TextStyle(
+                  fontSize: 26,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              const SizedBox(height: 10),
+              const Text(
+                'Sign in to continue',
+                textAlign: TextAlign.center,
+                style: TextStyle(fontSize: 16),
+              ),
+              const SizedBox(height: 30),
+
               TextFormField(
                 decoration: textInputDecoration.copyWith(hintText: 'Email'),
                 validator: (val) => val!.isEmpty ? 'Enter an email' : null,
