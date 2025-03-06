@@ -32,15 +32,6 @@ class _RegisterState extends State<Register> {
         backgroundColor: Colors.purple[200],
         elevation: 0.0,
         title: const Text('Sign up to Trackify'),
-        actions: <Widget>[
-          TextButton.icon(
-            icon: const Icon(Icons.person),
-            label: const Text('Sign In'),
-            onPressed: () {
-              widget.toggleView();
-            },
-          )
-        ],
       ),
       body: Container(
         padding: const EdgeInsets.symmetric(vertical: 20.0, horizontal: 50.0),
@@ -92,7 +83,7 @@ class _RegisterState extends State<Register> {
                 ),
               ),
 
-              const SizedBox(height: 20.0),
+              const SizedBox(height: 10.0),
 
 
 
@@ -118,7 +109,33 @@ class _RegisterState extends State<Register> {
                   }
                 }
               ),
-              const SizedBox(height: 12.0),
+              const SizedBox(height: 10.0),
+
+              // Sign in Option (Only "Register now" is clickable)
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  const Text(
+                    'I am a member! ',
+                  ),
+                  GestureDetector(
+                    onTap: () {
+                      widget.toggleView();
+                    },
+                    child: const Text(
+                      'Login now',
+                      style: TextStyle(
+                        color: Colors.blue,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+
+              
+              const SizedBox(height: 20.0),
+
               Text(
                 error,
                 style: const TextStyle(color: Colors.red, fontSize: 14.0),
