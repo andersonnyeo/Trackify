@@ -34,7 +34,7 @@ class _RegisterState extends State<Register> {
         title: const Text('Sign up to Trackify'),
       ),
       body: Container(
-        padding: const EdgeInsets.symmetric(vertical: 20.0, horizontal: 50.0),
+        padding: const EdgeInsets.symmetric(vertical: 20.0, horizontal: 40.0),
         child: Form(
           key: _formKey,
           child: Column(
@@ -61,10 +61,6 @@ class _RegisterState extends State<Register> {
               const SizedBox(height: 30),
 
             
-
-  
-
-
               TextFormField(
                 decoration: textInputDecoration.copyWith(
                   hintText: 'Email',
@@ -102,31 +98,7 @@ class _RegisterState extends State<Register> {
               ),
               const SizedBox(height: 20.0),
 
-              
               // Forgot password function
-              // Padding(
-              //   padding: const EdgeInsets.symmetric(horizontal: 25.0),
-              //   child: Row(
-              //     mainAxisAlignment: MainAxisAlignment.end,
-              //     children: [
-              //       GestureDetector(
-              //         onTap: () {
-              //           Navigator.push(context, MaterialPageRoute(builder: (context) {
-              //             return const ForgotPasswordPage();
-              //           }));
-              //         },
-              //         child: const Text(
-              //           'Forgot Password?',
-              //           style: TextStyle(
-              //             color: Colors.blue,
-              //             fontWeight: FontWeight.bold,
-              //           ),
-              //           ),
-              //       ),
-              //     ],
-              //   ),
-              // ),
-
 
               Align(
                 alignment: Alignment.centerRight,
@@ -146,7 +118,7 @@ class _RegisterState extends State<Register> {
                 ),
               ),
 
-              const SizedBox(height: 10.0),
+              const SizedBox(height: 20.0),
 
 
 

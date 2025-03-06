@@ -35,7 +35,7 @@ class _SignInState extends State<SignIn> {
         title: const Text('Sign in to Trackify'),
       ),
       body: Container(
-        padding: const EdgeInsets.symmetric(vertical: 20.0, horizontal: 50.0),
+        padding: const EdgeInsets.symmetric(vertical: 20.0, horizontal: 40.0),
         child: Form(
           key: _formKey,
           child: Column(
@@ -116,7 +116,7 @@ class _SignInState extends State<SignIn> {
                 ),
               ),
 
-              const SizedBox(height: 10.0),
+              const SizedBox(height: 20.0),
 
 
               ElevatedButton (
