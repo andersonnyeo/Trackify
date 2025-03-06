@@ -14,11 +14,11 @@ class TrackifyList extends StatefulWidget {
 class _TrackifyListState extends State<TrackifyList> {
   @override
   Widget build(BuildContext context) {
-    final trackify = Provider.of<List<Trackify>?>(context);
+    final trackify = Provider.of<List<Trackify>?>(context) ?? [];
 
-    if (trackify == null) {
-      return const Center(child: CircularProgressIndicator());
-    }
+    // if (trackify == null) {
+    //   return const Center(child: CircularProgressIndicator());
+    // }
 
     return ListView.builder(
       itemCount: trackify.length,
