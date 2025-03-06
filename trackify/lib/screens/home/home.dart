@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:trackify/screens/home/settings_form.dart';
 import 'package:trackify/screens/home/trackify_list.dart';
 import 'package:trackify/services/auth.dart';
 import 'package:trackify/services/database.dart';
@@ -17,7 +18,7 @@ class Home extends StatelessWidget {
       showModalBottomSheet(context: context, builder: (context){
         return Container(
           padding: const EdgeInsets.symmetric(vertical: 20.0, horizontal: 60.0),
-          child: const Text('bottom sheet'),
+          child: const SettingsForm(),
         );
       });
     }
