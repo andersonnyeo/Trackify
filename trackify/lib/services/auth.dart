@@ -57,13 +57,9 @@ class AuthService {
       firebase_auth.User? user = result.user;
 
       // create a new document for the user with the uid
-      
-      // await DatabaseService(uid: user.uid).updateUserData('0', 'new crew member', 100);
-      // return _userFromFirebaseUser(user);
-
       if (user != null) {
         // Create a new document for the user with the UID
-        await DatabaseService(uid: user.uid).updateUserData('0', 'new crew member', 100);
+        await DatabaseService(uid: user.uid).updateUserData('0', 'new user', 100);
         return _userFromFirebaseUser(user);
       } else {
         return null;
@@ -72,6 +68,19 @@ class AuthService {
       print(e.toString());
       return null;
 
+    }
+  }
+
+  // update password
+  Future updatePassword(String newPassword) async {
+    try {
+      firebase_auth.User? user = _auth.currentUser;
+      if (user != null) {
+        await user.updatePassword(newPassword);
+      }
+    } catch (e) {
+      print(e.toString());
+      // throw e;
     }
   }
 
