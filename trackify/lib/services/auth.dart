@@ -75,6 +75,19 @@ class AuthService {
     }
   }
 
+  // update password
+  Future updatePassword(String newPassword) async {
+    try {
+      firebase_auth.User? user = _auth.currentUser;
+      if (user != null) {
+        await user.updatePassword(newPassword);
+      }
+    } catch (e) {
+      print(e.toString());
+      // throw e;
+    }
+  }
+
 
 
   // sign out

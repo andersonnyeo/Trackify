@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:trackify/screens/home/settings_form.dart';
 import 'package:trackify/screens/home/trackify_list.dart';
-import 'package:trackify/services/auth.dart';
+// import 'package:trackify/services/auth.dart';
 import 'package:trackify/services/database.dart';
 import 'package:provider/provider.dart';
 import 'package:trackify/models/trackify.dart';
@@ -14,7 +14,7 @@ class Home extends StatefulWidget {
 }
 
 class _HomeState extends State<Home> {
-  final AuthService _auth = AuthService();
+  // final AuthService _auth = AuthService();
   int _selectedIndex = 0;
 
   final List<Widget> _screens = [
