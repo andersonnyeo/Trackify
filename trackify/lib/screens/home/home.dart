@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:trackify/screens/home/expenses_record_screen.dart';
 import 'package:trackify/screens/home/settings_form.dart';
-import 'package:trackify/screens/home/trackify_list.dart';
+// import 'package:trackify/screens/home/trackify_list.dart';
 import 'package:trackify/services/database.dart';
 import 'package:provider/provider.dart';
 import 'package:trackify/models/trackify.dart';
@@ -16,7 +17,8 @@ class _HomeState extends State<Home> {
   int _selectedIndex = 0;
 
   final List<Widget> _screens = [
-    const TrackifyList(),
+    // const TrackifyList(),
+    const ExpenseRecordScreen(),
     const SettingsForm(),
   ];
 
