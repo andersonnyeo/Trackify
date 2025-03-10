@@ -44,6 +44,7 @@ dependencies:
   intl: ^0.20.2
   font_awesome_flutter: ^10.8.0
   fl_chart: ^0.70.2
+  flutter_colorpicker: ^1.1.0
   
 
 dev_dependencies:
