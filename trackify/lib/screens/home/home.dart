@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:trackify/app.dart';
 import 'package:trackify/screens/home/expenses_record_screen.dart';
 import 'package:trackify/screens/home/settings_form.dart';
 // import 'package:trackify/screens/home/trackify_list.dart';
@@ -19,6 +20,7 @@ class _HomeState extends State<Home> {
   final List<Widget> _screens = [
     // const TrackifyList(),
     const ExpenseRecordScreen(),
+    // const MyApp1(),    
     const SettingsForm(),
   ];
 
