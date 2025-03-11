@@ -1,7 +1,8 @@
 import 'dart:math';
-
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 
 class MyChart extends StatefulWidget {
   const MyChart({super.key});
@@ -11,14 +12,67 @@ class MyChart extends StatefulWidget {
 }
 
 class _MyChartState extends State<MyChart> {
+  Map<int, double> monthlyTotals = {}; // Stores month index -> total amount
+  List<int> displayedMonths = []; // Stores months that have data
+  bool isLoading = true;
+  bool hasData = false; // Flag to check if there is any data
+
   @override
-  Widget build(BuildContext context) {
-    return BarChart(
-      mainBarData(),
-    );
+  void initState() {
+    super.initState();
+    fetchMonthlyExpenses();
   }
 
-  BarChartGroupData makeGroupData( int x, double y) {
+  Future<void> fetchMonthlyExpenses() async {
+    Map<int, double> tempData = {};
+
+    // Get all expense documents
+    QuerySnapshot expenseDocs =
+        await FirebaseFirestore.instance.collection('expenseDocuments').get();
+
+    for (var doc in expenseDocs.docs) {
+      // Get expenses inside each document
+      QuerySnapshot expenses = await doc.reference.collection('expenses').get();
+
+      for (var expense in expenses.docs) {
+        var data = expense.data() as Map<String, dynamic>;
+        if (data.containsKey('amount') && data.containsKey('date')) {
+          double amount = (data['amount'] as num).toDouble();
+          DateTime date = (data['date'] as Timestamp).toDate();
+          int monthIndex = date.month - 1; // Convert to 0-based index
+
+          tempData[monthIndex] = (tempData[monthIndex] ?? 0) + amount;
+        }
+      }
+    }
+
+    setState(() {
+      monthlyTotals = tempData;
+      displayedMonths = monthlyTotals.keys.toList()..sort(); // Sort months
+      hasData = monthlyTotals.isNotEmpty;
+      isLoading = false;
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    if (isLoading) {
+      return const Center(child: CircularProgressIndicator());
+    }
+
+    if (!hasData) {
+      return const Center(
+        child: Text(
+          "No data available",
+          style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.grey),
+        ),
+      );
+    }
+
+    return BarChart(mainBarData());
+  }
+
+  BarChartGroupData makeGroupData(int x, double y) {
     return BarChartGroupData(
       x: x,
       barRods: [
@@ -28,157 +82,81 @@ class _MyChartState extends State<MyChart> {
             colors: [
               Theme.of(context).colorScheme.primary,
               Theme.of(context).colorScheme.secondary,
-              Theme.of(context).colorScheme.tertiary,
             ],
-            transform: const GradientRotation(pi / 40),
+            transform: const GradientRotation(pi / 4),
           ),
           width: 20,
           backDrawRodData: BackgroundBarChartRodData(
             show: true,
-            toY: 5,
-            
-            color: Colors.grey.shade300
-          )
+            toY: monthlyTotals.values.reduce(max),
+            color: Colors.grey.shade300,
+          ),
         )
-      ]
-      );
-
+      ],
+    );
   }
 
-  List<BarChartGroupData> showingGroups() => List.generate(8, (i){
-    switch (i) {
-      case 0:
-        return makeGroupData(0,2);
-      case 1:
-        return makeGroupData(1,3);
-      case 2:
-        return makeGroupData(2,2);
-      case 3:
-        return makeGroupData(3,4.5);
-      case 4:
-        return makeGroupData(4, 3.8);
-      case 5:
-        return makeGroupData(5, 1.5);
-      case 6:
-        return makeGroupData(6, 4);
-      case 7:
-        return makeGroupData(7, 3.8);
-      default:
-        return throw Error();
-    }
-  });
+  List<BarChartGroupData> showingGroups() {
+    return displayedMonths
+        .map((monthIndex) => makeGroupData(monthIndex, monthlyTotals[monthIndex]!))
+        .toList();
+  }
 
   BarChartData mainBarData() {
     return BarChartData(
       titlesData: FlTitlesData(
         show: true,
-        rightTitles: const AxisTitles(
-          sideTitles: SideTitles(showTitles: false),
-        ),
-        topTitles: const AxisTitles(
-          sideTitles: SideTitles(showTitles: false),
-        ),
+        rightTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+        topTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
         bottomTitles: AxisTitles(
           sideTitles: SideTitles(
             showTitles: true,
             reservedSize: 38,
-            getTitlesWidget: getTiles,
+            getTitlesWidget: getMonthTitle,
           ),
         ),
         leftTitles: AxisTitles(
           sideTitles: SideTitles(
             showTitles: true,
-            reservedSize: 38,
-            getTitlesWidget: leftTitles,
+            reservedSize: 40,
+            getTitlesWidget: getLeftTitles,
           ),
         ),
       ),
-      borderData: FlBorderData(
-        show: false
-      ),
+      borderData: FlBorderData(show: false),
       gridData: const FlGridData(show: false),
       barGroups: showingGroups(),
     );
   }
 
-  Widget getTiles(double value, TitleMeta meta) {
+  Widget getMonthTitle(double value, TitleMeta meta) {
     const style = TextStyle(
       color: Colors.grey,
       fontWeight: FontWeight.bold,
       fontSize: 14,
     );
 
-    Widget text;
-    switch (value.toInt()) {
-      case 0:
-        text = const Text('01', style: style);
-        break;
-      case 1:
-        text = const Text('02', style: style);
-        break;
-      case 2:
-        text = const Text('03', style: style);
-        break;
-      case 3:
-        text = const Text('04', style: style);
-        break;
-      case 4:
-        text = const Text('05', style: style);
-        break;
-      case 5:
-        text = const Text('06', style: style);
-        break;
-      case 6:
-        text = const Text('07', style: style);
-        break;
-      case 7:
-        text = const Text('08', style: style);
-        break;
-      default:
-        text = const Text('', style: style);
-        break;
-    }
+    List<String> monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    int index = value.toInt();
 
-    return SideTitleWidget(
-      meta: meta, // Removed axisSide — meta is all we need
-      space: 16,
-      child: text,
-    );
+    String text = displayedMonths.contains(index) ? monthNames[index] : '';
+
+    return SideTitleWidget(meta: meta, space: 8, child: Text(text, style: style));
   }
 
-  Widget leftTitles(double value, TitleMeta meta) {
+  Widget getLeftTitles(double value, TitleMeta meta) {
     const style = TextStyle(
       color: Colors.grey,
       fontWeight: FontWeight.bold,
       fontSize: 14,
     );
 
-    String text;
-    switch (value.toInt()) {
-      case 1:
-        text = '1K';
-        break;
-      case 2:
-        text = '2K';
-        break;
-      case 3:
-        text = '3K';
-        break;
-      case 4:
-        text = '4K';
-        break;
-      case 5:
-        text = '5K';
-        break;
-      default:
-        text = '';
-        break;
-    }
+    if (value == 0) return const SizedBox.shrink();
 
-    return SideTitleWidget(
-      meta: meta, // Removed axisSide here too
-      space: 0,
-      child: Text(text, style: style),
-    );
+    String text = value >= 1000
+        ? '${(value / 1000).toStringAsFixed(value % 1000 == 0 ? 0 : 1)}K'
+        : value.toStringAsFixed(0);
+
+    return SideTitleWidget(meta: meta, space: 4, child: Text(text, style: style));
   }
 }

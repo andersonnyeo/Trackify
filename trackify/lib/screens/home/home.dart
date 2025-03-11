@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:trackify/app.dart';
 import 'package:trackify/screens/home/expenses_record_screen.dart';
 import 'package:trackify/screens/home/settings_form.dart';
+import 'package:trackify/screens/home/trackify_list.dart';
+import 'package:trackify/screens/stats/stats.dart';
 // import 'package:trackify/screens/home/trackify_list.dart';
 import 'package:trackify/services/database.dart';
 import 'package:provider/provider.dart';
@@ -20,7 +21,7 @@ class _HomeState extends State<Home> {
   final List<Widget> _screens = [
     // const TrackifyList(),
     const ExpenseRecordScreen(),
-    // const MyApp1(),    
+    const StatsScreen(),    
     const SettingsForm(),
   ];
 
@@ -64,6 +65,10 @@ class _HomeState extends State<Home> {
             BottomNavigationBarItem(
               icon: Icon(Icons.home),
               label: 'Home',
+            ),
+            BottomNavigationBarItem(
+              icon: Icon(Icons.add_chart),
+              label: 'Charts',
             ),
             BottomNavigationBarItem(
               icon: Icon(Icons.settings),
