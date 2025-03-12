@@ -20,26 +20,63 @@ class ExpenseDetailsScreen extends StatelessWidget {
       appBar: AppBar(
         title: Text(title),
         actions: [
-          PopupMenuButton<String>(
-            onSelected: (value) {
-              if (value == 'Chart') {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (_) => StatsScreen(docId: docId)), // Pass docId
-                );
-              } else if (value == 'Stats') {
-                // Navigator.push(
-                //   context,
-                //   MaterialPageRoute(builder: (_) => ChartScreen(docId: docId)), // Pass docId
-                // );
-              }
-            },
-            itemBuilder: (context) => [
-              const PopupMenuItem(value: 'Chart', child: Text('Chart')),
-              const PopupMenuItem(value: 'Stats', child: Text('Stats')),
-            ],
-          ),
-        ],
+  PopupMenuButton<String>(
+    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+    elevation: 8,
+    color: Colors.white,
+    offset: const Offset(0, 50),
+    onSelected: (value) {
+      if (value == 'Chart') {
+        Navigator.push(
+          context,
+          MaterialPageRoute(builder: (_) => StatsScreen(docId: docId)),
+        );
+      } else if (value == 'Stats') {
+        // Uncomment when ChartScreen is ready
+        // Navigator.push(
+        //   context,
+        //   MaterialPageRoute(builder: (_) => ChartScreen(docId: docId)),
+        // );
+      } else if (value == 'Delete') {
+        _deleteExpenseDocument(context, firestore, uid, docId);
+      }
+    },
+    itemBuilder: (context) => [
+      const PopupMenuItem(
+        value: 'Chart',
+        child: Row(
+          children: const [
+            Icon(Icons.pie_chart, color: Colors.blue),
+            SizedBox(width: 10),
+            Text('View Chart', style: TextStyle(fontSize: 16)),
+          ],
+        ),
+      ),
+      const PopupMenuItem(
+        value: 'Stats',
+        child: Row(
+          children: const [
+            Icon(Icons.bar_chart, color: Colors.green),
+            SizedBox(width: 10),
+            Text('View Stats', style: TextStyle(fontSize: 16)),
+          ],
+        ),
+      ),
+      const PopupMenuDivider(),
+      const PopupMenuItem(
+        value: 'Delete',
+        child: Row(
+          children: const [
+            Icon(Icons.delete, color: Colors.red),
+            SizedBox(width: 10),
+            Text('Delete Document', style: TextStyle(fontSize: 16, color: Colors.red)),
+          ],
+        ),
+      ),
+    ],
+  ),
+],
+
       ),
       body: StreamBuilder<QuerySnapshot>(
         stream: firestore
@@ -93,8 +130,6 @@ class ExpenseDetailsScreen extends StatelessWidget {
       ),
     );
   }
-
-
 
   void _editExpense(BuildContext context, FirebaseFirestore firestore, String uid, String docId, QueryDocumentSnapshot expense) {
     String description = expense['description'];
@@ -202,6 +237,27 @@ class ExpenseDetailsScreen extends StatelessWidget {
                   .delete();
 
               Navigator.pop(context);
+            },
+            child: const Text("Delete", style: TextStyle(color: Colors.red)),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _deleteExpenseDocument(BuildContext context, FirebaseFirestore firestore, String uid, String docId) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text("Delete Expense Document"),
+        content: const Text("Are you sure you want to delete this expense document? This action cannot be undone."),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(context), child: const Text("Cancel")),
+          TextButton(
+            onPressed: () {
+              firestore.collection('users').doc(uid).collection('expenseDocuments').doc(docId).delete();
+              Navigator.pop(context);
+              Navigator.pop(context); // Go back to the previous screen after deletion
             },
             child: const Text("Delete", style: TextStyle(color: Colors.red)),
           ),
