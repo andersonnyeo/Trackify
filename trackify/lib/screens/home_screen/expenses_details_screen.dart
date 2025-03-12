@@ -20,114 +20,138 @@ class ExpenseDetailsScreen extends StatelessWidget {
       appBar: AppBar(
         title: Text(title),
         actions: [
-  PopupMenuButton<String>(
-    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-    elevation: 8,
-    color: Colors.white,
-    offset: const Offset(0, 50),
-    onSelected: (value) {
-      if (value == 'Chart') {
-        Navigator.push(
-          context,
-          MaterialPageRoute(builder: (_) => StatsScreen(docId: docId)),
-        );
-      } else if (value == 'Stats') {
-        // Uncomment when ChartScreen is ready
-        // Navigator.push(
-        //   context,
-        //   MaterialPageRoute(builder: (_) => ChartScreen(docId: docId)),
-        // );
-      } else if (value == 'Delete') {
-        _deleteExpenseDocument(context, firestore, uid, docId);
-      }
-    },
-    itemBuilder: (context) => [
-      const PopupMenuItem(
-        value: 'Chart',
-        child: Row(
-          children: const [
-            Icon(Icons.pie_chart, color: Colors.blue),
-            SizedBox(width: 10),
-            Text('View Chart', style: TextStyle(fontSize: 16)),
-          ],
-        ),
+          PopupMenuButton<String>(
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+            elevation: 8,
+            color: Colors.white,
+            offset: const Offset(0, 50),
+            onSelected: (value) {
+              if (value == 'Chart') {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (_) => StatsScreen(docId: docId)),
+                );
+              } else if (value == 'Stats') {
+                // Uncomment when ChartScreen is ready
+                // Navigator.push(
+                //   context,
+                //   MaterialPageRoute(builder: (_) => ChartScreen(docId: docId)),
+                // );
+              } else if (value == 'Delete') {
+                _deleteExpenseDocument(context, firestore, uid, docId);
+              }
+            },
+            itemBuilder: (context) => [
+              const PopupMenuItem(
+                value: 'Chart',
+                child: Row(
+                  children: const [
+                    Icon(Icons.pie_chart, color: Colors.blue),
+                    SizedBox(width: 10),
+                    Text('View Chart', style: TextStyle(fontSize: 16)),
+                  ],
+                ),
+              ),
+              const PopupMenuItem(
+                value: 'Stats',
+                child: Row(
+                  children: const [
+                    Icon(Icons.bar_chart, color: Colors.green),
+                    SizedBox(width: 10),
+                    Text('View Stats', style: TextStyle(fontSize: 16)),
+                  ],
+                ),
+              ),
+              const PopupMenuDivider(),
+              const PopupMenuItem(
+                value: 'Delete',
+                child: Row(
+                  children: const [
+                    Icon(Icons.delete, color: Colors.red),
+                    SizedBox(width: 10),
+                    Text('Delete Document', style: TextStyle(fontSize: 16, color: Colors.red)),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ],
       ),
-      const PopupMenuItem(
-        value: 'Stats',
-        child: Row(
-          children: const [
-            Icon(Icons.bar_chart, color: Colors.green),
-            SizedBox(width: 10),
-            Text('View Stats', style: TextStyle(fontSize: 16)),
-          ],
-        ),
-      ),
-      const PopupMenuDivider(),
-      const PopupMenuItem(
-        value: 'Delete',
-        child: Row(
-          children: const [
-            Icon(Icons.delete, color: Colors.red),
-            SizedBox(width: 10),
-            Text('Delete Document', style: TextStyle(fontSize: 16, color: Colors.red)),
-          ],
-        ),
-      ),
-    ],
-  ),
-],
+        body: StreamBuilder<QuerySnapshot>(
+          stream: firestore
+              .collection('users')
+              .doc(uid)
+              .collection('expenseDocuments')
+              .doc(docId)
+              .collection('expenses')
+              .snapshots(),
+          builder: (context, snapshot) {
+            if (snapshot.connectionState == ConnectionState.waiting) {
+              return const Center(child: CircularProgressIndicator());
+            }
 
-      ),
-      body: StreamBuilder<QuerySnapshot>(
-        stream: firestore
-            .collection('users')
-            .doc(uid)
-            .collection('expenseDocuments')
-            .doc(docId)
-            .collection('expenses')
-            .snapshots(),
-        builder: (context, snapshot) {
-          if (!snapshot.hasData) return const Center(child: CircularProgressIndicator());
-
-          final expenses = snapshot.data!.docs;
-
-          return ListView.builder(
-            padding: const EdgeInsets.all(10),
-            itemCount: expenses.length,
-            itemBuilder: (context, index) {
-              var expense = expenses[index];
-              return Card(
-                margin: const EdgeInsets.symmetric(vertical: 8),
-                elevation: 3,
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-                child: ListTile(
-                  title: Text(expense['description'], style: const TextStyle(fontWeight: FontWeight.bold)),
-                  subtitle: Text(
-                    '${expense['category']} - ${DateFormat('yyyy-MM-dd').format((expense['date'] as Timestamp).toDate())}',
-                  ),
-                  trailing: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Text(
-                        '\$${expense['amount'].toStringAsFixed(2)}',
-                        style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.green),
-                      ),
-                      IconButton(
-                        icon: const Icon(Icons.edit, color: Colors.blue),
-                        onPressed: () => _editExpense(context, firestore, uid, docId, expense),
-                      ),
-                      IconButton(
-                        icon: const Icon(Icons.delete, color: Colors.red),
-                        onPressed: () => _deleteExpense(context, firestore, uid, docId, expense.id),
-                      ),
-                    ],
-                  ),
+            if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
+              return Center(
+                child: Column(
+                  // mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    const SizedBox(height: 200),
+                    Icon(Icons.receipt_long, size: 80, color: Colors.grey[500]),
+                    const SizedBox(height: 20),
+                    const Text(
+                      "No expenses recorded yet.",
+                      style: TextStyle(fontSize: 18, color: Colors.grey),
+                    ),
+                    const SizedBox(height: 10),
+                    const Text(
+                      "Tap the + button to add your first expense.",
+                      style: TextStyle(fontSize: 14, color: Colors.grey),
+                    ),
+                  ],
                 ),
               );
-            },
-          );
-        },
-      ),
+            }
+
+            final expenses = snapshot.data!.docs;
+
+            return ListView.builder(
+              padding: const EdgeInsets.all(10),
+              itemCount: expenses.length,
+              itemBuilder: (context, index) {
+                var expense = expenses[index];
+                return Card(
+                  margin: const EdgeInsets.symmetric(vertical: 8),
+                  elevation: 3,
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                  child: ListTile(
+                    title: Text(expense['description'], style: const TextStyle(fontWeight: FontWeight.bold)),
+                    subtitle: Text(
+                      '${expense['category']} - ${DateFormat('yyyy-MM-dd').format((expense['date'] as Timestamp).toDate())}',
+                    ),
+                    trailing: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Text(
+                          '\$${expense['amount'].toStringAsFixed(2)}',
+                          style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.green),
+                        ),
+                        IconButton(
+                          icon: const Icon(Icons.edit, color: Colors.blue),
+                          onPressed: () => _editExpense(context, firestore, uid, docId, expense),
+                        ),
+                        IconButton(
+                          icon: const Icon(Icons.delete, color: Colors.red),
+                          onPressed: () => _deleteExpense(context, firestore, uid, docId, expense.id),
+                        ),
+                      ],
+                    ),
+                  ),
+                );
+              },
+            );
+          },
+        ),    
+
     );
   }
 
