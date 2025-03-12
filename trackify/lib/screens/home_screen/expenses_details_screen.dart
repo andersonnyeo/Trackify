@@ -1,8 +1,9 @@
-import 'package:firebase_core/firebase_core.dart';
+import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:trackify/screens/chart_screen/chart.dart';
+import 'package:trackify/screens/chart_screen/stats.dart';
 
 class ExpenseDetailsScreen extends StatelessWidget {
   final String docId;
@@ -17,12 +18,28 @@ class ExpenseDetailsScreen extends StatelessWidget {
 
     return Scaffold(
       appBar: AppBar(
-        title: Text(
-          title,
-          style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)
-        ),
-        backgroundColor: Colors.deepPurple,
-        elevation: 0.0,
+        title: Text(title),
+        actions: [
+          PopupMenuButton<String>(
+            onSelected: (value) {
+              if (value == 'Chart') {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (_) => StatsScreen(docId: docId)), // Pass docId
+                );
+              } else if (value == 'Stats') {
+                // Navigator.push(
+                //   context,
+                //   MaterialPageRoute(builder: (_) => ChartScreen(docId: docId)), // Pass docId
+                // );
+              }
+            },
+            itemBuilder: (context) => [
+              const PopupMenuItem(value: 'Chart', child: Text('Chart')),
+              const PopupMenuItem(value: 'Stats', child: Text('Stats')),
+            ],
+          ),
+        ],
       ),
       body: StreamBuilder<QuerySnapshot>(
         stream: firestore
@@ -54,6 +71,10 @@ class ExpenseDetailsScreen extends StatelessWidget {
                   trailing: Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
+                      Text(
+                        '\$${expense['amount'].toStringAsFixed(2)}',
+                        style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.green),
+                      ),
                       IconButton(
                         icon: const Icon(Icons.edit, color: Colors.blue),
                         onPressed: () => _editExpense(context, firestore, uid, docId, expense),
@@ -73,123 +94,119 @@ class ExpenseDetailsScreen extends StatelessWidget {
     );
   }
 
-  void _editExpense(BuildContext context, FirebaseFirestore firestore, String uid, String docId, QueryDocumentSnapshot expense) {
-  String description = expense['description'];
-  double amount = expense['amount'];
-  String category = expense['category'];
-  DateTime selectedDate = (expense['date'] as Timestamp).toDate();
 
-  showDialog(
-    context: context,
-    builder: (context) {
-      return StatefulBuilder(
-        builder: (context, setDialogState) {
-          return AlertDialog(
-            title: const Text('Edit Expense'),
-            content: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                TextField(
-                  controller: TextEditingController(text: description),
-                  onChanged: (value) => description = value,
-                  decoration: const InputDecoration(hintText: 'Expense description'),
-                ),
-                TextField(
-                  controller: TextEditingController(text: amount > 0 ? amount.toString() : ''),
-                  onChanged: (value) => amount = double.tryParse(value) ?? 0.0,
-                  keyboardType: TextInputType.number,
-                  decoration: const InputDecoration(hintText: 'Amount'),
-                ),
-                DropdownButton<String>(
-                  value: category,
-                  items: ['Food', 'Transport', 'Shopping', 'Bills', 'Other']
-                      .map((e) => DropdownMenuItem(value: e, child: Text(e)))
-                      .toList(),
-                  onChanged: (value) => setDialogState(() => category = value!),
+
+  void _editExpense(BuildContext context, FirebaseFirestore firestore, String uid, String docId, QueryDocumentSnapshot expense) {
+    String description = expense['description'];
+    double amount = expense['amount'];
+    String category = expense['category'];
+    DateTime selectedDate = (expense['date'] as Timestamp).toDate();
+
+    showDialog(
+      context: context,
+      builder: (context) {
+        return StatefulBuilder(
+          builder: (context, setDialogState) {
+            return AlertDialog(
+              title: const Text('Edit Expense'),
+              content: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  TextField(
+                    controller: TextEditingController(text: description),
+                    onChanged: (value) => description = value,
+                    decoration: const InputDecoration(hintText: 'Expense description'),
+                  ),
+                  TextField(
+                    controller: TextEditingController(text: amount > 0 ? amount.toString() : ''),
+                    onChanged: (value) => amount = double.tryParse(value) ?? 0.0,
+                    keyboardType: TextInputType.number,
+                    decoration: const InputDecoration(hintText: 'Amount'),
+                  ),
+                  DropdownButton<String>(
+                    value: category,
+                    items: ['Food', 'Transport', 'Shopping', 'Bills', 'Other']
+                        .map((e) => DropdownMenuItem(value: e, child: Text(e)))
+                        .toList(),
+                    onChanged: (value) => setDialogState(() => category = value!),
+                  ),
+                  TextButton(
+                    onPressed: () async {
+                      DateTime? pickedDate = await showDatePicker(
+                        context: context,
+                        initialDate: selectedDate,
+                        firstDate: DateTime(2000),
+                        lastDate: DateTime(2101),
+                      );
+                      if (pickedDate != null) setDialogState(() => selectedDate = pickedDate);
+                    },
+                    child: Text('Select Date: ${DateFormat('yyyy-MM-dd').format(selectedDate)}'),
+                  ),
+                ],
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.pop(context),
+                  child: const Text('Cancel'),
                 ),
                 TextButton(
-                  onPressed: () async {
-                    DateTime? pickedDate = await showDatePicker(
-                      context: context,
-                      initialDate: selectedDate,
-                      firstDate: DateTime(2000),
-                      lastDate: DateTime(2101),
-                    );
-                    if (pickedDate != null) setDialogState(() => selectedDate = pickedDate);
+                  onPressed: () {
+                    if (amount <= 0) {
+                      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Invalid amount')));
+                      return;
+                    }
+
+                    firestore
+                        .collection('users')
+                        .doc(uid)
+                        .collection('expenseDocuments')
+                        .doc(docId)
+                        .collection('expenses')
+                        .doc(expense.id)
+                        .update({
+                      'description': description,
+                      'amount': amount,
+                      'category': category,
+                      'date': Timestamp.fromDate(selectedDate),
+                    });
+
+                    Navigator.pop(context);
                   },
-                  child: Text('Select Date: ${DateFormat('yyyy-MM-dd').format(selectedDate)}'),
+                  child: const Text('Save'),
                 ),
               ],
-            ),
-            actions: [
-              TextButton(
-                onPressed: () => Navigator.pop(context),
-                child: const Text('Cancel'),
-              ),
-              TextButton(
-                onPressed: () {
-                  if (amount <= 0) {
-                    ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Invalid amount')));
-                    return;
-                  }
-
-                  firestore
-                      .collection('users')
-                      .doc(uid)
-                      .collection('expenseDocuments')
-                      .doc(docId)
-                      .collection('expenses')
-                      .doc(expense.id)
-                      .update({
-                    'description': description,
-                    'amount': amount,
-                    'category': category,
-                    'date': Timestamp.fromDate(selectedDate),
-                  });
-
-                  Navigator.pop(context);
-                },
-                child: const Text('Save'),
-              ),
-            ],
-          );
-        },
-      );
-    },
-  );
-}
-
+            );
+          },
+        );
+      },
+    );
+  }
 
   void _deleteExpense(BuildContext context, FirebaseFirestore firestore, String uid, String docId, String expenseId) {
     showDialog(
       context: context,
-      builder: (context) {
-        return AlertDialog(
-          title: const Text('Delete Expense'),
-          content: const Text('Are you sure you want to delete this expense?'),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(context),
-              child: const Text('Cancel'),
-            ),
-            TextButton(
-              onPressed: () {
-                firestore
-                    .collection('users')
-                    .doc(uid)
-                    .collection('expenseDocuments')
-                    .doc(docId)
-                    .collection('expenses')
-                    .doc(expenseId)
-                    .delete();
+      builder: (context) => AlertDialog(
+        title: const Text("Delete Expense"),
+        content: const Text("Are you sure you want to delete this expense?"),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(context), child: const Text("Cancel")),
+          TextButton(
+            onPressed: () {
+              firestore
+                  .collection('users')
+                  .doc(uid)
+                  .collection('expenseDocuments')
+                  .doc(docId)
+                  .collection('expenses')
+                  .doc(expenseId)
+                  .delete();
 
-                Navigator.pop(context);
-              },
-              child: const Text('Delete', style: TextStyle(color: Colors.red)),
-            ),
-          ],
-        );
-      },
+              Navigator.pop(context);
+            },
+            child: const Text("Delete", style: TextStyle(color: Colors.red)),
+          ),
+        ],
+      ),
     );
   }
 }

@@ -61,9 +61,15 @@ class _ExpenseRecordScreenState extends State<ExpenseRecordScreen> {
     }
   }
 
-  void _deleteExpense(String docId, String expenseId) async {
+  void _deleteExpenseDocument(String docId) async {
     if (_uid.isNotEmpty) {
-      await _firestore.collection('users').doc(_uid).collection('expenseDocuments').doc(docId).collection('expenses').doc(expenseId).delete();
+      // Delete all expenses inside the document first
+      var expenses = await _firestore.collection('users').doc(_uid).collection('expenseDocuments').doc(docId).collection('expenses').get();
+      for (var expense in expenses.docs) {
+        await expense.reference.delete();
+      }
+      // Delete the document itself
+      await _firestore.collection('users').doc(_uid).collection('expenseDocuments').doc(docId).delete();
     }
   }
 
@@ -84,25 +90,41 @@ class _ExpenseRecordScreenState extends State<ExpenseRecordScreen> {
                   itemCount: documents.length,
                   itemBuilder: (context, index) {
                     var doc = documents[index];
-                    return Card(
-                      elevation: 4,
-                      margin: const EdgeInsets.all(10),
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-                      child: ListTile(
-                        title: Text(doc['title'], style: const TextStyle(fontWeight: FontWeight.bold)),
-                        trailing: IconButton(
-                          icon: const Icon(Icons.add),
-                          onPressed: () => _showAddExpenseDialog(doc.id),
-                        ),
-                        onTap: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) => ExpenseDetailsScreen(docId: doc.id, title: doc['title']),
-                            ),
-                          );
-                        },
 
+                    return Dismissible(
+                      key: Key(doc.id), // Unique key for each item
+                      direction: DismissDirection.endToStart, // Swipe left to delete
+                      background: Container(
+                        alignment: Alignment.centerRight,
+                        padding: const EdgeInsets.symmetric(horizontal: 20),
+                        color: Colors.red,
+                        child: const Icon(Icons.delete, color: Colors.white),
+                      ),
+                      confirmDismiss: (direction) async {
+                        return await _showDeleteConfirmationDialog(doc.id);
+                      },
+                      onDismissed: (direction) {
+                        _deleteExpenseDocument(doc.id);
+                      },
+                      child: Card(
+                        elevation: 4,
+                        margin: const EdgeInsets.all(10),
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                        child: ListTile(
+                          title: Text(doc['title'], style: const TextStyle(fontWeight: FontWeight.bold)),
+                          trailing: IconButton(
+                            icon: const Icon(Icons.add),
+                            onPressed: () => _showAddExpenseDialog(doc.id),
+                          ),
+                          onTap: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => ExpenseDetailsScreen(docId: doc.id, title: doc['title']),
+                              ),
+                            );
+                          },
+                        ),
                       ),
                     );
                   },
@@ -113,6 +135,23 @@ class _ExpenseRecordScreenState extends State<ExpenseRecordScreen> {
         backgroundColor: Colors.deepPurple,
         child: const Icon(Icons.add),
         onPressed: _showNewDocumentDialog,
+      ),
+    );
+  }
+
+  Future<bool?> _showDeleteConfirmationDialog(String docId) async {
+    return showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Delete Expense Document'),
+        content: const Text('Are you sure you want to delete this document? All associated expenses will also be deleted.'),
+        actions: [
+          TextButton(child: const Text('Cancel'), onPressed: () => Navigator.pop(context, false)),
+          TextButton(
+            child: const Text('Delete', style: TextStyle(color: Colors.red)),
+            onPressed: () => Navigator.pop(context, true),
+          ),
+        ],
       ),
     );
   }
@@ -207,38 +246,6 @@ class _ExpenseRecordScreenState extends State<ExpenseRecordScreen> {
                   },
                 ),
               ],
-            );
-          },
-        );
-      },
-    );
-  }
-
-  void _showExpenseDetails(String docId, String title) {
-    showModalBottomSheet(
-      context: context,
-      builder: (context) {
-        return StreamBuilder<QuerySnapshot>(
-          stream: _firestore.collection('users').doc(_uid).collection('expenseDocuments').doc(docId).collection('expenses').snapshots(),
-          builder: (context, snapshot) {
-            if (!snapshot.hasData) return const Center(child: CircularProgressIndicator());
-
-            final expenses = snapshot.data!.docs;
-            return ListView(
-              padding: const EdgeInsets.all(10),
-              children: expenses.map((expense) {
-                return ListTile(
-                  title: Text(expense['description']),
-                  subtitle: Text('\$${expense['amount']} - ${expense['category']}'),
-                  trailing: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      IconButton(icon: const Icon(Icons.edit), onPressed: () => _showAddExpenseDialog(docId, expenseId: expense.id, existingDescription: expense['description'], existingAmount: expense['amount'].toDouble(), existingCategory: expense['category'], existingDate: (expense['date'] as Timestamp).toDate())),
-                      IconButton(icon: const Icon(Icons.delete, color: Colors.red), onPressed: () => _deleteExpense(docId, expense.id)),
-                    ],
-                  ),
-                );
-              }).toList(),
             );
           },
         );
