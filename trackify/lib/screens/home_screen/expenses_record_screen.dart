@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:intl/intl.dart';
+import 'package:trackify/screens/home_screen/expenses_details_screen.dart';
 
 class ExpenseRecordScreen extends StatefulWidget {
   const ExpenseRecordScreen({super.key});
@@ -93,7 +94,15 @@ class _ExpenseRecordScreenState extends State<ExpenseRecordScreen> {
                           icon: const Icon(Icons.add),
                           onPressed: () => _showAddExpenseDialog(doc.id),
                         ),
-                        onTap: () => _showExpenseDetails(doc.id, doc['title']),
+                        onTap: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => ExpenseDetailsScreen(docId: doc.id, title: doc['title']),
+                            ),
+                          );
+                        },
+
                       ),
                     );
                   },
