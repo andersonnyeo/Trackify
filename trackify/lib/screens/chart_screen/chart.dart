@@ -4,14 +4,14 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 
-class MyChart extends StatefulWidget {
-  const MyChart({super.key});
+class ChartScreen extends StatefulWidget {
+  const ChartScreen({super.key});
 
   @override
-  State<MyChart> createState() => _MyChartState();
+  State<ChartScreen> createState() => _ChartScreenState();
 }
 
-class _MyChartState extends State<MyChart> {
+class _ChartScreenState extends State<ChartScreen> {
   final FirebaseAuth _auth = FirebaseAuth.instance;
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   late String _uid;
