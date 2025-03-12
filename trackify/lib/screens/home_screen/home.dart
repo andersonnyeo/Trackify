@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:trackify/screens/home_screen/expenses_record_screen.dart';
 import 'package:trackify/screens/settings_screen/settings_form.dart';
-import 'package:trackify/screens/chart_screen/stats.dart';
 import 'package:trackify/services/database.dart';
 import 'package:provider/provider.dart';
 import 'package:trackify/models/trackify.dart';
@@ -17,9 +16,7 @@ class _HomeState extends State<Home> {
   int _selectedIndex = 0;
 
   final List<Widget> _screens = [
-    // const TrackifyList(),
     const ExpenseRecordScreen(),
-    const StatsScreen(),    
     const SettingsForm(),
   ];
 
@@ -40,19 +37,18 @@ class _HomeState extends State<Home> {
 
         // Appbar
         appBar: AppBar(
-          title: const Text('Trackify',
-              style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+          title: const Text(
+            'Trackify',
+            style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+          ),
           backgroundColor: Colors.deepPurple,
           elevation: 0.0,
         ),
 
-
         // body content
         body: _screens[_selectedIndex],
 
-
-
-        // bottom Navigation Bar
+        // bottom Navigation Bar (Only Home & Settings)
         bottomNavigationBar: BottomNavigationBar(
           backgroundColor: Colors.deepPurple,
           selectedItemColor: Colors.white,
@@ -63,10 +59,6 @@ class _HomeState extends State<Home> {
             BottomNavigationBarItem(
               icon: Icon(Icons.home),
               label: 'Home',
-            ),
-            BottomNavigationBarItem(
-              icon: Icon(Icons.add_chart),
-              label: 'Charts',
             ),
             BottomNavigationBarItem(
               icon: Icon(Icons.settings),
