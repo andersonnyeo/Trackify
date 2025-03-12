@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:trackify/screens/authenticate/authenticate.dart';
 import 'package:trackify/models/user.dart';
-import 'package:trackify/screens/home/home.dart';
+import 'package:trackify/screens/home_screen/home.dart';
 // import 'package:trackify/screens/home/views/home_screen.dart';
 
 

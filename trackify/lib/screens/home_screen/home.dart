@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:trackify/screens/home/expenses_record_screen.dart';
-import 'package:trackify/screens/home/settings_form.dart';
-import 'package:trackify/screens/stats/stats.dart';
+import 'package:trackify/screens/home_screen/expenses_record_screen.dart';
+import 'package:trackify/screens/settings_screen/settings_form.dart';
+import 'package:trackify/screens/chart_screen/stats.dart';
 import 'package:trackify/services/database.dart';
 import 'package:provider/provider.dart';
 import 'package:trackify/models/trackify.dart';
