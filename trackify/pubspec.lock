@@ -105,13 +105,6 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "2.0.7"
-  expense_repository:
-    dependency: "direct main"
-    description:
-      path: "packages/expense_repository"
-      relative: true
-    source: path
-    version: "1.0.0+1"
   fake_async:
     dependency: transitive
     description:

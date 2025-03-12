@@ -1,6 +1,6 @@
 // import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
-import 'package:trackify/screens/stats/chart.dart';
+import 'package:trackify/screens/chart_screen/chart.dart';
 
 class StatsScreen extends StatelessWidget {
   const StatsScreen({super.key});

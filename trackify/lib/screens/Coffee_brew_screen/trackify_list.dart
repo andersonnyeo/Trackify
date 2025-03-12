@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:trackify/models/trackify.dart';
-import 'package:trackify/screens/home/trackify_tile.dart';
+import 'package:trackify/screens/Coffee_brew_screen/trackify_tile.dart';
 
 class TrackifyList extends StatefulWidget {
   const TrackifyList({super.key});
