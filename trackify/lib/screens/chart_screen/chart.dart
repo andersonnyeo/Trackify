@@ -1,5 +1,6 @@
 import 'dart:math';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 
@@ -11,6 +12,9 @@ class MyChart extends StatefulWidget {
 }
 
 class _MyChartState extends State<MyChart> {
+  final FirebaseAuth _auth = FirebaseAuth.instance;
+  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+  late String _uid;
   Map<int, double> monthlyTotals = {}; // Stores month index -> total amount
   List<int> displayedMonths = []; // Stores months that have data
   bool isLoading = true;
@@ -19,15 +23,26 @@ class _MyChartState extends State<MyChart> {
   @override
   void initState() {
     super.initState();
-    fetchMonthlyExpenses();
+    _uid = _auth.currentUser?.uid ?? '';
+    
+    if (_uid.isNotEmpty) {
+      fetchMonthlyExpenses();
+    } else {
+      setState(() => isLoading = false);
+    }
   }
 
   Future<void> fetchMonthlyExpenses() async {
+    if (_uid.isEmpty) return;
+
     Map<int, double> tempData = {};
 
-    // Get all expense documents
-    QuerySnapshot expenseDocs =
-        await FirebaseFirestore.instance.collection('expenseDocuments').get();
+    // Get all expense documents for the current user
+    QuerySnapshot expenseDocs = await _firestore
+        .collection('users')
+        .doc(_uid)
+        .collection('expenseDocuments')
+        .get();
 
     for (var doc in expenseDocs.docs) {
       // Get expenses inside each document
@@ -87,7 +102,7 @@ class _MyChartState extends State<MyChart> {
           width: 20,
           backDrawRodData: BackgroundBarChartRodData(
             show: true,
-            toY: monthlyTotals.values.reduce(max),
+            toY: monthlyTotals.values.isNotEmpty ? monthlyTotals.values.reduce(max) : 0,
             color: Colors.grey.shade300,
           ),
         )
