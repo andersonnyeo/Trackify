@@ -85,6 +85,7 @@ class ExpenseDetailsScreen extends StatelessWidget {
               .collection('expenseDocuments')
               .doc(docId)
               .collection('expenses')
+              .orderBy('date', descending: true)
               .snapshots(),
           builder: (context, snapshot) {
             if (snapshot.connectionState == ConnectionState.waiting) {
