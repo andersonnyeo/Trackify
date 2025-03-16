@@ -28,54 +28,62 @@ class _FutureExpenseScreenState extends State<FutureExpenseScreen> {
   }
 
   Future<void> _fetchHistoricalExpenses() async {
-    final String uid = FirebaseAuth.instance.currentUser?.uid ?? '';
-    try {
-      QuerySnapshot snapshot = await _firestore
-          .collection('users')
-          .doc(uid)
-          .collection('expenseDocuments')
-          .doc(widget.docId)
-          .collection('expenses')
-          .orderBy('date', descending: false)
-          .get();
+  final String uid = FirebaseAuth.instance.currentUser?.uid ?? '';
+  try {
+    // Get current date
+    DateTime currentDate = DateTime.now();
+    String currentMonthKey = "${currentDate.year}-${currentDate.month}";
 
-      if (snapshot.docs.isEmpty) {
-        setState(() {
-          isLoading = false;
-        });
-        print("No expenses data available.");
-        return;
-      }
+    QuerySnapshot snapshot = await _firestore
+        .collection('users')
+        .doc(uid)
+        .collection('expenseDocuments')
+        .doc(widget.docId)
+        .collection('expenses')
+        .orderBy('date', descending: false)
+        .get();
 
-      Map<String, double> monthlyExpenses = {};
-      for (var doc in snapshot.docs) {
-        DateTime date = (doc['date'] as Timestamp).toDate();
-        String monthKey = "${date.year}-${date.month}";
+    if (snapshot.docs.isEmpty) {
+      setState(() {
+        isLoading = false;
+      });
+      print("No expenses data available.");
+      return;
+    }
+
+    Map<String, double> monthlyExpenses = {};
+    for (var doc in snapshot.docs) {
+      DateTime date = (doc['date'] as Timestamp).toDate();
+      String monthKey = "${date.year}-${date.month}";
+      // Exclude current month data
+      if (monthKey != currentMonthKey) {
         monthlyExpenses[monthKey] = (monthlyExpenses[monthKey] ?? 0) + (doc['amount'] as num).toDouble();
       }
-
-      sortedMonths = monthlyExpenses.keys.toList()..sort();
-      if (sortedMonths.length > 2) {
-        sortedMonths = sortedMonths.sublist(sortedMonths.length - 3);
-      }
-      historicalExpenses = sortedMonths.map((month) => monthlyExpenses[month]!).toList();
-
-      if (historicalExpenses.length >= 2) {
-        predictedExpense = _predictNextMonthExpense(historicalExpenses);
-      } else {
-        predictedExpense = null;
-      }
-
-      setState(() {
-        isLoading = false;
-      });
-    } catch (e) {
-      setState(() {
-        isLoading = false;
-      });
-      print("Error fetching historical data: $e");
     }
+
+    sortedMonths = monthlyExpenses.keys.toList()..sort();
+    if (sortedMonths.length > 2) {
+      sortedMonths = sortedMonths.sublist(sortedMonths.length - 3);
+    }
+    historicalExpenses = sortedMonths.map((month) => monthlyExpenses[month]!).toList();
+
+    if (historicalExpenses.length >= 2) {
+      predictedExpense = _predictNextMonthExpense(historicalExpenses);
+    } else {
+      predictedExpense = null;
+    }
+
+    setState(() {
+      isLoading = false;
+    });
+  } catch (e) {
+    setState(() {
+      isLoading = false;
+    });
+    print("Error fetching historical data: $e");
   }
+}
+
 
   double _predictNextMonthExpense(List<double> data) {
     if (data.length < 2) {
