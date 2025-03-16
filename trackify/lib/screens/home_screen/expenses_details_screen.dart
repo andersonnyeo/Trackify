@@ -28,7 +28,7 @@ class ExpenseDetailsScreen extends StatelessWidget {
           PopupMenuButton<String>(
             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
             elevation: 8,
-            color: Colors.white,
+            iconColor: Colors.white,
             offset: const Offset(0, 50),
             onSelected: (value) {
               if (value == 'Chart') {
