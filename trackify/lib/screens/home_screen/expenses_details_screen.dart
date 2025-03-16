@@ -1,9 +1,10 @@
+
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:intl/intl.dart';
 import 'package:trackify/screens/chart_screen/chart.dart';
-import 'package:trackify/screens/chart_screen/stats.dart';
+import 'package:trackify/screens/chart_screen/stats_screen.dart';
 
 class ExpenseDetailsScreen extends StatelessWidget {
   final String docId;
@@ -29,14 +30,14 @@ class ExpenseDetailsScreen extends StatelessWidget {
               if (value == 'Chart') {
                 Navigator.push(
                   context,
-                  MaterialPageRoute(builder: (_) => StatsScreen(docId: docId)),
+                  MaterialPageRoute(builder: (_) => Chart(docId: docId)),
                 );
               } else if (value == 'Stats') {
                 // Uncomment when ChartScreen is ready
-                // Navigator.push(
-                //   context,
-                //   MaterialPageRoute(builder: (_) => ChartScreen(docId: docId)),
-                // );
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (_) => StatsScreen(docId: docId,)),
+                );
               } else if (value == 'Delete') {
                 _deleteExpenseDocument(context, firestore, uid, docId);
               }
@@ -84,6 +85,7 @@ class ExpenseDetailsScreen extends StatelessWidget {
               .collection('expenseDocuments')
               .doc(docId)
               .collection('expenses')
+              .orderBy('date', descending: true)
               .snapshots(),
           builder: (context, snapshot) {
             if (snapshot.connectionState == ConnectionState.waiting) {

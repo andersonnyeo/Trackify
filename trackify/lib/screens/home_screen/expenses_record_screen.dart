@@ -208,73 +208,105 @@ class _ExpenseRecordScreenState extends State<ExpenseRecordScreen> {
   }
 
   void _showAddExpenseDialog(String docId, {String? expenseId, String? existingDescription, double? existingAmount, String? existingCategory, DateTime? existingDate}) {
-    String description = existingDescription ?? '';
-    double amount = existingAmount ?? 0.0;
-    String category = existingCategory ?? 'Food';
-    DateTime selectedDate = existingDate ?? DateTime.now();
+  String description = existingDescription ?? '';
+  double amount = existingAmount ?? 0.0;
+  String category = existingCategory ?? 'Food';
+  DateTime selectedDate = existingDate ?? DateTime.now();
+  List<String> categories = ['Food', 'Transport', 'Shopping', 'Bills', 'Other'];
+  TextEditingController customCategoryController = TextEditingController();
+  bool isAddingCustomCategory = false;
 
-    showDialog(
-      context: context,
-      builder: (context) {
-        return StatefulBuilder(
-          builder: (context, setDialogState) {
-            return AlertDialog(
-              title: Text(expenseId == null ? 'Add Expense' : 'Edit Expense'),
-              content: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  TextField(
-                    controller: TextEditingController(text: description),
-                    onChanged: (value) => description = value,
-                    decoration: const InputDecoration(hintText: 'Expense description'),
-                  ),
-                  TextField(
-                    controller: TextEditingController(text: amount > 0 ? amount.toString() : ''),
-                    onChanged: (value) => amount = double.tryParse(value) ?? 0.0,
-                    keyboardType: TextInputType.number,
-                    decoration: const InputDecoration(hintText: 'Amount'),
-                  ),
+  void fetchCategories() async {
+    var categoryDocs = await _firestore.collection('users').doc(_uid).collection('categories').get();
+    categories.addAll(categoryDocs.docs.map((doc) => doc['name'].toString()));
+  }
+
+  fetchCategories();
+
+  showDialog(
+    context: context,
+    builder: (context) {
+      return StatefulBuilder(
+        builder: (context, setDialogState) {
+          return AlertDialog(
+            title: Text(expenseId == null ? 'Add Expense' : 'Edit Expense'),
+            content: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                TextField(
+                  controller: TextEditingController(text: description),
+                  onChanged: (value) => description = value,
+                  decoration: const InputDecoration(hintText: 'Expense description'),
+                ),
+                TextField(
+                  controller: TextEditingController(text: amount > 0 ? amount.toString() : ''),
+                  onChanged: (value) => amount = double.tryParse(value) ?? 0.0,
+                  keyboardType: TextInputType.number,
+                  decoration: const InputDecoration(hintText: 'Amount'),
+                ),
+                
+                // Dropdown or Custom Category Input
+                if (!isAddingCustomCategory) 
                   DropdownButton<String>(
                     value: category,
-                    items: ['Food', 'Transport', 'Shopping', 'Bills', 'Other']
-                        .map((e) => DropdownMenuItem(value: e, child: Text(e)))
-                        .toList(),
-                    onChanged: (value) => setDialogState(() => category = value!),
-                  ),
-                  TextButton(
-                    onPressed: () async {
-                      DateTime? pickedDate = await showDatePicker(
-                        context: context,
-                        initialDate: selectedDate,
-                        firstDate: DateTime(2000),
-                        lastDate: DateTime(2101),
-                      );
-                      if (pickedDate != null) setDialogState(() => selectedDate = pickedDate);
-                    },
-                    child: Text('Select Date: ${DateFormat('yyyy-MM-dd').format(selectedDate)}'),
-                  ),
-                ],
-              ),
-              actions: [
-                TextButton(child: const Text('Cancel'), onPressed: () => Navigator.pop(context)),
-                TextButton(
-                  child: Text(expenseId == null ? 'Add' : 'Save'),
-                  onPressed: () {
-                    if (description.isNotEmpty && amount > 0) {
-                      if (expenseId == null) {
-                        _addExpense(docId, description, amount, category, selectedDate);
+                    items: [
+                      ...categories.map((e) => DropdownMenuItem(value: e, child: Text(e))),
+                      const DropdownMenuItem(value: 'custom', child: Text('Add New Category'))
+                    ],
+                    onChanged: (value) {
+                      if (value == 'custom') {
+                        setDialogState(() => isAddingCustomCategory = true);
                       } else {
-                        _editExpense(docId, expenseId, description, amount, category, selectedDate);
+                        setDialogState(() => category = value!);
                       }
-                      Navigator.pop(context);
-                    }
+                    },
+                  ),
+                
+                if (isAddingCustomCategory)
+                  TextField(
+                    controller: customCategoryController,
+                    decoration: const InputDecoration(hintText: 'Enter new category'),
+                  ),
+
+                TextButton(
+                  onPressed: () async {
+                    DateTime? pickedDate = await showDatePicker(
+                      context: context,
+                      initialDate: selectedDate,
+                      firstDate: DateTime(2000),
+                      lastDate: DateTime(2101),
+                    );
+                    if (pickedDate != null) setDialogState(() => selectedDate = pickedDate);
                   },
+                  child: Text('Select Date: ${DateFormat('yyyy-MM-dd').format(selectedDate)}'),
                 ),
               ],
-            );
-          },
-        );
-      },
-    );
-  }
+            ),
+            actions: [
+              TextButton(child: const Text('Cancel'), onPressed: () => Navigator.pop(context)),
+              TextButton(
+                child: Text(expenseId == null ? 'Add' : 'Save'),
+                onPressed: () async {
+                  if (description.isNotEmpty && amount > 0) {
+                    if (isAddingCustomCategory && customCategoryController.text.isNotEmpty) {
+                      category = customCategoryController.text.trim();
+                      await _firestore.collection('users').doc(_uid).collection('categories').add({'name': category});
+                    }
+                    if (expenseId == null) {
+                      _addExpense(docId, description, amount, category, selectedDate);
+                    } else {
+                      _editExpense(docId, expenseId, description, amount, category, selectedDate);
+                    }
+                    Navigator.pop(context);
+                  }
+                },
+              ),
+            ],
+          );
+        },
+      );
+    },
+  );
+}
+
 }
