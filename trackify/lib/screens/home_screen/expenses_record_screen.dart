@@ -229,26 +229,43 @@ class _ExpenseRecordScreenState extends State<ExpenseRecordScreen> {
       return StatefulBuilder(
         builder: (context, setDialogState) {
           return AlertDialog(
+            contentPadding: EdgeInsets.all(20), // Add padding for spacing
             title: Text(expenseId == null ? 'Add Expense' : 'Edit Expense'),
-            content: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                TextField(
-                  controller: TextEditingController(text: description),
-                  onChanged: (value) => description = value,
-                  decoration: const InputDecoration(hintText: 'Expense description'),
-                ),
-                TextField(
-                  controller: TextEditingController(text: amount > 0 ? amount.toString() : ''),
-                  onChanged: (value) => amount = double.tryParse(value) ?? 0.0,
-                  keyboardType: TextInputType.number,
-                  decoration: const InputDecoration(hintText: 'Amount'),
-                ),
-                
-                // Dropdown or Custom Category Input
-                if (!isAddingCustomCategory) 
-                  DropdownButton<String>(
+            content: SingleChildScrollView(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  TextField(
+                    controller: TextEditingController(text: description),
+                    onChanged: (value) => description = value,
+                    decoration: InputDecoration(
+                      labelText: 'Expense Description',
+                      hintText: 'Enter a description of the expense',
+                      border: OutlineInputBorder(),
+                      contentPadding: EdgeInsets.symmetric(vertical: 15, horizontal: 10),
+                    ),
+                  ),
+                  SizedBox(height: 20),
+                  TextField(
+                    controller: TextEditingController(text: amount > 0 ? amount.toString() : ''),
+                    onChanged: (value) => amount = double.tryParse(value) ?? 0.0,
+                    keyboardType: TextInputType.number,
+                    decoration: InputDecoration(
+                      labelText: 'Amount',
+                      hintText: 'Enter the amount spent',
+                      border: OutlineInputBorder(),
+                      contentPadding: EdgeInsets.symmetric(vertical: 15, horizontal: 10),
+                    ),
+                  ),
+                  SizedBox(height: 20),
+                  // Category dropdown or custom input field
+                  DropdownButtonFormField<String>(
                     value: category,
+                    decoration: InputDecoration(
+                      labelText: 'Category',
+                      border: OutlineInputBorder(),
+                      contentPadding: EdgeInsets.symmetric(vertical: 15, horizontal: 10),
+                    ),
                     items: [
                       ...categories.map((e) => DropdownMenuItem(value: e, child: Text(e))),
                       const DropdownMenuItem(value: 'custom', child: Text('Add New Category'))
@@ -261,26 +278,36 @@ class _ExpenseRecordScreenState extends State<ExpenseRecordScreen> {
                       }
                     },
                   ),
-                
-                if (isAddingCustomCategory)
-                  TextField(
-                    controller: customCategoryController,
-                    decoration: const InputDecoration(hintText: 'Enter new category'),
+                  SizedBox(height: 20),
+                  if (isAddingCustomCategory)
+                    TextField(
+                      controller: customCategoryController,
+                      decoration: InputDecoration(
+                        labelText: 'Enter New Category',
+                        hintText: 'Enter a new custom category',
+                        border: OutlineInputBorder(),
+                        contentPadding: EdgeInsets.symmetric(vertical: 15, horizontal: 10),
+                      ),
+                    ),
+                  SizedBox(height: 20),
+                  // Date picker button
+                  TextButton(
+                    onPressed: () async {
+                      DateTime? pickedDate = await showDatePicker(
+                        context: context,
+                        initialDate: selectedDate,
+                        firstDate: DateTime(2000),
+                        lastDate: DateTime(2101),
+                      );
+                      if (pickedDate != null) setDialogState(() => selectedDate = pickedDate);
+                    },
+                    child: Text(
+                      'Select Date: ${DateFormat('yyyy-MM-dd').format(selectedDate)}',
+                      style: TextStyle(fontSize: 16),
+                    ),
                   ),
-
-                TextButton(
-                  onPressed: () async {
-                    DateTime? pickedDate = await showDatePicker(
-                      context: context,
-                      initialDate: selectedDate,
-                      firstDate: DateTime(2000),
-                      lastDate: DateTime(2101),
-                    );
-                    if (pickedDate != null) setDialogState(() => selectedDate = pickedDate);
-                  },
-                  child: Text('Select Date: ${DateFormat('yyyy-MM-dd').format(selectedDate)}'),
-                ),
-              ],
+                ],
+              ),
             ),
             actions: [
               TextButton(child: const Text('Cancel'), onPressed: () => Navigator.pop(context)),
@@ -308,5 +335,6 @@ class _ExpenseRecordScreenState extends State<ExpenseRecordScreen> {
     },
   );
 }
+
 
 }
