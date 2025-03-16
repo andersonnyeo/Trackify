@@ -55,22 +55,28 @@ class _FutureExpenseScreenState extends State<FutureExpenseScreen> {
     for (var doc in snapshot.docs) {
       DateTime date = (doc['date'] as Timestamp).toDate();
       String monthKey = "${date.year}-${date.month}";
-      // Exclude current month data
-      if (monthKey != currentMonthKey) {
-        monthlyExpenses[monthKey] = (monthlyExpenses[monthKey] ?? 0) + (doc['amount'] as num).toDouble();
-      }
+
+      monthlyExpenses[monthKey] = (monthlyExpenses[monthKey] ?? 0) + (doc['amount'] as num).toDouble();
     }
 
+    // Include the current month in the sorted months
     sortedMonths = monthlyExpenses.keys.toList()..sort();
-    if (sortedMonths.length > 2) {
-      sortedMonths = sortedMonths.sublist(sortedMonths.length - 3);
+    if (sortedMonths.length > 3) {
+      sortedMonths = sortedMonths.sublist(sortedMonths.length - 3); // Only the last 3 months
     }
+
+    // Including current month if available
     historicalExpenses = sortedMonths.map((month) => monthlyExpenses[month]!).toList();
 
-    if (historicalExpenses.length >= 2) {
-      predictedExpense = _predictNextMonthExpense(historicalExpenses);
-    } else {
+    // Predict based on available data
+    if (historicalExpenses.isEmpty) {
       predictedExpense = null;
+    } else if (historicalExpenses.length == 1) {
+      // Only current month data available: predict the same amount for next month
+      predictedExpense = historicalExpenses[0];
+    } else {
+      // Use regression to predict if we have more than 1 month's data
+      predictedExpense = _predictNextMonthExpense(historicalExpenses);
     }
 
     setState(() {
@@ -84,22 +90,23 @@ class _FutureExpenseScreenState extends State<FutureExpenseScreen> {
   }
 }
 
-
-  double _predictNextMonthExpense(List<double> data) {
-    if (data.length < 2) {
-      return 0;
-    }
-
-    final dataset = [
-      ['month', 'amount'],
-      for (int i = 0; i < data.length; i++) [i + 1, data[i]],
-    ];
-
-    var df = DataFrame(dataset);
-    final model = LinearRegressor(df, 'amount');
-    final prediction = model.predict(DataFrame([['month'], [data.length + 1]]));
-    return prediction.rows.first.first as double;
+double _predictNextMonthExpense(List<double> data) {
+  if (data.length < 2) {
+    return data.isNotEmpty ? data[0] : 0;  // If only one month, predict the same value
   }
+
+  final dataset = [
+    ['month', 'amount'],
+    for (int i = 0; i < data.length; i++) [i + 1, data[i]],
+  ];
+
+  var df = DataFrame(dataset);
+  final model = LinearRegressor(df, 'amount');
+  final prediction = model.predict(DataFrame([['month'], [data.length + 1]]));
+  return prediction.rows.first.first as double;
+}
+
+
 
   Widget _buildLineChart() {
     return Expanded(
