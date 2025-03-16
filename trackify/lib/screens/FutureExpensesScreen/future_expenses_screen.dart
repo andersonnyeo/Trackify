@@ -56,7 +56,7 @@ class _FutureExpenseScreenState extends State<FutureExpenseScreen> {
 
       sortedMonths = monthlyExpenses.keys.toList()..sort();
       if (sortedMonths.length > 2) {
-        sortedMonths = sortedMonths.sublist(sortedMonths.length - 2);
+        sortedMonths = sortedMonths.sublist(sortedMonths.length - 3);
       }
       historicalExpenses = sortedMonths.map((month) => monthlyExpenses[month]!).toList();
 
@@ -134,7 +134,9 @@ class _FutureExpenseScreenState extends State<FutureExpenseScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Future Expense Predictions'),
+        title: const Text('Future Expense Predictions', 
+          style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+        ),
         backgroundColor: Colors.deepPurple,
       ),
       body: Padding(

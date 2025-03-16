@@ -10,7 +10,9 @@ class Chart extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Statistics'),
+        title: const Text('Statistics', 
+          style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+        ),
         backgroundColor: Theme.of(context).primaryColor,
       ),
       body: SafeArea(

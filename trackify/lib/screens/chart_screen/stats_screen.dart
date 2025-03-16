@@ -17,9 +17,9 @@ class StatsScreen extends StatelessWidget {
       appBar: AppBar(
         title: const Text(
           'Expense Statistics',
-          style: TextStyle(fontWeight: FontWeight.bold),
+          style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
         ),
-        // backgroundColor: Colors.deepPurple,
+        backgroundColor: Colors.deepPurple,
         elevation: 0,
       ),
       body: Container(
