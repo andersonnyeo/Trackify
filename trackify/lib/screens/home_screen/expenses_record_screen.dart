@@ -76,7 +76,11 @@ class _ExpenseRecordScreenState extends State<ExpenseRecordScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Expense Records')),
+      backgroundColor: Colors.purple[50],
+      appBar: AppBar(
+        title: const Text(
+          'Expense Records',
+          )),
       body: _uid.isEmpty
     ? const Center(child: Text("Please log in to view expenses."))
     : StreamBuilder<QuerySnapshot>(

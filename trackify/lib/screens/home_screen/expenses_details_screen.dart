@@ -19,6 +19,7 @@ class ExpenseDetailsScreen extends StatelessWidget {
     final String uid = FirebaseAuth.instance.currentUser?.uid ?? '';
 
     return Scaffold(
+      backgroundColor: Colors.purple[50],
       appBar: AppBar(
         backgroundColor: Colors.deepPurple,
         title: Text(title, 

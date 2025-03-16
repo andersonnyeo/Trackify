@@ -148,6 +148,7 @@ double _predictNextMonthExpense(List<double> data) {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Colors.purple[50],
       appBar: AppBar(
         title: const Text('Future Expense Predictions', 
           style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
