@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:intl/intl.dart';
+import 'package:trackify/screens/FutureExpensesScreen/future_expenses_screen.dart';
 import 'package:trackify/screens/chart_screen/chart.dart';
 import 'package:trackify/screens/chart_screen/stats_screen.dart';
 
@@ -19,7 +20,10 @@ class ExpenseDetailsScreen extends StatelessWidget {
 
     return Scaffold(
       appBar: AppBar(
-        title: Text(title),
+        backgroundColor: Colors.deepPurple,
+        title: Text(title, 
+          style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+        ),
         actions: [
           PopupMenuButton<String>(
             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
@@ -33,10 +37,15 @@ class ExpenseDetailsScreen extends StatelessWidget {
                   MaterialPageRoute(builder: (_) => Chart(docId: docId)),
                 );
               } else if (value == 'Stats') {
-                // Uncomment when ChartScreen is ready
                 Navigator.push(
                   context,
-                  MaterialPageRoute(builder: (_) => StatsScreen(docId: docId,)),
+                  MaterialPageRoute(builder: (_) => StatsScreen(docId: docId)),
+                );
+              } else if (value == 'FutureExpenses') {
+                // Navigate to the FutureExpensesScreen (create this screen if not yet implemented)
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (_) => FutureExpenseScreen(docId: docId)),
                 );
               } else if (value == 'Delete') {
                 _deleteExpenseDocument(context, firestore, uid, docId);
@@ -46,7 +55,7 @@ class ExpenseDetailsScreen extends StatelessWidget {
               const PopupMenuItem(
                 value: 'Chart',
                 child: Row(
-                  children: const [
+                  children: [
                     Icon(Icons.pie_chart, color: Colors.blue),
                     SizedBox(width: 10),
                     Text('View Chart', style: TextStyle(fontSize: 16)),
@@ -56,27 +65,38 @@ class ExpenseDetailsScreen extends StatelessWidget {
               const PopupMenuItem(
                 value: 'Stats',
                 child: Row(
-                  children: const [
+                  children: [
                     Icon(Icons.bar_chart, color: Colors.green),
                     SizedBox(width: 10),
                     Text('View Stats', style: TextStyle(fontSize: 16)),
                   ],
                 ),
               ),
-              const PopupMenuDivider(),
-              const PopupMenuItem(
-                value: 'Delete',
-                child: Row(
-                  children: const [
-                    Icon(Icons.delete, color: Colors.red),
-                    SizedBox(width: 10),
-                    Text('Delete Document', style: TextStyle(fontSize: 16, color: Colors.red)),
-                  ],
-                ),
-              ),
-            ],
-          ),
-        ],
+      const PopupMenuItem(
+        value: 'FutureExpenses',
+        child: Row(
+          children: [
+            Icon(Icons.calendar_today, color: Colors.orange),
+            SizedBox(width: 10),
+            Text('View Future Expenses', style: TextStyle(fontSize: 16)),
+          ],
+        ),
+      ),
+      const PopupMenuDivider(),
+      const PopupMenuItem(
+        value: 'Delete',
+        child: Row(
+          children: [
+            Icon(Icons.delete, color: Colors.red),
+            SizedBox(width: 10),
+            Text('Delete Document', style: TextStyle(fontSize: 16, color: Colors.red)),
+          ],
+        ),
+      ),
+    ],
+  ),
+],
+
       ),
         body: StreamBuilder<QuerySnapshot>(
           stream: firestore
