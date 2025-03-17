@@ -46,8 +46,12 @@ class _SettingsFormState extends State<SettingsForm> {
                     const SizedBox(height: 20.0),
                     const Text(
                       'Update your profile settings',
-                      style: TextStyle(fontSize: 22.0, fontWeight: FontWeight.bold),
-                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                        fontSize: 22.0, 
+                        fontWeight: FontWeight.bold,
+                        color: Colors.deepPurple,
+                        ),
+                      textAlign: TextAlign.left,
                     ),
                     const SizedBox(height: 30.0),
                     const Align(

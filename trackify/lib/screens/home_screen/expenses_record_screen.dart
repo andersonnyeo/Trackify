@@ -121,7 +121,8 @@ class _ExpenseRecordScreenState extends State<ExpenseRecordScreen> {
               style: TextStyle(
                 fontSize: 22,
                 fontWeight: FontWeight.bold,
-                // color: Colors.deepPurple,
+                color: Colors.deepPurple,
+                
               ),
               textAlign: TextAlign.center,
               
