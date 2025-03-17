@@ -59,7 +59,7 @@ class ExpenseDetailsScreen extends StatelessWidget {
                   children: [
                     Icon(Icons.pie_chart, color: Colors.blue),
                     SizedBox(width: 10),
-                    Text('View Chart', style: TextStyle(fontSize: 16)),
+                    Text('Chart', style: TextStyle(fontSize: 16)),
                   ],
                 ),
               ),
@@ -69,7 +69,7 @@ class ExpenseDetailsScreen extends StatelessWidget {
                   children: [
                     Icon(Icons.bar_chart, color: Colors.green),
                     SizedBox(width: 10),
-                    Text('View Stats', style: TextStyle(fontSize: 16)),
+                    Text('Spending Insights', style: TextStyle(fontSize: 16)),
                   ],
                 ),
               ),
@@ -79,7 +79,7 @@ class ExpenseDetailsScreen extends StatelessWidget {
           children: [
             Icon(Icons.calendar_today, color: Colors.orange),
             SizedBox(width: 10),
-            Text('View Future Expenses', style: TextStyle(fontSize: 16)),
+            Text('Future Expense Predictions', style: TextStyle(fontSize: 16)),
           ],
         ),
       ),
