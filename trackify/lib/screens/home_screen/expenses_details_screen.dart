@@ -183,61 +183,150 @@ class ExpenseDetailsScreen extends StatelessWidget {
     double amount = expense['amount'];
     String category = expense['category'];
     DateTime selectedDate = (expense['date'] as Timestamp).toDate();
-
+    List<String> categories = ['Food', 'Transport', 'Shopping', 'Groceries', 'Entertainment', 'Other'];
+    TextEditingController customCategoryController = TextEditingController();
+    bool isAddingCustomCategory = false;
     showDialog(
       context: context,
       builder: (context) {
         return StatefulBuilder(
           builder: (context, setDialogState) {
             return AlertDialog(
-              title: const Text('Edit Expense'),
-              content: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  TextField(
-                    controller: TextEditingController(text: description),
-                    onChanged: (value) => description = value,
-                    decoration: const InputDecoration(hintText: 'Expense description'),
-                  ),
-                  TextField(
-                    controller: TextEditingController(text: amount > 0 ? amount.toString() : ''),
-                    onChanged: (value) => amount = double.tryParse(value) ?? 0.0,
-                    keyboardType: TextInputType.number,
-                    decoration: const InputDecoration(hintText: 'Amount'),
-                  ),
-                  DropdownButton<String>(
-                    value: category,
-                    items: ['Food', 'Transport', 'Shopping', 'Bills', 'Other']
-                        .map((e) => DropdownMenuItem(value: e, child: Text(e)))
-                        .toList(),
-                    onChanged: (value) => setDialogState(() => category = value!),
-                  ),
-                  TextButton(
-                    onPressed: () async {
-                      DateTime? pickedDate = await showDatePicker(
-                        context: context,
-                        initialDate: selectedDate,
-                        firstDate: DateTime(2000),
-                        lastDate: DateTime(2101),
-                      );
-                      if (pickedDate != null) setDialogState(() => selectedDate = pickedDate);
-                    },
-                    child: Text('Select Date: ${DateFormat('yyyy-MM-dd').format(selectedDate)}'),
-                  ),
-                ],
+              contentPadding: EdgeInsets.all(20),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
+              title: const Text(
+                'Edit Expense',
+                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 20, color: Colors.deepPurple),
+              ),
+              content: SingleChildScrollView(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // Description TextField
+                    TextField(
+                      controller: TextEditingController(text: description),
+                      onChanged: (value) => description = value,
+                      decoration: InputDecoration(
+                        labelText: 'Expense Description',
+                        labelStyle: TextStyle(color: Colors.deepPurple),
+                        focusedBorder: OutlineInputBorder(
+                          borderSide: BorderSide(color: Colors.deepPurple),
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                        contentPadding: EdgeInsets.symmetric(vertical: 15, horizontal: 10),
+                      ),
+                    ),
+                    SizedBox(height: 20),
+                    // Amount TextField
+                    TextField(
+                      controller: TextEditingController(text: amount > 0 ? amount.toString() : ''),
+                      onChanged: (value) => amount = double.tryParse(value) ?? 0.0,
+                      keyboardType: TextInputType.number,
+                      decoration: InputDecoration(
+                        labelText: 'Amount',
+                        hintText: 'Enter the amount spent',
+                        hintStyle: TextStyle(color: Colors.grey),
+                        labelStyle: TextStyle(color: Colors.deepPurple),
+                        focusedBorder: OutlineInputBorder(
+                          borderSide: BorderSide(color: Colors.deepPurple),
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                        contentPadding: EdgeInsets.symmetric(vertical: 15, horizontal: 10),
+                      ),
+                    ),
+                    SizedBox(height: 20),
+                    // Category Dropdown
+                    DropdownButtonFormField<String>(
+                      value: category,
+                      decoration: InputDecoration(
+                        labelText: 'Category',
+                        labelStyle: TextStyle(color: Colors.deepPurple),
+                        focusedBorder: OutlineInputBorder(
+                          borderSide: BorderSide(color: Colors.deepPurple),
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                        contentPadding: EdgeInsets.symmetric(vertical: 15, horizontal: 10),
+                      ),
+                      items: [
+                        ...categories.map((e) => DropdownMenuItem(value: e, child: Text(e))),
+                        const DropdownMenuItem(value: 'custom', child: Text('Add New Category'))
+                      ],
+                      onChanged: (value) {
+                        if (value == 'custom') {
+                          setDialogState(() => isAddingCustomCategory = true);
+                        } else {
+                          setDialogState(() => category = value!);
+                        }
+                      },
+                    ),
+                    SizedBox(height: 20),
+                    // Custom Category TextField
+                    if (isAddingCustomCategory)
+                      TextField(
+                        controller: customCategoryController,
+                        decoration: InputDecoration(
+                          labelText: 'Enter New Category',
+                          labelStyle: TextStyle(color: Colors.deepPurple),
+                          hintText: 'Enter a new custom category',
+                          hintStyle: TextStyle(color: Colors.grey),
+                          focusedBorder: OutlineInputBorder(
+                            borderSide: BorderSide(color: Colors.deepPurple),
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                          contentPadding: EdgeInsets.symmetric(vertical: 15, horizontal: 10),
+                        ),
+                      ),
+                    SizedBox(height: 20),
+                    // Date Picker Button
+                    TextButton(
+                      onPressed: () async {
+                        DateTime? pickedDate = await showDatePicker(
+                          context: context,
+                          initialDate: selectedDate,
+                          firstDate: DateTime(2000),
+                          lastDate: DateTime(2101),
+                        );
+                        if (pickedDate != null) setDialogState(() => selectedDate = pickedDate);
+                      },
+                      child: Text(
+                        'Select Date: ${DateFormat('yyyy-MM-dd').format(selectedDate)}',
+                        style: TextStyle(fontSize: 16, color: Colors.deepPurple),
+                      ),
+                    ),
+                  ],
+                ),
               ),
               actions: [
                 TextButton(
+                  child: const Text('Cancel', style: TextStyle(color: Colors.grey)),
                   onPressed: () => Navigator.pop(context),
-                  child: const Text('Cancel'),
                 ),
                 TextButton(
-                  onPressed: () {
+                  child: Text(
+                    'Save',
+                    style: TextStyle(color: Colors.deepPurple, fontWeight: FontWeight.bold),
+                  ),
+                  onPressed: () async {
                     if (amount <= 0) {
                       ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Invalid amount')));
                       return;
                     }
-
+                    if (isAddingCustomCategory && customCategoryController.text.isNotEmpty) {
+                      category = customCategoryController.text.trim();
+                      await firestore.collection('users').doc(uid).collection('categories').add({'name': category});
+                    }
                     firestore
                         .collection('users')
                         .doc(uid)
@@ -251,10 +340,8 @@ class ExpenseDetailsScreen extends StatelessWidget {
                       'category': category,
                       'date': Timestamp.fromDate(selectedDate),
                     });
-
                     Navigator.pop(context);
                   },
-                  child: const Text('Save'),
                 ),
               ],
             );
@@ -262,7 +349,8 @@ class ExpenseDetailsScreen extends StatelessWidget {
         );
       },
     );
-  }
+  }   
+
 
   void _deleteExpense(BuildContext context, FirebaseFirestore firestore, String uid, String docId, String expenseId) {
     showDialog(
