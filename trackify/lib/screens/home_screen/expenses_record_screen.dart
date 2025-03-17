@@ -163,6 +163,7 @@ class _ExpenseRecordScreenState extends State<ExpenseRecordScreen> {
       floatingActionButton: FloatingActionButton(
         backgroundColor: Colors.deepPurple,
         child: const Icon(Icons.add),
+        foregroundColor: Colors.white,
         onPressed: _showNewDocumentDialog,
       ),
     );
