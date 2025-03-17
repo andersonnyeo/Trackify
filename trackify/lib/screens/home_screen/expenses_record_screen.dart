@@ -112,7 +112,7 @@ class _ExpenseRecordScreenState extends State<ExpenseRecordScreen> {
       body: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const SizedBox(height: 20.0),
+          const SizedBox(height: 10.0),
           // Header Text
           Padding(
             padding: const EdgeInsets.only(top: 8.0, left: 20.0, right: 20.0),
@@ -127,7 +127,7 @@ class _ExpenseRecordScreenState extends State<ExpenseRecordScreen> {
               
             ),
           ),
-          const SizedBox(height: 20.0),
+          const SizedBox(height: 10.0),
           // Main content (expenses list)
           Expanded(
             child: _uid.isEmpty
