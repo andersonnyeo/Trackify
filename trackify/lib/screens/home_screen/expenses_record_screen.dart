@@ -109,89 +109,115 @@ class _ExpenseRecordScreenState extends State<ExpenseRecordScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.purple[50],
-      appBar: AppBar(
-        title: const Text(
-          'Expense Records',
-          )),
-      body: _uid.isEmpty
-    ? const Center(child: Text("Please log in to view expenses."))
-    : StreamBuilder<QuerySnapshot>(
-        stream: _firestore.collection('users').doc(_uid).collection('expenseDocuments').snapshots(),
-        builder: (context, snapshot) {
-          if (snapshot.connectionState == ConnectionState.waiting) {
-            return const Center(child: CircularProgressIndicator());
-          }
-
-          if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
-            return Center(
-              child: Column(
-                // mainAxisAlignment: MainAxisAlignment.center,
-                children: [ 
-                  const SizedBox(height: 150),
-                  Icon(Icons.inbox, size: 80, color: Colors.grey[500]), 
-                  const SizedBox(height: 20),
-                  const Text(
-                    "No expense documents available.",
-                    style: TextStyle(fontSize: 18, color: Colors.grey),
-                  ),
-                  const SizedBox(height: 10),
-                  const Text(
-                    "Tap the + button below to add a new document.",
-                    style: TextStyle(fontSize: 14, color: Colors.grey),
-                  ),
-                ],
+      body: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const SizedBox(height: 20.0),
+          // Header Text
+          Padding(
+            padding: const EdgeInsets.only(top: 8.0, left: 20.0, right: 20.0),
+            child: Text(
+              'Expense Records',
+              style: TextStyle(
+                fontSize: 22,
+                fontWeight: FontWeight.bold,
+                // color: Colors.deepPurple,
               ),
-            );
-          }
+              textAlign: TextAlign.center,
+              
+            ),
+          ),
+          const SizedBox(height: 20.0),
+          // Main content (expenses list)
+          Expanded(
+            child: _uid.isEmpty
+                ? const Center(child: Text("Please log in to view expenses."))
+                : StreamBuilder<QuerySnapshot>(
+                    stream: _firestore
+                        .collection('users')
+                        .doc(_uid)
+                        .collection('expenseDocuments')
+                        .snapshots(),
+                    builder: (context, snapshot) {
+                      if (snapshot.connectionState == ConnectionState.waiting) {
+                        return const Center(child: CircularProgressIndicator());
+                      }
 
-          final documents = snapshot.data!.docs;
+                      if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
+                        return Center(
+                          child: Column(
+                            children: [
+                              const SizedBox(height: 150),
+                              Icon(Icons.inbox, size: 80, color: Colors.grey[500]),
+                              const SizedBox(height: 20),
+                              const Text(
+                                "No expense documents available.",
+                                style: TextStyle(fontSize: 18, color: Colors.grey),
+                              ),
+                              const SizedBox(height: 10),
+                              const Text(
+                                "Tap the + button below to add a new document.",
+                                style: TextStyle(fontSize: 14, color: Colors.grey),
+                              ),
+                            ],
+                          ),
+                        );
+                      }
 
-          return ListView.builder(
-            itemCount: documents.length,
-            itemBuilder: (context, index) {
-              var doc = documents[index];
+                      final documents = snapshot.data!.docs;
 
-              return Dismissible(
-                key: Key(doc.id),
-                direction: DismissDirection.endToStart,
-                background: Container(
-                  alignment: Alignment.centerRight,
-                  padding: const EdgeInsets.symmetric(horizontal: 20),
-                  color: Colors.red,
-                  child: const Icon(Icons.delete, color: Colors.white),
-                ),
-                confirmDismiss: (direction) async {
-                  return await _showDeleteConfirmationDialog(doc.id);
-                },
-                onDismissed: (direction) {
-                  _deleteExpenseDocument(doc.id);
-                },
-                child: Card(
-                  elevation: 4,
-                  margin: const EdgeInsets.all(10),
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-                  child: ListTile(
-                    title: Text(doc['title'], style: const TextStyle(fontWeight: FontWeight.bold)),
-                    trailing: IconButton(
-                      icon: const Icon(Icons.add),
-                      onPressed: () => _showAddExpenseDialog(doc.id),
-                    ),
-                    onTap: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => ExpenseDetailsScreen(docId: doc.id, title: doc['title']),
-                        ),
+                      return ListView.builder(
+                        itemCount: documents.length,
+                        itemBuilder: (context, index) {
+                          var doc = documents[index];
+
+                          return Dismissible(
+                            key: Key(doc.id),
+                            direction: DismissDirection.endToStart,
+                            background: Container(
+                              alignment: Alignment.centerRight,
+                              padding: const EdgeInsets.symmetric(horizontal: 20),
+                              color: Colors.red,
+                              child: const Icon(Icons.delete, color: Colors.white),
+                            ),
+                            confirmDismiss: (direction) async {
+                              return await _showDeleteConfirmationDialog(doc.id);
+                            },
+                            onDismissed: (direction) {
+                              _deleteExpenseDocument(doc.id);
+                            },
+                            child: Card(
+                              elevation: 4,
+                              margin: const EdgeInsets.all(10),
+                              shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(10)),
+                              child: ListTile(
+                                title: Text(doc['title'],
+                                    style: const TextStyle(
+                                        fontWeight: FontWeight.bold)),
+                                trailing: IconButton(
+                                  icon: const Icon(Icons.add),
+                                  onPressed: () => _showAddExpenseDialog(doc.id),
+                                ),
+                                onTap: () {
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (context) =>
+                                          ExpenseDetailsScreen(docId: doc.id, title: doc['title']),
+                                    ),
+                                  );
+                                },
+                              ),
+                            ),
+                          );
+                        },
                       );
                     },
                   ),
-                ),
-              );
-            },
-          );
-        },
+          ),
+        ],
       ),
-
       floatingActionButton: FloatingActionButton(
         backgroundColor: Colors.deepPurple,
         child: const Icon(Icons.add),
@@ -200,6 +226,7 @@ class _ExpenseRecordScreenState extends State<ExpenseRecordScreen> {
       ),
     );
   }
+
 
   Future<bool?> _showDeleteConfirmationDialog(String docId) async {
     return showDialog<bool>(
