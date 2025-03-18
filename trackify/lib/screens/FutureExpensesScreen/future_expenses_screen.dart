@@ -30,7 +30,6 @@ class _FutureExpenseScreenState extends State<FutureExpenseScreen> {
   Future<void> _fetchHistoricalExpenses() async {
   final String uid = FirebaseAuth.instance.currentUser?.uid ?? '';
   try {
-    // Get current date
     DateTime currentDate = DateTime.now();
     String currentMonthKey = "${currentDate.year}-${currentDate.month}";
 
@@ -56,27 +55,22 @@ class _FutureExpenseScreenState extends State<FutureExpenseScreen> {
       DateTime date = (doc['date'] as Timestamp).toDate();
       String monthKey = "${date.year}-${date.month}";
 
+      // Add the current month's expenses as well
       monthlyExpenses[monthKey] = (monthlyExpenses[monthKey] ?? 0) + (doc['amount'] as num).toDouble();
     }
 
-    // Include the current month in the sorted months
+    // Sort the months and include current month
     sortedMonths = monthlyExpenses.keys.toList()..sort();
-    if (sortedMonths.length > 3) {
-      sortedMonths = sortedMonths.sublist(sortedMonths.length - 3); // Only the last 3 months
+    if (sortedMonths.isEmpty || sortedMonths.last != currentMonthKey) {
+      sortedMonths.add(currentMonthKey); // Add the current month if not present
     }
 
-    // Including current month if available
     historicalExpenses = sortedMonths.map((month) => monthlyExpenses[month]!).toList();
 
-    // Predict based on available data
-    if (historicalExpenses.isEmpty) {
-      predictedExpense = null;
-    } else if (historicalExpenses.length == 1) {
-      // Only current month data available: predict the same amount for next month
-      predictedExpense = historicalExpenses[0];
-    } else {
-      // Use regression to predict if we have more than 1 month's data
+    if (historicalExpenses.length >= 2) {
       predictedExpense = _predictNextMonthExpense(historicalExpenses);
+    } else {
+      predictedExpense = null;
     }
 
     setState(() {
@@ -90,23 +84,22 @@ class _FutureExpenseScreenState extends State<FutureExpenseScreen> {
   }
 }
 
-double _predictNextMonthExpense(List<double> data) {
-  if (data.length < 2) {
-    return data.isNotEmpty ? data[0] : 0;  // If only one month, predict the same value
+
+  double _predictNextMonthExpense(List<double> data) {
+    if (data.length < 2) {
+      return 0;
+    }
+
+    final dataset = [
+      ['month', 'amount'],
+      for (int i = 0; i < data.length; i++) [i + 1, data[i]],
+    ];
+
+    var df = DataFrame(dataset);
+    final model = LinearRegressor(df, 'amount');
+    final prediction = model.predict(DataFrame([['month'], [data.length + 1]]));
+    return prediction.rows.first.first as double;
   }
-
-  final dataset = [
-    ['month', 'amount'],
-    for (int i = 0; i < data.length; i++) [i + 1, data[i]],
-  ];
-
-  var df = DataFrame(dataset);
-  final model = LinearRegressor(df, 'amount');
-  final prediction = model.predict(DataFrame([['month'], [data.length + 1]]));
-  return prediction.rows.first.first as double;
-}
-
-
 
   Widget _buildLineChart() {
     return Expanded(
@@ -120,8 +113,11 @@ double _predictNextMonthExpense(List<double> data) {
                 showTitles: true,
                 getTitlesWidget: (value, meta) {
                   int index = value.toInt();
-                  if (index < 0 || index >= sortedMonths.length) return Container();
-                  return Text(sortedMonths[index], style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold));
+                  if (index < 0 || index >= sortedMonths.length + 1) return Container();
+                  return Text(
+                    index < sortedMonths.length ? sortedMonths[index] : "Next Month",
+                    style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold),
+                  );
                 },
               ),
             ),
@@ -139,6 +135,18 @@ double _predictNextMonthExpense(List<double> data) {
               dotData: FlDotData(show: true),
               belowBarData: BarAreaData(show: false),
             ),
+            if (predictedExpense != null)
+              LineChartBarData(
+                spots: [
+                  FlSpot(historicalExpenses.length.toDouble(), predictedExpense!),
+                ],
+                isCurved: true,
+                color: Colors.red,
+                barWidth: 4,
+                dotData: FlDotData(show: true),
+                belowBarData: BarAreaData(show: false),
+                dashArray: [5, 5],
+              ),
           ],
         ),
       ),
@@ -150,9 +158,7 @@ double _predictNextMonthExpense(List<double> data) {
     return Scaffold(
       backgroundColor: Colors.purple[50],
       appBar: AppBar(
-        title: const Text('Future Expense Predictions', 
-          style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
-        ),
+        title: const Text('Future Expense Predictions', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
         backgroundColor: Colors.deepPurple,
       ),
       body: Padding(
@@ -166,25 +172,15 @@ double _predictNextMonthExpense(List<double> data) {
                     children: [
                       Card(
                         elevation: 10,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(15),
-                        ),
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
                         child: Padding(
                           padding: const EdgeInsets.all(20.0),
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              Text(
-                                "Predicted Expense for Next Month",
-                                style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.deepPurple),
-                              ),
+                              Text("Predicted Expense for Next Month", style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.deepPurple)),
                               SizedBox(height: 10),
-                              Text(
-                                predictedExpense != null
-                                    ? "\$${predictedExpense!.toStringAsFixed(2)}"
-                                    : "Not enough data",
-                                style: TextStyle(fontSize: 26, fontWeight: FontWeight.bold, color: Colors.deepPurpleAccent),
-                              ),
+                              Text(predictedExpense != null ? "\$${predictedExpense!.toStringAsFixed(2)}" : "Not enough data", style: TextStyle(fontSize: 26, fontWeight: FontWeight.bold, color: Colors.deepPurpleAccent)),
                             ],
                           ),
                         ),
