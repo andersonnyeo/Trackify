@@ -357,6 +357,15 @@ class ExpenseDetailsScreen extends StatelessWidget {
                         style: TextStyle(fontSize: 16, color: Colors.deepPurple),
                       ),
                     ),
+
+                    ElevatedButton.icon(
+                      style: ElevatedButton.styleFrom(backgroundColor: Colors.pink[400]),
+                      
+                      icon: const Icon(Icons.delete, color: Colors.white),
+                      label: const Text('Delete', style: TextStyle(color: Colors.white)),
+                      onPressed: () => _deleteExpense(context, firestore, uid, docId, expense.id),
+                      
+                    ),
                   ],
                 ),
               ),
@@ -402,6 +411,36 @@ class ExpenseDetailsScreen extends StatelessWidget {
       },
     );
   }   
+
+
+   void _deleteExpense(BuildContext context, FirebaseFirestore firestore, String uid, String docId, String expenseId) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text("Delete Expense"),
+        content: const Text("Are you sure you want to delete this expense?"),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(context), child: const Text("Cancel")),
+          TextButton(
+            onPressed: () {
+              firestore
+                  .collection('users')
+                  .doc(uid)
+                  .collection('expenseDocuments')
+                  .doc(docId)
+                  .collection('expenses')
+                  .doc(expenseId)
+                  .delete();
+
+              Navigator.pop(context);
+              Navigator.pop(context);
+            },
+            child: const Text("Delete", style: TextStyle(color: Colors.red)),
+          ),
+        ],
+      ),
+    );
+  }
   
 
   void _deleteExpenseDocument(BuildContext context, FirebaseFirestore firestore, String uid, String docId) {
