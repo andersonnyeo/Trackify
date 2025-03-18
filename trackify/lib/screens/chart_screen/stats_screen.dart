@@ -65,7 +65,7 @@ class StatsScreen extends StatelessWidget {
               final percentage = (entry.value / totalAmount * 100).round();
               return PieChartSectionData(
                 value: entry.value,
-                title: '${entry.key}\n${percentage}%',
+                title: '${entry.key}\n$percentage%',
                 color: Colors.primaries[entry.key.hashCode % Colors.primaries.length], // Dynamic colors
                 radius: 70,
                 titleStyle: const TextStyle(color: Colors.white, fontSize: 14, fontWeight: FontWeight.bold),
@@ -109,7 +109,7 @@ class StatsScreen extends StatelessWidget {
                             child: const Icon(Icons.pie_chart, color: Colors.white),
                           ),
                           title: Text(entry.key, style: const TextStyle(fontWeight: FontWeight.bold)),
-                          subtitle: Text('£${entry.value.toStringAsFixed(2)} (${percentage}%)'),
+                          subtitle: Text('£${entry.value.toStringAsFixed(2)} ($percentage%)'),
                         ),
                       );
                     }).toList(),
