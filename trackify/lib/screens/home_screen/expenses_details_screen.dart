@@ -363,7 +363,7 @@ class ExpenseDetailsScreen extends StatelessWidget {
                       
                       icon: const Icon(Icons.delete, color: Colors.white),
                       label: const Text('Delete', style: TextStyle(color: Colors.white)),
-                      onPressed: () => _deleteExpense(context, firestore, uid, docId, expense.id),
+                      onPressed: () => _deleteExpenseWhenEdit(context, firestore, uid, docId, expense.id),
                       
                     ),
                   ],
@@ -413,7 +413,7 @@ class ExpenseDetailsScreen extends StatelessWidget {
   }   
 
 
-   void _deleteExpense(BuildContext context, FirebaseFirestore firestore, String uid, String docId, String expenseId) {
+   void _deleteExpenseWhenEdit(BuildContext context, FirebaseFirestore firestore, String uid, String docId, String expenseId) {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
