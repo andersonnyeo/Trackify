@@ -142,31 +142,47 @@ class ExpenseDetailsScreen extends StatelessWidget {
               itemCount: expenses.length,
               itemBuilder: (context, index) {
                 var expense = expenses[index];
-                return Card(
-                  margin: const EdgeInsets.symmetric(vertical: 8),
-                  elevation: 3,
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-                  child: ListTile(
-                    title: Text(expense['description'], style: const TextStyle(fontWeight: FontWeight.bold)),
-                    subtitle: Text(
-                      '${expense['category']} - ${DateFormat('yyyy-MM-dd').format((expense['date'] as Timestamp).toDate())}',
+                return Dismissible(
+                  key: Key(expense.id),
+                    direction: DismissDirection.endToStart,
+                    background: Container(
+                      alignment: Alignment.centerRight,
+                      padding: const EdgeInsets.symmetric(horizontal: 20),
+                      color: Colors.red,
+                      child: const Icon(Icons.delete, color: Colors.white),
                     ),
-                    trailing: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Text(
-                          '\$${expense['amount'].toStringAsFixed(2)}',
-                          style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.green),
-                        ),
-                        IconButton(
-                          icon: const Icon(Icons.edit, color: Colors.blue),
-                          onPressed: () => _editExpense(context, firestore, uid, docId, expense),
-                        ),
-                        IconButton(
-                          icon: const Icon(Icons.delete, color: Colors.red),
-                          onPressed: () => _deleteExpense(context, firestore, uid, docId, expense.id),
-                        ),
-                      ],
+                    confirmDismiss: (direction) async {
+                      return await _showDeleteConfirmationDialog(context, expense.id);
+                    },
+                    onDismissed: (direction) {
+                      _deleteExpenseDetails(expense.id);
+                    },
+                  child: Card(
+                    margin: const EdgeInsets.symmetric(vertical: 8),
+                    elevation: 3,
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                    child: ListTile(
+                      title: Text(expense['description'], style: const TextStyle(fontWeight: FontWeight.bold)),
+                      subtitle: Text(
+                        '${expense['category']} - ${DateFormat('yyyy-MM-dd').format((expense['date'] as Timestamp).toDate())}',
+                      ),
+                      trailing: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Text(
+                            '\$${expense['amount'].toStringAsFixed(2)}',
+                            style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.green, fontSize: 15),
+                          ),
+                          IconButton(
+                            icon: const Icon(Icons.edit, color: Colors.blue),
+                            onPressed: () => _editExpense(context, firestore, uid, docId, expense),
+                          ),
+                          // IconButton(
+                          //   icon: const Icon(Icons.delete, color: Colors.red),
+                          //   onPressed: () => _deleteExpense(context, firestore, uid, docId, expense.id),
+                          // ),
+                        ],
+                      ),
                     ),
                   ),
                 );
@@ -177,6 +193,42 @@ class ExpenseDetailsScreen extends StatelessWidget {
 
     );
   }
+
+  Future<bool?> _showDeleteConfirmationDialog(BuildContext context, String docId) async {
+    return showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Delete Expense Detail'),
+        content: const Text('Are you sure you want to delete this expense?'),
+        actions: [
+          TextButton(child: const Text('Cancel'), onPressed: () => Navigator.pop(context, false)),
+          TextButton(
+            child: const Text('Delete', style: TextStyle(color: Colors.red)),
+            onPressed: () => Navigator.pop(context, true),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _deleteExpenseDetails(String expenseId) async {
+    final FirebaseFirestore firestore = FirebaseFirestore.instance;
+    final String uid = FirebaseAuth.instance.currentUser?.uid ?? '';
+
+    if (uid.isNotEmpty) {
+
+      await firestore
+          .collection('users')
+          .doc(uid)
+          .collection('expenseDocuments')
+          .doc(docId) // Use the document ID from the parent screen
+          .collection('expenses')
+          .doc(expenseId) // Use the specific expense ID
+          .delete();
+    }
+  }
+
+
 
   void _editExpense(BuildContext context, FirebaseFirestore firestore, String uid, String docId, QueryDocumentSnapshot expense) {
     String description = expense['description'];
@@ -288,7 +340,7 @@ class ExpenseDetailsScreen extends StatelessWidget {
                           contentPadding: EdgeInsets.symmetric(vertical: 15, horizontal: 10),
                         ),
                       ),
-                    SizedBox(height: 20),
+                    SizedBox(height: 10),
                     // Date Picker Button
                     TextButton(
                       onPressed: () async {
@@ -303,6 +355,18 @@ class ExpenseDetailsScreen extends StatelessWidget {
                       child: Text(
                         'Select Date: ${DateFormat('yyyy-MM-dd').format(selectedDate)}',
                         style: TextStyle(fontSize: 16, color: Colors.deepPurple),
+                      ),
+                    ),
+                    SizedBox(height: 10),
+
+                    Center(
+                      child: ElevatedButton.icon(
+                        style: ElevatedButton.styleFrom(backgroundColor: Colors.pink[400]),
+                        
+                        icon: const Icon(Icons.delete, color: Colors.white),
+                        label: const Text('Delete', style: TextStyle(color: Colors.white)),
+                        onPressed: () => _deleteExpenseWhenEdit(context, firestore, uid, docId, expense.id),
+                        
                       ),
                     ),
                   ],
@@ -352,7 +416,7 @@ class ExpenseDetailsScreen extends StatelessWidget {
   }   
 
 
-  void _deleteExpense(BuildContext context, FirebaseFirestore firestore, String uid, String docId, String expenseId) {
+   void _deleteExpenseWhenEdit(BuildContext context, FirebaseFirestore firestore, String uid, String docId, String expenseId) {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
@@ -372,6 +436,7 @@ class ExpenseDetailsScreen extends StatelessWidget {
                   .delete();
 
               Navigator.pop(context);
+              Navigator.pop(context);
             },
             child: const Text("Delete", style: TextStyle(color: Colors.red)),
           ),
@@ -379,6 +444,7 @@ class ExpenseDetailsScreen extends StatelessWidget {
       ),
     );
   }
+  
 
   void _deleteExpenseDocument(BuildContext context, FirebaseFirestore firestore, String uid, String docId) {
     showDialog(

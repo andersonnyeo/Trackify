@@ -38,7 +38,7 @@ class _ChartScreenState extends State<ChartScreen> {
       Map<int, double> tempData = {};
 
       for (var expense in expenses.docs) {
-        var data = expense.data() as Map<String, dynamic>;
+        var data = expense.data();
         if (data.containsKey('amount') && data.containsKey('date')) {
           double amount = (data['amount'] as num).toDouble();
           DateTime date = (data['date'] as Timestamp).toDate();
