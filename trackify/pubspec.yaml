@@ -53,6 +53,7 @@ dependencies:
   # tflite: ^1.1.2
   tflite_flutter: 0.8.0 
   tflite_flutter_helper: ^0.2.0
+  string_similarity: ^2.0.0
 
   # expense_repository:
     # path: packages/expense_repository

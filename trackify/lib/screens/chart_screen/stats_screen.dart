@@ -14,9 +14,10 @@ class StatsScreen extends StatelessWidget {
     final uid = FirebaseAuth.instance.currentUser?.uid ?? '';
 
     return Scaffold(
+      backgroundColor: Colors.purple[50],
       appBar: AppBar(
         title: const Text(
-          'Expense Statistics',
+          'Spending Insights',
           style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
         ),
         backgroundColor: Colors.deepPurple,

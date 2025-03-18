@@ -30,7 +30,6 @@ class _FutureExpenseScreenState extends State<FutureExpenseScreen> {
   Future<void> _fetchHistoricalExpenses() async {
   final String uid = FirebaseAuth.instance.currentUser?.uid ?? '';
   try {
-    // Get current date
     DateTime currentDate = DateTime.now();
     String currentMonthKey = "${currentDate.year}-${currentDate.month}";
 
@@ -55,16 +54,17 @@ class _FutureExpenseScreenState extends State<FutureExpenseScreen> {
     for (var doc in snapshot.docs) {
       DateTime date = (doc['date'] as Timestamp).toDate();
       String monthKey = "${date.year}-${date.month}";
-      // Exclude current month data
-      if (monthKey != currentMonthKey) {
-        monthlyExpenses[monthKey] = (monthlyExpenses[monthKey] ?? 0) + (doc['amount'] as num).toDouble();
-      }
+
+      // Add the current month's expenses as well
+      monthlyExpenses[monthKey] = (monthlyExpenses[monthKey] ?? 0) + (doc['amount'] as num).toDouble();
     }
 
+    // Sort the months and include current month
     sortedMonths = monthlyExpenses.keys.toList()..sort();
-    if (sortedMonths.length > 2) {
-      sortedMonths = sortedMonths.sublist(sortedMonths.length - 3);
+    if (sortedMonths.isEmpty || sortedMonths.last != currentMonthKey) {
+      sortedMonths.add(currentMonthKey); // Add the current month if not present
     }
+
     historicalExpenses = sortedMonths.map((month) => monthlyExpenses[month]!).toList();
 
     if (historicalExpenses.length >= 2) {
@@ -113,8 +113,11 @@ class _FutureExpenseScreenState extends State<FutureExpenseScreen> {
                 showTitles: true,
                 getTitlesWidget: (value, meta) {
                   int index = value.toInt();
-                  if (index < 0 || index >= sortedMonths.length) return Container();
-                  return Text(sortedMonths[index], style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold));
+                  if (index < 0 || index >= sortedMonths.length + 1) return Container();
+                  return Text(
+                    index < sortedMonths.length ? sortedMonths[index] : "Next Month",
+                    style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold),
+                  );
                 },
               ),
             ),
@@ -132,6 +135,18 @@ class _FutureExpenseScreenState extends State<FutureExpenseScreen> {
               dotData: FlDotData(show: true),
               belowBarData: BarAreaData(show: false),
             ),
+            if (predictedExpense != null)
+              LineChartBarData(
+                spots: [
+                  FlSpot(historicalExpenses.length.toDouble(), predictedExpense!),
+                ],
+                isCurved: true,
+                color: Colors.red,
+                barWidth: 4,
+                dotData: FlDotData(show: true),
+                belowBarData: BarAreaData(show: false),
+                dashArray: [5, 5],
+              ),
           ],
         ),
       ),
@@ -141,10 +156,9 @@ class _FutureExpenseScreenState extends State<FutureExpenseScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Colors.purple[50],
       appBar: AppBar(
-        title: const Text('Future Expense Predictions', 
-          style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
-        ),
+        title: const Text('Future Expense Predictions', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
         backgroundColor: Colors.deepPurple,
       ),
       body: Padding(
@@ -158,25 +172,15 @@ class _FutureExpenseScreenState extends State<FutureExpenseScreen> {
                     children: [
                       Card(
                         elevation: 10,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(15),
-                        ),
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
                         child: Padding(
                           padding: const EdgeInsets.all(20.0),
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              Text(
-                                "Predicted Expense for Next Month",
-                                style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.deepPurple),
-                              ),
+                              Text("Predicted Expense for Next Month", style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.deepPurple)),
                               SizedBox(height: 10),
-                              Text(
-                                predictedExpense != null
-                                    ? "\$${predictedExpense!.toStringAsFixed(2)}"
-                                    : "Not enough data",
-                                style: TextStyle(fontSize: 26, fontWeight: FontWeight.bold, color: Colors.deepPurpleAccent),
-                              ),
+                              Text(predictedExpense != null ? "\$${predictedExpense!.toStringAsFixed(2)}" : "Not enough data", style: TextStyle(fontSize: 26, fontWeight: FontWeight.bold, color: Colors.deepPurpleAccent)),
                             ],
                           ),
                         ),
