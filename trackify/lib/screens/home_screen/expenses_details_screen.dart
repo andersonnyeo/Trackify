@@ -340,7 +340,7 @@ class ExpenseDetailsScreen extends StatelessWidget {
                           contentPadding: EdgeInsets.symmetric(vertical: 15, horizontal: 10),
                         ),
                       ),
-                    SizedBox(height: 20),
+                    SizedBox(height: 10),
                     // Date Picker Button
                     TextButton(
                       onPressed: () async {
@@ -357,14 +357,17 @@ class ExpenseDetailsScreen extends StatelessWidget {
                         style: TextStyle(fontSize: 16, color: Colors.deepPurple),
                       ),
                     ),
+                    SizedBox(height: 10),
 
-                    ElevatedButton.icon(
-                      style: ElevatedButton.styleFrom(backgroundColor: Colors.pink[400]),
-                      
-                      icon: const Icon(Icons.delete, color: Colors.white),
-                      label: const Text('Delete', style: TextStyle(color: Colors.white)),
-                      onPressed: () => _deleteExpenseWhenEdit(context, firestore, uid, docId, expense.id),
-                      
+                    Center(
+                      child: ElevatedButton.icon(
+                        style: ElevatedButton.styleFrom(backgroundColor: Colors.pink[400]),
+                        
+                        icon: const Icon(Icons.delete, color: Colors.white),
+                        label: const Text('Delete', style: TextStyle(color: Colors.white)),
+                        onPressed: () => _deleteExpenseWhenEdit(context, firestore, uid, docId, expense.id),
+                        
+                      ),
                     ),
                   ],
                 ),
