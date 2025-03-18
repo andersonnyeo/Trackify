@@ -171,7 +171,7 @@ class ExpenseDetailsScreen extends StatelessWidget {
                         children: [
                           Text(
                             '\$${expense['amount'].toStringAsFixed(2)}',
-                            style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.green),
+                            style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.green, fontSize: 15),
                           ),
                           IconButton(
                             icon: const Icon(Icons.edit, color: Colors.blue),
