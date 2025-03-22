@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:ml_algo/ml_algo.dart';
 import 'package:ml_dataframe/ml_dataframe.dart';
+import 'package:intl/intl.dart';
 
 class FutureExpenseScreen extends StatefulWidget {
   final String docId;
@@ -55,18 +56,34 @@ class _FutureExpenseScreenState extends State<FutureExpenseScreen> {
       DateTime date = (doc['date'] as Timestamp).toDate();
       String monthKey = "${date.year}-${date.month}";
 
-      // Add the current month's expenses as well
-      monthlyExpenses[monthKey] = (monthlyExpenses[monthKey] ?? 0) + (doc['amount'] as num).toDouble();
+      monthlyExpenses[monthKey] =
+          (monthlyExpenses[monthKey] ?? 0) + (doc['amount'] as num).toDouble();
     }
 
-    // Sort the months and include current month
     sortedMonths = monthlyExpenses.keys.toList()..sort();
     if (sortedMonths.isEmpty || sortedMonths.last != currentMonthKey) {
-      sortedMonths.add(currentMonthKey); // Add the current month if not present
+      sortedMonths.add(currentMonthKey);
     }
 
-    historicalExpenses = sortedMonths.map((month) => monthlyExpenses[month]!).toList();
+    historicalExpenses =
+        sortedMonths.map((month) => monthlyExpenses[month] ?? 0).toList();
 
+    // 🔹 Keep the last 3 months, or less if there are not enough months
+    int monthCount = historicalExpenses.length;
+    if (monthCount > 3) {
+      historicalExpenses = historicalExpenses.sublist(monthCount - 3);
+      sortedMonths = sortedMonths.sublist(monthCount - 3);
+    } else if (monthCount == 2) {
+      // Keep only the last two months if there are exactly two months
+      historicalExpenses = historicalExpenses.sublist(monthCount - 2);
+      sortedMonths = sortedMonths.sublist(monthCount - 2);
+    } else if (monthCount == 1) {
+      // Keep only the last month if there's only one
+      historicalExpenses = historicalExpenses.sublist(monthCount - 1);
+      sortedMonths = sortedMonths.sublist(monthCount - 1);
+    }
+
+    // Now make prediction based on the available months
     if (historicalExpenses.length >= 2) {
       predictedExpense = _predictNextMonthExpense(historicalExpenses);
     } else {
@@ -85,21 +102,37 @@ class _FutureExpenseScreenState extends State<FutureExpenseScreen> {
 }
 
 
+
+
   double _predictNextMonthExpense(List<double> data) {
     if (data.length < 2) {
-      return 0;
+      return 0; // Not enough data
     }
 
-    final dataset = [
-      ['month', 'amount'],
-      for (int i = 0; i < data.length; i++) [i + 1, data[i]],
-    ];
+    double lastMonth = data[data.length - 1];
+    double secondLastMonth = data[data.length - 2];
 
-    var df = DataFrame(dataset);
-    final model = LinearRegressor(df, 'amount');
-    final prediction = model.predict(DataFrame([['month'], [data.length + 1]]));
-    return prediction.rows.first.first as double;
+    // Simple linear extrapolation based on the last two values
+    return lastMonth + (lastMonth - secondLastMonth);
   }
+
+  // If prediction cannot be negative
+  // double _predictNextMonthExpense(List<double> data) {
+  //   if (data.length < 2) {
+  //     return data.last; // If only one month exists, return it as prediction.
+  //   }
+
+  //   double lastMonth = data[data.length - 1];
+  //   double secondLastMonth = data[data.length - 2];
+
+  //   // Simple linear extrapolation: assuming trend continues
+  //   double prediction = lastMonth + (lastMonth - secondLastMonth);
+
+  //   // Ensure prediction is never negative
+  //   return prediction < 0 ? 0 : prediction;
+  // }
+
+
 
   Widget _buildLineChart() {
     return Expanded(
@@ -107,27 +140,43 @@ class _FutureExpenseScreenState extends State<FutureExpenseScreen> {
         LineChartData(
           gridData: FlGridData(show: false),
           titlesData: FlTitlesData(
-            leftTitles: AxisTitles(sideTitles: SideTitles(showTitles: true, reservedSize: 40)),
+            leftTitles: AxisTitles(
+                sideTitles:
+                    SideTitles(showTitles: true, reservedSize: 40)),
             bottomTitles: AxisTitles(
               sideTitles: SideTitles(
                 showTitles: true,
                 getTitlesWidget: (value, meta) {
-                  int index = value.toInt();
-                  if (index < 0 || index >= sortedMonths.length + 1) return Container();
+                int index = value.toInt();
+                if (index < 0 || index >= sortedMonths.length + 1) return Container();
+              
+                // Convert sortedMonths to month names safely
+                if (index < sortedMonths.length) {
+                  DateTime parsedDate = DateTime(
+                    int.parse(sortedMonths[index].split('-')[0]),  // Year
+                    int.parse(sortedMonths[index].split('-')[1]),  // Month
+                    1
+                  );
                   return Text(
-                    index < sortedMonths.length ? sortedMonths[index] : "Next Month",
+                    DateFormat.MMM().format(parsedDate),
                     style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold),
                   );
-                },
-              ),
+                } else {
+                  return Text("Next", style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold));
+                }
+              }
+              
+                            ),
             ),
           ),
-          borderData: FlBorderData(show: true, border: Border.all(color: Colors.grey, width: 1)),
+          borderData: FlBorderData(
+              show: true, border: Border.all(color: Colors.grey, width: 1)),
           lineBarsData: [
             LineChartBarData(
               spots: List.generate(
                 historicalExpenses.length,
-                (index) => FlSpot(index.toDouble(), historicalExpenses[index]),
+                (index) =>
+                    FlSpot(index.toDouble(), historicalExpenses[index]),
               ),
               isCurved: true,
               color: Colors.deepPurpleAccent,
@@ -138,7 +187,8 @@ class _FutureExpenseScreenState extends State<FutureExpenseScreen> {
             if (predictedExpense != null)
               LineChartBarData(
                 spots: [
-                  FlSpot(historicalExpenses.length.toDouble(), predictedExpense!),
+                  FlSpot(historicalExpenses.length.toDouble(),
+                      predictedExpense!),
                 ],
                 isCurved: true,
                 color: Colors.red,
@@ -158,7 +208,9 @@ class _FutureExpenseScreenState extends State<FutureExpenseScreen> {
     return Scaffold(
       backgroundColor: Colors.purple[50],
       appBar: AppBar(
-        title: const Text('Future Expense Predictions', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+        title: const Text('Future Expense Predictions',
+            style: TextStyle(
+                color: Colors.white, fontWeight: FontWeight.bold)),
         backgroundColor: Colors.deepPurple,
       ),
       body: Padding(
@@ -166,21 +218,36 @@ class _FutureExpenseScreenState extends State<FutureExpenseScreen> {
         child: isLoading
             ? const Center(child: CircularProgressIndicator())
             : historicalExpenses.isEmpty
-                ? const Center(child: Text("No expenses available for prediction.", style: TextStyle(fontSize: 18, color: Colors.grey)))
+                ? const Center(
+                    child: Text("No expenses available for prediction.",
+                        style: TextStyle(
+                            fontSize: 18, color: Colors.grey)))
                 : Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Card(
                         elevation: 10,
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
+                        shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(15)),
                         child: Padding(
                           padding: const EdgeInsets.all(20.0),
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              Text("Predicted Expense for Next Month", style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.deepPurple)),
+                              Text("Predicted Expense for Next Month",
+                                  style: TextStyle(
+                                      fontSize: 20,
+                                      fontWeight: FontWeight.bold,
+                                      color: Colors.deepPurple)),
                               SizedBox(height: 10),
-                              Text(predictedExpense != null ? "\$${predictedExpense!.toStringAsFixed(2)}" : "Not enough data", style: TextStyle(fontSize: 26, fontWeight: FontWeight.bold, color: Colors.deepPurpleAccent)),
+                              Text(
+                                  predictedExpense != null
+                                      ? "£${predictedExpense!.toStringAsFixed(2)}"
+                                      : "Not enough data",
+                                  style: TextStyle(
+                                      fontSize: 26,
+                                      fontWeight: FontWeight.bold,
+                                      color: Colors.deepPurpleAccent)),
                             ],
                           ),
                         ),

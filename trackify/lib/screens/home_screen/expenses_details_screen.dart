@@ -43,7 +43,6 @@ class ExpenseDetailsScreen extends StatelessWidget {
                   MaterialPageRoute(builder: (_) => StatsScreen(docId: docId)),
                 );
               } else if (value == 'FutureExpenses') {
-                // Navigate to the FutureExpensesScreen (create this screen if not yet implemented)
                 Navigator.push(
                   context,
                   MaterialPageRoute(builder: (_) => FutureExpenseScreen(docId: docId)),
@@ -73,31 +72,30 @@ class ExpenseDetailsScreen extends StatelessWidget {
                   ],
                 ),
               ),
-      const PopupMenuItem(
-        value: 'FutureExpenses',
-        child: Row(
-          children: [
-            Icon(Icons.calendar_today, color: Colors.orange),
-            SizedBox(width: 10),
-            Text('Future Expense Predictions', style: TextStyle(fontSize: 16)),
-          ],
-        ),
-      ),
-      const PopupMenuDivider(),
-      const PopupMenuItem(
-        value: 'Delete',
-        child: Row(
-          children: [
-            Icon(Icons.delete, color: Colors.red),
-            SizedBox(width: 10),
-            Text('Delete Document', style: TextStyle(fontSize: 16, color: Colors.red)),
-          ],
-        ),
-      ),
-    ],
-  ),
-],
-
+              const PopupMenuItem(
+                value: 'FutureExpenses',
+                child: Row(
+                  children: [
+                    Icon(Icons.calendar_today, color: Colors.orange),
+                    SizedBox(width: 10),
+                    Text('Future Expense Predictions', style: TextStyle(fontSize: 16)),
+                  ],
+                ),
+              ),
+              const PopupMenuDivider(),
+              const PopupMenuItem(
+                value: 'Delete',
+                child: Row(
+                  children: [
+                    Icon(Icons.delete, color: Colors.red),
+                    SizedBox(width: 10),
+                    Text('Delete Document', style: TextStyle(fontSize: 16, color: Colors.red)),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ],
       ),
       body: StreamBuilder<QuerySnapshot>(
         stream: firestore
@@ -152,6 +150,9 @@ class ExpenseDetailsScreen extends StatelessWidget {
                 totalAmount += expense['amount'];
               }
 
+              // Format the total amount in GBP (£)
+              String formattedTotalAmount = NumberFormat.currency(symbol: '£', decimalDigits: 2).format(totalAmount);
+
               return Card(
                 margin: const EdgeInsets.symmetric(vertical: 8),
                 elevation: 3,
@@ -170,7 +171,7 @@ class ExpenseDetailsScreen extends StatelessWidget {
                             style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.deepPurple),
                           ),
                           Text(
-                            '\$${totalAmount.toStringAsFixed(2)}',
+                            formattedTotalAmount,  // Display formatted total amount in GBP
                             style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.green),
                           ),
                         ],
@@ -179,6 +180,9 @@ class ExpenseDetailsScreen extends StatelessWidget {
                     // List of expenses for that day
                     Column(
                       children: dailyExpenses.map((expense) {
+                        double expenseAmount = expense['amount'];
+                        String formattedAmount = NumberFormat.currency(symbol: '£', decimalDigits: 2).format(expenseAmount);
+
                         return Dismissible(
                           key: Key(expense.id),
                           direction: DismissDirection.endToStart,
@@ -207,7 +211,7 @@ class ExpenseDetailsScreen extends StatelessWidget {
                                 mainAxisSize: MainAxisSize.min,
                                 children: [
                                   Text(
-                                    '\$${expense['amount'].toStringAsFixed(2)}',
+                                    formattedAmount, // Display formatted amount in GBP
                                     style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.green, fontSize: 15),
                                   ),
                                   IconButton(
@@ -253,7 +257,6 @@ class ExpenseDetailsScreen extends StatelessWidget {
     final String uid = FirebaseAuth.instance.currentUser?.uid ?? '';
 
     if (uid.isNotEmpty) {
-
       await firestore
           .collection('users')
           .doc(uid)
