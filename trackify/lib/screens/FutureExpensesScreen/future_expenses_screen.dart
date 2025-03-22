@@ -29,110 +29,93 @@ class _FutureExpenseScreenState extends State<FutureExpenseScreen> {
   }
 
   Future<void> _fetchHistoricalExpenses() async {
-  final String uid = FirebaseAuth.instance.currentUser?.uid ?? '';
-  try {
-    DateTime currentDate = DateTime.now();
-    String currentMonthKey = "${currentDate.year}-${currentDate.month}";
+    final String uid = FirebaseAuth.instance.currentUser?.uid ?? '';
+    try {
+      DateTime currentDate = DateTime.now();
+      String currentMonthKey = "${currentDate.year}-${currentDate.month}";
 
-    QuerySnapshot snapshot = await _firestore
-        .collection('users')
-        .doc(uid)
-        .collection('expenseDocuments')
-        .doc(widget.docId)
-        .collection('expenses')
-        .orderBy('date', descending: false)
-        .get();
+      QuerySnapshot snapshot = await _firestore
+          .collection('users')
+          .doc(uid)
+          .collection('expenseDocuments')
+          .doc(widget.docId)
+          .collection('expenses')
+          .orderBy('date', descending: false)
+          .get();
 
-    if (snapshot.docs.isEmpty) {
+      if (snapshot.docs.isEmpty) {
+        setState(() {
+          isLoading = false;
+        });
+        print("No expenses data available.");
+        return;
+      }
+
+      Map<String, double> monthlyExpenses = {};
+      for (var doc in snapshot.docs) {
+        DateTime date = (doc['date'] as Timestamp).toDate();
+        String monthKey = "${date.year}-${date.month}";
+
+        monthlyExpenses[monthKey] =
+            (monthlyExpenses[monthKey] ?? 0) + (doc['amount'] as num).toDouble();
+      }
+
+      sortedMonths = monthlyExpenses.keys.toList()..sort();
+      if (sortedMonths.isEmpty || sortedMonths.last != currentMonthKey) {
+        sortedMonths.add(currentMonthKey);
+      }
+
+      historicalExpenses =
+          sortedMonths.map((month) => monthlyExpenses[month] ?? 0).toList();
+
+      // 🔹 Keep the last 3 months, or less if there are not enough months
+      int monthCount = historicalExpenses.length;
+      if (monthCount > 3) {
+        historicalExpenses = historicalExpenses.sublist(monthCount - 3);
+        sortedMonths = sortedMonths.sublist(monthCount - 3);
+      } else if (monthCount == 2) {
+        historicalExpenses = historicalExpenses.sublist(monthCount - 2);
+        sortedMonths = sortedMonths.sublist(monthCount - 2);
+      } else if (monthCount == 1) {
+        historicalExpenses = historicalExpenses.sublist(monthCount - 1);
+        sortedMonths = sortedMonths.sublist(monthCount - 1);
+      }
+
+      // Now make prediction based on the available months
+      if (historicalExpenses.length >= 2) {
+        predictedExpense = await _predictWithMLModel(historicalExpenses);
+      } else {
+        predictedExpense = null;
+      }
+
       setState(() {
         isLoading = false;
       });
-      print("No expenses data available.");
-      return;
+    } catch (e) {
+      setState(() {
+        isLoading = false;
+      });
+      print("Error fetching historical data: $e");
     }
-
-    Map<String, double> monthlyExpenses = {};
-    for (var doc in snapshot.docs) {
-      DateTime date = (doc['date'] as Timestamp).toDate();
-      String monthKey = "${date.year}-${date.month}";
-
-      monthlyExpenses[monthKey] =
-          (monthlyExpenses[monthKey] ?? 0) + (doc['amount'] as num).toDouble();
-    }
-
-    sortedMonths = monthlyExpenses.keys.toList()..sort();
-    if (sortedMonths.isEmpty || sortedMonths.last != currentMonthKey) {
-      sortedMonths.add(currentMonthKey);
-    }
-
-    historicalExpenses =
-        sortedMonths.map((month) => monthlyExpenses[month] ?? 0).toList();
-
-    // 🔹 Keep the last 3 months, or less if there are not enough months
-    int monthCount = historicalExpenses.length;
-    if (monthCount > 3) {
-      historicalExpenses = historicalExpenses.sublist(monthCount - 3);
-      sortedMonths = sortedMonths.sublist(monthCount - 3);
-    } else if (monthCount == 2) {
-      // Keep only the last two months if there are exactly two months
-      historicalExpenses = historicalExpenses.sublist(monthCount - 2);
-      sortedMonths = sortedMonths.sublist(monthCount - 2);
-    } else if (monthCount == 1) {
-      // Keep only the last month if there's only one
-      historicalExpenses = historicalExpenses.sublist(monthCount - 1);
-      sortedMonths = sortedMonths.sublist(monthCount - 1);
-    }
-
-    // Now make prediction based on the available months
-    if (historicalExpenses.length >= 2) {
-      predictedExpense = _predictNextMonthExpense(historicalExpenses);
-    } else {
-      predictedExpense = null;
-    }
-
-    setState(() {
-      isLoading = false;
-    });
-  } catch (e) {
-    setState(() {
-      isLoading = false;
-    });
-    print("Error fetching historical data: $e");
-  }
-}
-
-
-
-
-  double _predictNextMonthExpense(List<double> data) {
-    if (data.length < 2) {
-      return 0; // Not enough data
-    }
-
-    double lastMonth = data[data.length - 1];
-    double secondLastMonth = data[data.length - 2];
-
-    // Simple linear extrapolation based on the last two values
-    return lastMonth + (lastMonth - secondLastMonth);
   }
 
-  // If prediction cannot be negative
-  // double _predictNextMonthExpense(List<double> data) {
-  //   if (data.length < 2) {
-  //     return data.last; // If only one month exists, return it as prediction.
-  //   }
+  // Use ML model (Linear Regression) to predict next month's expense
+  Future<double> _predictWithMLModel(List<double> data) async {
+    // Prepare data for training
+    final dataset = [
+      ['month', 'amount'],
+      for (int i = 0; i < data.length; i++) [i + 1, data[i]],
+    ];
 
-  //   double lastMonth = data[data.length - 1];
-  //   double secondLastMonth = data[data.length - 2];
+    var df = DataFrame(dataset);
 
-  //   // Simple linear extrapolation: assuming trend continues
-  //   double prediction = lastMonth + (lastMonth - secondLastMonth);
+    // Train the Linear Regression model
+    final model = LinearRegressor(df, 'amount');
 
-  //   // Ensure prediction is never negative
-  //   return prediction < 0 ? 0 : prediction;
-  // }
-
-
+    // Predict the next month's expense (next month is just the data length + 1)
+    final prediction = model.predict(DataFrame([['month'], [data.length + 1]]));
+    return prediction.rows.first.first as double;
+  }
 
   Widget _buildLineChart() {
     return Expanded(
