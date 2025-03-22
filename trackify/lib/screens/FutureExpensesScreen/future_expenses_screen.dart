@@ -166,7 +166,10 @@ class _FutureExpenseScreenState extends State<FutureExpenseScreen> {
                 }
               }
               
-                            ),
+              ),
+            ),
+            topTitles: AxisTitles(
+              sideTitles: SideTitles(showTitles: false), // Hide the top x-axis labels
             ),
           ),
           borderData: FlBorderData(
