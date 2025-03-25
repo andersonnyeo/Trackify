@@ -90,6 +90,7 @@ class _ExpenseRecordScreenState extends State<ExpenseRecordScreen> {
     }
   }
 
+  // Add Expense
   void _addExpense(String docId, String description, double amount, String category, DateTime date) async {
     if (_uid.isNotEmpty) {
       CollectionReference expensesRef = _firestore
@@ -124,17 +125,7 @@ class _ExpenseRecordScreenState extends State<ExpenseRecordScreen> {
 
 
 
-  // void _suggestCategory(String description, Function(String) updateCategory) async {
-  //   var categoryRef = _firestore.collection('users').doc(_uid).collection('categoryMappings');
-  //   var query = await categoryRef.where('description', isEqualTo: description.toLowerCase()).get();
-
-  //   if (query.docs.isNotEmpty) {
-  //     updateCategory(query.docs.first['category']);
-  //   }
-  // }
-
-
-
+  // Edit Expense
   void _editExpense(String docId, String expenseId, String description, double amount, String category, DateTime date) async {
     if (_uid.isNotEmpty) {
       await _firestore.collection('users').doc(_uid).collection('expenseDocuments').doc(docId).collection('expenses').doc(expenseId).update({
@@ -146,6 +137,7 @@ class _ExpenseRecordScreenState extends State<ExpenseRecordScreen> {
     }
   }
 
+  // Delete whole expense Document
   void _deleteExpenseDocument(String docId) async {
     if (_uid.isNotEmpty) {
       // Delete all expenses inside the document first
@@ -521,9 +513,5 @@ class _ExpenseRecordScreenState extends State<ExpenseRecordScreen> {
       },
     );
   }
-
-
-
-
 }
 
