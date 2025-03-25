@@ -42,6 +42,7 @@ class _ExpenseRecordScreenState extends State<ExpenseRecordScreen> {
     'doctor': 'Health',
   };
 
+  
   @override
   void initState() {
     super.initState();
@@ -279,6 +280,8 @@ class _ExpenseRecordScreenState extends State<ExpenseRecordScreen> {
       ),
     );
   }
+
+  
 
 
   Future<bool?> _showDeleteConfirmationDialog(String docId) async {
