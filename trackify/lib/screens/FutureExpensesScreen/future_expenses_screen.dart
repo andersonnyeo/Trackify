@@ -198,6 +198,8 @@ class _FutureExpenseScreenState extends State<FutureExpenseScreen> {
             style: TextStyle(
                 color: Colors.white, fontWeight: FontWeight.bold)),
         backgroundColor: Colors.deepPurple,
+        elevation: 0,
+        iconTheme: const IconThemeData(color: Colors.white), // Set back arrow color to white
       ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),

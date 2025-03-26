@@ -25,6 +25,7 @@ class ExpenseDetailsScreen extends StatelessWidget {
         title: Text(title, 
           style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
         ),
+        iconTheme: const IconThemeData(color: Colors.white), // Set back arrow color to white
         actions: [
           PopupMenuButton<String>(
             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
