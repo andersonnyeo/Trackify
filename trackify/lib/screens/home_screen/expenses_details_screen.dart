@@ -6,6 +6,7 @@ import 'package:intl/intl.dart';
 import 'package:trackify/screens/FutureExpensesScreen/future_expenses_screen.dart';
 import 'package:trackify/screens/chart_screen/chart.dart';
 import 'package:trackify/screens/chart_screen/stats_screen.dart';
+import 'package:trackify/screens/budget/budget_recommendation.dart';
 
 class ExpenseDetailsScreen extends StatelessWidget {
   final String docId;
@@ -33,7 +34,7 @@ class ExpenseDetailsScreen extends StatelessWidget {
             iconColor: Colors.white,
             offset: const Offset(0, 50),
             onSelected: (value) {
-              if (value == 'Chart') {
+              if (value == 'Transaction Overview') {
                 Navigator.push(
                   context,
                   MaterialPageRoute(builder: (_) => Chart(docId: docId)),
@@ -48,18 +49,23 @@ class ExpenseDetailsScreen extends StatelessWidget {
                   context,
                   MaterialPageRoute(builder: (_) => FutureExpenseScreen(docId: docId)),
                 );
+              } else if (value == 'Budget') {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (_) => BudgetRecommendationScreen(docId: docId)),
+                );
               } else if (value == 'Delete') {
                 _deleteExpenseDocument(context, firestore, uid, docId);
               }
             },
             itemBuilder: (context) => [
               const PopupMenuItem(
-                value: 'Chart',
+                value: 'Transaction Overview',
                 child: Row(
                   children: [
-                    Icon(Icons.pie_chart, color: Colors.blue),
+                    Icon(Icons.bar_chart, color: Colors.blue),
                     SizedBox(width: 10),
-                    Text('Chart', style: TextStyle(fontSize: 16)),
+                    Text('Transaction Overview', style: TextStyle(fontSize: 16)),
                   ],
                 ),
               ),
@@ -67,7 +73,7 @@ class ExpenseDetailsScreen extends StatelessWidget {
                 value: 'Stats',
                 child: Row(
                   children: [
-                    Icon(Icons.bar_chart, color: Colors.green),
+                    Icon(Icons.pie_chart, color: Colors.green),
                     SizedBox(width: 10),
                     Text('Spending Insights', style: TextStyle(fontSize: 16)),
                   ],
@@ -80,6 +86,16 @@ class ExpenseDetailsScreen extends StatelessWidget {
                     Icon(Icons.calendar_today, color: Colors.orange),
                     SizedBox(width: 10),
                     Text('Future Expense Predictions', style: TextStyle(fontSize: 16)),
+                  ],
+                ),
+              ),
+              const PopupMenuItem(
+                value: 'Budget',
+                child: Row(
+                  children: [
+                    Icon(Icons.money_off, color: Colors.green),
+                    SizedBox(width: 10),
+                    Text('Budget Recommendation', style: TextStyle(fontSize: 16)),
                   ],
                 ),
               ),
