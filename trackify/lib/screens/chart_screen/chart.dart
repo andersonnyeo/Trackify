@@ -13,7 +13,8 @@ class Chart extends StatelessWidget {
         title: const Text('Chart', 
           style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
         ),
-        backgroundColor: Theme.of(context).primaryColor,
+        backgroundColor: Colors.deepPurple,
+        iconTheme: const IconThemeData(color: Colors.white), // Set back arrow color to white
       ),
       body: SafeArea(
         child: Padding(

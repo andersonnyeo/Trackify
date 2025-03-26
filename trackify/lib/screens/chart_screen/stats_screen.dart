@@ -22,6 +22,7 @@ class StatsScreen extends StatelessWidget {
         ),
         backgroundColor: Colors.deepPurple,
         elevation: 0,
+        iconTheme: const IconThemeData(color: Colors.white), // Set back arrow color to white
       ),
       body: Container(
         decoration: const BoxDecoration(

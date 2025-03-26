@@ -25,6 +25,7 @@ class ExpenseDetailsScreen extends StatelessWidget {
         title: Text(title, 
           style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
         ),
+        iconTheme: const IconThemeData(color: Colors.white), // Set back arrow color to white
         actions: [
           PopupMenuButton<String>(
             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
@@ -43,7 +44,6 @@ class ExpenseDetailsScreen extends StatelessWidget {
                   MaterialPageRoute(builder: (_) => StatsScreen(docId: docId)),
                 );
               } else if (value == 'FutureExpenses') {
-                // Navigate to the FutureExpensesScreen (create this screen if not yet implemented)
                 Navigator.push(
                   context,
                   MaterialPageRoute(builder: (_) => FutureExpenseScreen(docId: docId)),
@@ -73,124 +73,166 @@ class ExpenseDetailsScreen extends StatelessWidget {
                   ],
                 ),
               ),
-      const PopupMenuItem(
-        value: 'FutureExpenses',
-        child: Row(
-          children: [
-            Icon(Icons.calendar_today, color: Colors.orange),
-            SizedBox(width: 10),
-            Text('Future Expense Predictions', style: TextStyle(fontSize: 16)),
-          ],
-        ),
-      ),
-      const PopupMenuDivider(),
-      const PopupMenuItem(
-        value: 'Delete',
-        child: Row(
-          children: [
-            Icon(Icons.delete, color: Colors.red),
-            SizedBox(width: 10),
-            Text('Delete Document', style: TextStyle(fontSize: 16, color: Colors.red)),
-          ],
-        ),
-      ),
-    ],
-  ),
-],
-
-      ),
-        body: StreamBuilder<QuerySnapshot>(
-          stream: firestore
-              .collection('users')
-              .doc(uid)
-              .collection('expenseDocuments')
-              .doc(docId)
-              .collection('expenses')
-              .orderBy('date', descending: true)
-              .snapshots(),
-          builder: (context, snapshot) {
-            if (snapshot.connectionState == ConnectionState.waiting) {
-              return const Center(child: CircularProgressIndicator());
-            }
-
-            if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
-              return Center(
-                child: Column(
-                  // mainAxisAlignment: MainAxisAlignment.center,
+              const PopupMenuItem(
+                value: 'FutureExpenses',
+                child: Row(
                   children: [
-                    const SizedBox(height: 200),
-                    Icon(Icons.receipt_long, size: 80, color: Colors.grey[500]),
-                    const SizedBox(height: 20),
-                    const Text(
-                      "No expenses recorded yet.",
-                      style: TextStyle(fontSize: 18, color: Colors.grey),
+                    Icon(Icons.calendar_today, color: Colors.orange),
+                    SizedBox(width: 10),
+                    Text('Future Expense Predictions', style: TextStyle(fontSize: 16)),
+                  ],
+                ),
+              ),
+              const PopupMenuDivider(),
+              const PopupMenuItem(
+                value: 'Delete',
+                child: Row(
+                  children: [
+                    Icon(Icons.delete, color: Colors.red),
+                    SizedBox(width: 10),
+                    Text('Delete Document', style: TextStyle(fontSize: 16, color: Colors.red)),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+      body: StreamBuilder<QuerySnapshot>(
+        stream: firestore
+            .collection('users')
+            .doc(uid)
+            .collection('expenseDocuments')
+            .doc(docId)
+            .collection('expenses')
+            .orderBy('date', descending: true)
+            .snapshots(),
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return const Center(child: CircularProgressIndicator());
+          }
+
+          if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
+            return Center(
+              child: Column(
+                children: [
+                  const SizedBox(height: 200),
+                  Icon(Icons.receipt_long, size: 80, color: Colors.grey[500]),
+                  const SizedBox(height: 20),
+                  const Text("No expenses recorded yet.", style: TextStyle(fontSize: 18, color: Colors.grey)),
+                  const SizedBox(height: 10),
+                  const Text("Tap the + button to add your first expense.", style: TextStyle(fontSize: 14, color: Colors.grey)),
+                ],
+              ),
+            );
+          }
+
+          final expenses = snapshot.data!.docs;
+
+          // Group expenses by date
+          Map<String, List<QueryDocumentSnapshot>> groupedExpenses = {};
+          for (var expense in expenses) {
+            final date = DateFormat('yyyy-MM-dd').format((expense['date'] as Timestamp).toDate());
+            if (!groupedExpenses.containsKey(date)) {
+              groupedExpenses[date] = [];
+            }
+            groupedExpenses[date]!.add(expense);
+          }
+
+          return ListView(
+            padding: const EdgeInsets.all(10),
+            children: groupedExpenses.entries.map((entry) {
+              String date = entry.key;
+              List<QueryDocumentSnapshot> dailyExpenses = entry.value;
+
+              // Calculate total amount for the day
+              double totalAmount = 0;
+              for (var expense in dailyExpenses) {
+                totalAmount += expense['amount'];
+              }
+
+              // Format the total amount in GBP (£)
+              String formattedTotalAmount = NumberFormat.currency(symbol: '£', decimalDigits: 2).format(totalAmount);
+
+              return Card(
+                margin: const EdgeInsets.symmetric(vertical: 8),
+                elevation: 3,
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // Date and total amount section
+                    Padding(
+                      padding: const EdgeInsets.all(8.0),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Text(
+                            date,
+                            style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.deepPurple),
+                          ),
+                          Text(
+                            formattedTotalAmount,  // Display formatted total amount in GBP
+                            style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.green),
+                          ),
+                        ],
+                      ),
                     ),
-                    const SizedBox(height: 10),
-                    const Text(
-                      "Tap the + button to add your first expense.",
-                      style: TextStyle(fontSize: 14, color: Colors.grey),
+                    // List of expenses for that day
+                    Column(
+                      children: dailyExpenses.map((expense) {
+                        double expenseAmount = expense['amount'];
+                        String formattedAmount = NumberFormat.currency(symbol: '£', decimalDigits: 2).format(expenseAmount);
+
+                        return Dismissible(
+                          key: Key(expense.id),
+                          direction: DismissDirection.endToStart,
+                          background: Container(
+                            alignment: Alignment.centerRight,
+                            padding: const EdgeInsets.symmetric(horizontal: 20),
+                            color: Colors.red,
+                            child: const Icon(Icons.delete, color: Colors.white),
+                          ),
+                          confirmDismiss: (direction) async {
+                            return await _showDeleteConfirmationDialog(context, expense.id);
+                          },
+                          onDismissed: (direction) {
+                            _deleteExpenseDetails(expense.id);
+                          },
+                          child: Card(
+                            margin: const EdgeInsets.symmetric(vertical: 5),
+                            elevation: 0,
+                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                            child: ListTile(
+                              title: Text(expense['description'], style: const TextStyle(fontWeight: FontWeight.bold)),
+                              subtitle: Text(
+                                '${expense['category']} - ${DateFormat('yyyy-MM-dd').format((expense['date'] as Timestamp).toDate())}',
+                              ),
+                              trailing: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Text(
+                                    formattedAmount, // Display formatted amount in GBP
+                                    style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.green, fontSize: 15),
+                                  ),
+                                  IconButton(
+                                    icon: const Icon(Icons.edit, color: Colors.blue),
+                                    onPressed: () => _editExpense(context, firestore, uid, docId, expense),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                        );
+                      }).toList(),
                     ),
                   ],
                 ),
               );
-            }
-
-            final expenses = snapshot.data!.docs;
-
-            return ListView.builder(
-              padding: const EdgeInsets.all(10),
-              itemCount: expenses.length,
-              itemBuilder: (context, index) {
-                var expense = expenses[index];
-                return Dismissible(
-                  key: Key(expense.id),
-                    direction: DismissDirection.endToStart,
-                    background: Container(
-                      alignment: Alignment.centerRight,
-                      padding: const EdgeInsets.symmetric(horizontal: 20),
-                      color: Colors.red,
-                      child: const Icon(Icons.delete, color: Colors.white),
-                    ),
-                    confirmDismiss: (direction) async {
-                      return await _showDeleteConfirmationDialog(context, expense.id);
-                    },
-                    onDismissed: (direction) {
-                      _deleteExpenseDetails(expense.id);
-                    },
-                  child: Card(
-                    margin: const EdgeInsets.symmetric(vertical: 8),
-                    elevation: 3,
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-                    child: ListTile(
-                      title: Text(expense['description'], style: const TextStyle(fontWeight: FontWeight.bold)),
-                      subtitle: Text(
-                        '${expense['category']} - ${DateFormat('yyyy-MM-dd').format((expense['date'] as Timestamp).toDate())}',
-                      ),
-                      trailing: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Text(
-                            '\$${expense['amount'].toStringAsFixed(2)}',
-                            style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.green, fontSize: 15),
-                          ),
-                          IconButton(
-                            icon: const Icon(Icons.edit, color: Colors.blue),
-                            onPressed: () => _editExpense(context, firestore, uid, docId, expense),
-                          ),
-                          // IconButton(
-                          //   icon: const Icon(Icons.delete, color: Colors.red),
-                          //   onPressed: () => _deleteExpense(context, firestore, uid, docId, expense.id),
-                          // ),
-                        ],
-                      ),
-                    ),
-                  ),
-                );
-              },
-            );
-          },
-        ),    
-
+            }).toList(),
+          );
+        },
+      ),
     );
   }
 
@@ -216,7 +258,6 @@ class ExpenseDetailsScreen extends StatelessWidget {
     final String uid = FirebaseAuth.instance.currentUser?.uid ?? '';
 
     if (uid.isNotEmpty) {
-
       await firestore
           .collection('users')
           .doc(uid)

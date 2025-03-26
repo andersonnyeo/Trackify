@@ -17,7 +17,32 @@ class _ExpenseRecordScreenState extends State<ExpenseRecordScreen> {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   final FirebaseAuth _auth = FirebaseAuth.instance;
   late String _uid;
+  
 
+
+  // Local NLP-based categorization model (keywords)
+  final Map<String, String> _categoryKeywords = {
+    'food': 'Food',
+    'restaurant': 'Food',
+    'grocery': 'Groceries',
+    'supermarket': 'Groceries',
+    'bus': 'Transport',
+    'train': 'Transport',
+    'fuel': 'Transport',
+    'uber': 'Transport',
+    'shopping': 'Shopping',
+    'clothes': 'Shopping',
+    'movie': 'Entertainment',
+    'netflix': 'Entertainment',
+    'game': 'Entertainment',
+    'electricity': 'Bills',
+    'internet': 'Bills',
+    'phone': 'Bills',
+    'gym': 'Health',
+    'doctor': 'Health',
+  };
+
+  
   @override
   void initState() {
     super.initState();
@@ -41,37 +66,22 @@ class _ExpenseRecordScreenState extends State<ExpenseRecordScreen> {
     }
   }
 
-  void _addExpense(String docId, String description, double amount, String category, DateTime date) async {
-  if (_uid.isNotEmpty) {
-    // Add expense
-    await _firestore.collection('users').doc(_uid).collection('expenseDocuments').doc(docId).collection('expenses').add({
-      'description': description.toLowerCase(),
-      'amount': amount,
-      'category': category,
-      'date': Timestamp.fromDate(date),
-    });
-
-    // Store mapping if it's a new description
-    var categoryRef = _firestore.collection('users').doc(_uid).collection('categoryMappings');
-    var existingMapping = await categoryRef.where('description', isEqualTo: description.toLowerCase()).get();
-
-    if (existingMapping.docs.isEmpty) {
-      // Add new category mapping if it doesn't exist
-      await categoryRef.add({'description': description.toLowerCase(), 'category': category});
-    } else {
-      // If category has changed for the same description, update it
-      var existingDoc = existingMapping.docs.first;
-      String existingCategory = existingDoc['category'];
-
-      if (existingCategory != category) {
-        await existingDoc.reference.update({'category': category});
+  // NLP-based category prediction
+  String _predictCategory(String description) {
+    description = description.toLowerCase();
+    for (var keyword in _categoryKeywords.keys) {
+      if (description.contains(keyword)) {
+        return _categoryKeywords[keyword]!;
       }
     }
+    return 'Other';
   }
-}
 
-
+  // Suggest category using NLP first, then Firestore
   void _suggestCategory(String description, Function(String) updateCategory) async {
+    String predictedCategory = _predictCategory(description);
+    updateCategory(predictedCategory);
+
     var categoryRef = _firestore.collection('users').doc(_uid).collection('categoryMappings');
     var query = await categoryRef.where('description', isEqualTo: description.toLowerCase()).get();
 
@@ -80,8 +90,42 @@ class _ExpenseRecordScreenState extends State<ExpenseRecordScreen> {
     }
   }
 
+  // Add Expense
+  void _addExpense(String docId, String description, double amount, String category, DateTime date) async {
+    if (_uid.isNotEmpty) {
+      CollectionReference expensesRef = _firestore
+          .collection('users')
+          .doc(_uid)
+          .collection('expenseDocuments')
+          .doc(docId)
+          .collection('expenses');
+
+      await expensesRef.add({
+        'description': description.toLowerCase(),
+        'amount': amount,
+        'category': category,
+        'date': Timestamp.fromDate(date),
+      });
+
+      // Check if the description already has a category mapping
+      var categoryRef = _firestore.collection('users').doc(_uid).collection('categoryMappings');
+      var query = await categoryRef.where('description', isEqualTo: description.toLowerCase()).get();
+
+      if (query.docs.isNotEmpty) {
+        // If a mapping exists but has a different category, update it
+        if (query.docs.first.get('category') != category) {
+          await categoryRef.doc(query.docs.first.id).update({'category': category});
+        }
+      } else {
+        // If no mapping exists, create a new one
+        await categoryRef.add({'description': description.toLowerCase(), 'category': category});
+      }
+    }
+  }
 
 
+
+  // Edit Expense
   void _editExpense(String docId, String expenseId, String description, double amount, String category, DateTime date) async {
     if (_uid.isNotEmpty) {
       await _firestore.collection('users').doc(_uid).collection('expenseDocuments').doc(docId).collection('expenses').doc(expenseId).update({
@@ -93,6 +137,7 @@ class _ExpenseRecordScreenState extends State<ExpenseRecordScreen> {
     }
   }
 
+  // Delete whole expense Document
   void _deleteExpenseDocument(String docId) async {
     if (_uid.isNotEmpty) {
       // Delete all expenses inside the document first
@@ -227,6 +272,8 @@ class _ExpenseRecordScreenState extends State<ExpenseRecordScreen> {
       ),
     );
   }
+
+  
 
 
   Future<bool?> _showDeleteConfirmationDialog(String docId) async {
@@ -466,9 +513,5 @@ class _ExpenseRecordScreenState extends State<ExpenseRecordScreen> {
       },
     );
   }
-
-
-
-
 }
 

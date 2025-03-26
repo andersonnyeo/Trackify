@@ -50,6 +50,13 @@ class _SignInState extends State<SignIn> {
                       children: <Widget>[
                         const SizedBox(height: 50),
                         const Icon(Icons.login, size: 100, color: Colors.deepPurple),
+                        // Image.asset(
+                        //   'assets/logo.png',
+                        //   width: 150,  // Set the width as per your requirement
+                        //   height: 150, // Set the height as per your requirement
+                          
+                        // ),
+
                         const SizedBox(height: 20),
                         const Text(
                           'Welcome to Trackify',
