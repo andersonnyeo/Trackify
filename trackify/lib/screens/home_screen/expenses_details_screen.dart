@@ -34,7 +34,7 @@ class ExpenseDetailsScreen extends StatelessWidget {
             iconColor: Colors.white,
             offset: const Offset(0, 50),
             onSelected: (value) {
-              if (value == 'Transaction Overview') {
+              if (value == 'Monthly Overview') {
                 Navigator.push(
                   context,
                   MaterialPageRoute(builder: (_) => Chart(docId: docId)),
@@ -60,12 +60,12 @@ class ExpenseDetailsScreen extends StatelessWidget {
             },
             itemBuilder: (context) => [
               const PopupMenuItem(
-                value: 'Transaction Overview',
+                value: 'Monthly Overview',
                 child: Row(
                   children: [
                     Icon(Icons.bar_chart, color: Colors.blue),
                     SizedBox(width: 10),
-                    Text('Transaction Overview', style: TextStyle(fontSize: 16)),
+                    Text('Monthly Overview', style: TextStyle(fontSize: 16)),
                   ],
                 ),
               ),
