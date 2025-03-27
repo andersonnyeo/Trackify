@@ -23,6 +23,8 @@ class _SettingsFormState extends State<SettingsForm> {
   int? _currentStrength;
   String? _currentPassword;
 
+  bool _isPasswordVisible = false; // Track password visibility
+
   @override
   Widget build(BuildContext context) {
     final User? user = Provider.of<User?>(context);
@@ -50,7 +52,7 @@ class _SettingsFormState extends State<SettingsForm> {
                         fontSize: 22.0, 
                         fontWeight: FontWeight.bold,
                         color: Colors.deepPurple,
-                        ),
+                      ),
                       textAlign: TextAlign.left,
                     ),
                     const SizedBox(height: 30.0),
@@ -79,8 +81,23 @@ class _SettingsFormState extends State<SettingsForm> {
                     ),
                     const SizedBox(height: 5.0),
                     TextFormField(
-                      decoration: textInputDecoration.copyWith(hintText: 'Enter new password'),
-                      obscureText: true,
+                      decoration: textInputDecoration.copyWith(
+                        hintText: 'Enter new password',
+                        suffixIcon: IconButton(
+                          icon: Icon(
+                            _isPasswordVisible 
+                                ? Icons.visibility 
+                                : Icons.visibility_off,
+                            color: Colors.grey,
+                          ),
+                          onPressed: () {
+                            setState(() {
+                              _isPasswordVisible = !_isPasswordVisible;
+                            });
+                          },
+                        ),
+                      ),
+                      obscureText: !_isPasswordVisible, // Toggle visibility
                       validator: (val) => val != null && val.length < 6 ? 'Password must be at least 6 characters' : null,
                       onChanged: (val) => setState(() => _currentPassword = val),
                     ),
@@ -101,7 +118,6 @@ class _SettingsFormState extends State<SettingsForm> {
                             try {
                               await _auth.updatePassword(_currentPassword!);
                             } catch (e) {
-                              // ignore: use_build_context_synchronously
                               ScaffoldMessenger.of(context).showSnackBar(
                                 SnackBar(
                                   content: Text('Failed to update password: ${e.toString()}'),
@@ -111,7 +127,6 @@ class _SettingsFormState extends State<SettingsForm> {
                             }
                           }
 
-                          // ignore: use_build_context_synchronously
                           ScaffoldMessenger.of(context).showSnackBar(
                             const SnackBar(
                               content: Text('Profile updated successfully!'),
