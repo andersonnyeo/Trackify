@@ -203,7 +203,7 @@ class _SignInState extends State<SignIn> {
                             ? Text(
                                 error,
                                 key: ValueKey<String>(error),
-                                style: const TextStyle(color: Colors.red, fontSize: 16.0),
+                                style: const TextStyle(color: Colors.red, fontSize: 15.0),
                               )
                             : const SizedBox.shrink(),
                       ),
