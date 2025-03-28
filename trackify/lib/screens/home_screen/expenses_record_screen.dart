@@ -35,11 +35,6 @@ class _ExpenseRecordScreenState extends State<ExpenseRecordScreen> {
     'movie': 'Entertainment',
     'netflix': 'Entertainment',
     'game': 'Entertainment',
-    'electricity': 'Bills',
-    'internet': 'Bills',
-    'phone': 'Bills',
-    'gym': 'Health',
-    'doctor': 'Health',
   };
 
   
