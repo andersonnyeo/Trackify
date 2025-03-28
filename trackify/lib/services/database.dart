@@ -10,29 +10,25 @@ class DatabaseService {
   // Collection reference
   final CollectionReference trackifyCollection = FirebaseFirestore.instance.collection('trackify');
   
-  Future updateUserData(String sugars, String name, int strength) async {
+  Future updateUserData(String name) async {
     return await trackifyCollection.doc(uid).set({
-      'sugars' : sugars,
       'name' : name,
-      'strength' : strength,
     });
 
   }
 
 
-  // brew list from snapshot
-  List<Trackify> _trackifyListFromSnapshot(QuerySnapshot snapshot) {
-    return snapshot.docs.map((doc) {
-      // Cast doc.data() to a Map for safe access
-      final data = doc.data() as Map<String, dynamic>?;
+  // Trackify list from snapshot
+    List<Trackify> _trackifyListFromSnapshot(QuerySnapshot snapshot) {
+      return snapshot.docs.map((doc) {
+        // Cast doc.data() to a Map for safe access
+        final data = doc.data() as Map<String, dynamic>?;
 
-      return Trackify(
-        name: data?['name'] ?? 'Unnamed',
-        strength: data?['strength'] ?? 0,
-        sugars: data?['sugars'] ?? '0',
-      );
-    }).toList();
-  }
+        return Trackify(
+          name: data?['name'] ?? 'Unnamed',
+        );
+      }).toList();
+    }
 
 
   // UserData from snapshot
@@ -42,8 +38,6 @@ class DatabaseService {
     return UserData(
       uid: uid,
       name: data?['name'] ?? 'Unnamed',
-      sugars: data?['sugars'] ?? '0',
-      strength: data?['strength'] ?? 0,
     );
   }
 
