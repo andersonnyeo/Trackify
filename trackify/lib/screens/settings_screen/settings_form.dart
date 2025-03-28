@@ -15,12 +15,9 @@ class SettingsForm extends StatefulWidget {
 
 class _SettingsFormState extends State<SettingsForm> {
   final _formKey = GlobalKey<FormState>();
-  final List<String> sugars = ['0', '1', '2', '3', '4'];
   final AuthService _auth = AuthService();
 
   String? _currentName;
-  String? _currentSugars;
-  int? _currentStrength;
   String? _currentPassword;
 
   bool _isPasswordVisible = false; // Track password visibility
@@ -110,9 +107,8 @@ class _SettingsFormState extends State<SettingsForm> {
                       onPressed: () async {
                         if (_formKey.currentState!.validate()) {
                           await DatabaseService(uid: user.uid).updateUserData(
-                              _currentSugars ?? userData.sugars,
                               _currentName ?? userData.name,
-                              _currentStrength ?? userData.strength);
+                              );
 
                           if (_currentPassword != null && _currentPassword!.isNotEmpty) {
                             try {
