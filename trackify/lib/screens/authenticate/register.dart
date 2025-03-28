@@ -15,12 +15,66 @@ class Register extends StatefulWidget {
 class _RegisterState extends State<Register> {
   final AuthService _auth = AuthService();
   final _formKey = GlobalKey<FormState>();
-  bool loading = false;
 
-  // text field state
-  String email = '';
-  String password = '';
+  bool loading = false;
+  bool obscurePassword = true;
   String error = '';
+
+  final TextEditingController emailController = TextEditingController();
+  final TextEditingController passwordController = TextEditingController();
+
+  @override
+  void dispose() {
+    emailController.dispose();
+    passwordController.dispose();
+    super.dispose();
+  }
+
+  Future<void> _register() async {
+    if (_formKey.currentState!.validate()) {
+      setState(() => loading = true);
+      try {
+        dynamic result = await _auth.registerWithEmailAndPassword(
+          emailController.text.trim(),
+          passwordController.text.trim(),
+        );
+
+        if (result == null) {
+          setState(() {
+            error = 'This email is already in use. Try another one.';
+            loading = false;
+          });
+        }
+      } catch (e) {
+        setState(() {
+          error = 'An error occurred. Please check your credentials and try again.';
+          loading = false;
+        });
+      }
+    }
+  }
+
+  String? _validateEmail(String? value) {
+    if (value == null || value.trim().isEmpty) {
+      return 'Enter an email';
+    }
+    final emailRegex = RegExp(r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$');
+    if (!emailRegex.hasMatch(value.trim())) {
+      return 'Enter a valid email';
+    }
+    return null;
+  }
+
+  String? _validatePassword(String? value) {
+    if (value == null || value.length < 6) {
+      return 'Password must be at least 6 characters';
+    }
+    // if (!RegExp(r'^[a-z0-9]+$').hasMatch(value)) {
+    //   return 'Use only lowercase letters and numbers';
+    // }
+    return null;
+  }
+
 
   @override
   Widget build(BuildContext context) {
@@ -31,15 +85,14 @@ class _RegisterState extends State<Register> {
             appBar: AppBar(
               backgroundColor: Colors.deepPurple,
               elevation: 0.0,
-              title: const Text('Sign up to Trackify',
-              style: TextStyle(
-                color: Colors.white,
-                fontWeight: FontWeight.bold
-                )),
+              title: const Text(
+                'Sign up to Trackify',
+                style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+              ),
               centerTitle: true,
             ),
             body: SingleChildScrollView(
-              child: Container(
+              child: Padding(
                 padding: const EdgeInsets.symmetric(vertical: 20.0, horizontal: 40.0),
                 child: Form(
                   key: _formKey,
@@ -55,11 +108,7 @@ class _RegisterState extends State<Register> {
                       const SizedBox(height: 20),
                       const Text(
                         'Create an Account',
-                        style: TextStyle(
-                          fontSize: 28,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.deepPurple,
-                        ),
+                        style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold, color: Colors.deepPurple),
                       ),
                       const SizedBox(height: 10),
                       const Text(
@@ -68,29 +117,42 @@ class _RegisterState extends State<Register> {
                         style: TextStyle(fontSize: 18, color: Colors.black54),
                       ),
                       const SizedBox(height: 30),
+
+                      // Email Text Field
                       TextFormField(
+                        controller: emailController,
                         decoration: textInputDecoration.copyWith(
                           hintText: 'Email',
                           prefixIcon: const Icon(Icons.email, color: Colors.deepPurple),
                         ),
-                        validator: (val) => val!.isEmpty ? 'Enter an email' : null,
-                        onChanged: (val) {
-                          setState(() => email = val);
-                        },
+                        keyboardType: TextInputType.emailAddress,
+                        autofillHints: [AutofillHints.email],
+                        validator: _validateEmail,
                       ),
                       const SizedBox(height: 20.0),
+
+                      // Password Text Field with Visibility Toggle
                       TextFormField(
+                        controller: passwordController,
                         decoration: textInputDecoration.copyWith(
                           hintText: 'Password',
                           prefixIcon: const Icon(Icons.lock, color: Colors.deepPurple),
+                          suffixIcon: IconButton(
+                            icon: Icon(
+                              obscurePassword ? Icons.visibility_off : Icons.visibility,
+                              color: Colors.deepPurple,
+                            ),
+                            onPressed: () {
+                              setState(() => obscurePassword = !obscurePassword);
+                            },
+                          ),
                         ),
-                        obscureText: true,
-                        validator: (val) => val!.length < 6 ? 'Enter a password 6+ chars long' : null,
-                        onChanged: (val) {
-                          setState(() => password = val);
-                        },
+                        obscureText: obscurePassword,
+                        validator: _validatePassword,
                       ),
                       const SizedBox(height: 20.0),
+
+                      // Forgot Password
                       Align(
                         alignment: Alignment.centerRight,
                         child: GestureDetector(
@@ -101,14 +163,13 @@ class _RegisterState extends State<Register> {
                           },
                           child: const Text(
                             'Forgot Password?',
-                            style: TextStyle(
-                              color: Colors.deepPurple,
-                              fontWeight: FontWeight.bold,
-                            ),
+                            style: TextStyle(color: Colors.deepPurple, fontWeight: FontWeight.bold),
                           ),
                         ),
                       ),
                       const SizedBox(height: 30.0),
+
+                      // Register Button
                       ElevatedButton(
                         style: ElevatedButton.styleFrom(
                           backgroundColor: Colors.deepPurple,
@@ -122,48 +183,42 @@ class _RegisterState extends State<Register> {
                           'Register',
                           style: TextStyle(fontSize: 18, color: Colors.white),
                         ),
-                        onPressed: () async {
-                          if (_formKey.currentState!.validate()) {
-                            setState(() => loading = true);
-                            dynamic result =
-                                await _auth.registerWithEmailAndPassword(email, password);
-                            if (result == null) {
-                              setState(() {
-                                error = 'Could not register with those credentials';
-                                loading = false;
-                              });
-                            }
-                          }
-                        },
+                        onPressed: _register,
                       ),
                       const SizedBox(height: 20.0),
+
+                      // Switch to Login
                       Row(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
                           const Text(
                             'Already a member? ',
                             style: TextStyle(fontSize: 16, color: Colors.black54),
-                            ),
+                          ),
                           GestureDetector(
                             onTap: () {
                               widget.toggleView();
                             },
                             child: const Text(
                               'Login now',
-                              style: TextStyle(
-                                color: Colors.deepPurple,
-                                fontWeight: FontWeight.bold,
-                                fontSize: 16,
-                              ),
+                              style: TextStyle(color: Colors.deepPurple, fontWeight: FontWeight.bold, fontSize: 16),
                             ),
                           ),
                         ],
                       ),
                       const SizedBox(height: 20.0),
-                      Text(
-                        error,
-                        style: const TextStyle(color: Colors.red, fontSize: 16.0),
-                      )
+
+                      // Error Message with animation
+                      AnimatedSwitcher(
+                        duration: const Duration(milliseconds: 300),
+                        child: error.isNotEmpty
+                            ? Text(
+                                error,
+                                key: ValueKey<String>(error),
+                                style: const TextStyle(color: Colors.red, fontSize: 15.0),
+                              )
+                            : const SizedBox.shrink(),
+                      ),
                     ],
                   ),
                 ),
