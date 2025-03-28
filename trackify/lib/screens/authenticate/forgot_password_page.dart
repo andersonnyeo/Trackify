@@ -83,6 +83,7 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
           fontWeight: FontWeight.bold
           )),
         centerTitle: true,
+        iconTheme: const IconThemeData(color: Colors.white), // Set back arrow color to white
       ),
       body: Center(
         child: Padding(
