@@ -167,11 +167,11 @@ class _SettingsScreenState extends State<SettingsScreen> {
           backgroundColor: Colors.purple[50],
           body: Padding(
             padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 15.0),
-            child: ListView(
+            child: ListView( // <-- Changed to ListView to prevent overflow
               children: [
-                Text(
-                  'Customize Your Experience!',
-                  style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.deepPurple),
+                const Text(
+                  'Settings',
+                  style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: Colors.deepPurple),
                 ),
                 const SizedBox(height: 20),
 
@@ -202,13 +202,12 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   icon: Icons.logout,
                   title: 'Logout',
                   isLogout: true,
-                  onTap: _confirmLogout,
+                  onTap: _confirmLogout, // <-- Uses confirmation dialog
                 ),
               ],
             ),
           ),
         );
-
       },
     );
   }
