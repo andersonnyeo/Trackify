@@ -170,7 +170,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
             child: ListView( // <-- Changed to ListView to prevent overflow
               children: [
                 const Text(
-                  'Customize Your Experience',
+                  'Settings',
                   style: TextStyle(
                     fontSize: 24, // Increase size for better emphasis
                     fontWeight: FontWeight.w700, // Make it slightly bolder
