@@ -418,7 +418,7 @@ class _ExpenseRecordScreenState extends State<ExpenseRecordScreen> {
   
                     // Category Dropdown
                     DropdownButtonFormField<String>(
-                      value: categories.contains(category) ? category : 'Food', // Ensure category exists
+                      value: categories.contains(category) ? category : 'Other', // Ensure category exists
                       decoration: InputDecoration(
                         labelText: 'Category',
                         labelStyle: TextStyle(color: Colors.deepPurple),
