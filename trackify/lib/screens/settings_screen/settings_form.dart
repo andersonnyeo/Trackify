@@ -170,9 +170,14 @@ class _SettingsScreenState extends State<SettingsScreen> {
             child: ListView( // <-- Changed to ListView to prevent overflow
               children: [
                 const Text(
-                  'Settings',
-                  style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: Colors.deepPurple),
+                  'Customize Your Experience',
+                  style: TextStyle(
+                    fontSize: 24, // Increase size for better emphasis
+                    fontWeight: FontWeight.w700, // Make it slightly bolder
+                    color: Colors.deepPurple, 
+                  ),
                 ),
+
                 const SizedBox(height: 20),
 
                 _buildSettingsItem(
