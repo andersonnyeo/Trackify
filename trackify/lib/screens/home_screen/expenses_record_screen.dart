@@ -17,6 +17,7 @@ class _ExpenseRecordScreenState extends State<ExpenseRecordScreen> {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   final FirebaseAuth _auth = FirebaseAuth.instance;
   late String _uid;
+  TextEditingController descriptionController = TextEditingController();
   
 
 
@@ -316,6 +317,7 @@ class _ExpenseRecordScreenState extends State<ExpenseRecordScreen> {
 
   void _showAddExpenseDialog(String docId, {String? expenseId, String? existingDescription, double? existingAmount, String? existingCategory, DateTime? existingDate}) {
     String description = existingDescription ?? '';
+    descriptionController.text = existingDescription ?? '';
     double amount = existingAmount ?? 0.0;
     String category = existingCategory ?? 'Food';
     DateTime selectedDate = existingDate ?? DateTime.now();
@@ -325,7 +327,6 @@ class _ExpenseRecordScreenState extends State<ExpenseRecordScreen> {
   
     // Timer for debounce
     Timer? _debounceTimer;
-  
     // Fetch categories from Firestore
     void fetchCategories() async {
       var categoryDocs = await _firestore.collection('users').doc(_uid).collection('categories').get();
@@ -361,28 +362,36 @@ class _ExpenseRecordScreenState extends State<ExpenseRecordScreen> {
                   children: [
                     // Description TextField
                     TextField(
-                      controller: TextEditingController(text: description),
-                      onChanged: (value) {
-                        description = value;
-                        _suggestCategoryWithDelay(value, (suggestedCategory) {
-                          setDialogState(() {
-                            category = suggestedCategory;
-                          });
-                        });
-                      },
-                      decoration: InputDecoration(
-                        labelText: 'Expense Description',
-                        labelStyle: TextStyle(color: Colors.deepPurple),
-                        focusedBorder: OutlineInputBorder(
-                          borderSide: BorderSide(color: Colors.deepPurple),
-                          borderRadius: BorderRadius.circular(10),
-                        ),
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(10),
-                        ),
-                        contentPadding: EdgeInsets.symmetric(vertical: 15, horizontal: 10),
-                      ),
-                    ),
+          controller: descriptionController,
+          onChanged: (value) {
+            // Save current cursor position before updating
+            int cursorPosition = descriptionController.selection.baseOffset;
+        
+            description = value;
+            _suggestCategoryWithDelay(value, (suggestedCategory) {
+              setDialogState(() {
+                category = suggestedCategory;
+              });
+            });
+        
+            // Restore cursor position after text change
+            descriptionController.selection = TextSelection.fromPosition(
+              TextPosition(offset: cursorPosition),
+            );
+          },
+          decoration: InputDecoration(
+            labelText: 'Expense Description',
+            labelStyle: TextStyle(color: Colors.deepPurple),
+            focusedBorder: OutlineInputBorder(
+              borderSide: BorderSide(color: Colors.deepPurple),
+              borderRadius: BorderRadius.circular(10),
+            ),
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(10),
+            ),
+            contentPadding: EdgeInsets.symmetric(vertical: 15, horizontal: 10),
+          ),
+        ),
                     SizedBox(height: 20),
   
                     // Amount TextField
@@ -409,7 +418,7 @@ class _ExpenseRecordScreenState extends State<ExpenseRecordScreen> {
   
                     // Category Dropdown
                     DropdownButtonFormField<String>(
-                      value: category,
+                      value: categories.contains(category) ? category : 'Other', // Ensure category exists
                       decoration: InputDecoration(
                         labelText: 'Category',
                         labelStyle: TextStyle(color: Colors.deepPurple),
