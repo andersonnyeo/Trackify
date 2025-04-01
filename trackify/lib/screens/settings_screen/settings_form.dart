@@ -1,26 +1,150 @@
 import 'package:flutter/material.dart';
 import 'package:trackify/models/user.dart';
+import 'package:trackify/screens/settings_screen/terms_condition.dart';
 import 'package:trackify/services/auth.dart';
 import 'package:trackify/services/database.dart';
-import 'package:trackify/shared/constants.dart';
 import 'package:provider/provider.dart';
-import 'package:trackify/shared/loading.dart';
 
-class SettingsForm extends StatefulWidget {
-  const SettingsForm({super.key});
+class SettingsScreen extends StatefulWidget {
+  const SettingsScreen({super.key});
 
   @override
-  State<SettingsForm> createState() => _SettingsFormState();
+  State<SettingsScreen> createState() => _SettingsScreenState();
 }
 
-class _SettingsFormState extends State<SettingsForm> {
-  final _formKey = GlobalKey<FormState>();
+class _SettingsScreenState extends State<SettingsScreen> {
   final AuthService _auth = AuthService();
 
-  String? _currentName;
-  String? _currentPassword;
+  void _showChangeNameDialog(User user, String currentName) {
+    final TextEditingController nameController =
+        TextEditingController(text: currentName);
 
-  bool _isPasswordVisible = false; // Track password visibility
+    showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
+          title: const Text('Change Name', style: TextStyle(fontWeight: FontWeight.bold)),
+          content: TextField(
+            controller: nameController,
+            decoration: const InputDecoration(
+              hintText: 'Enter new name',
+              border: OutlineInputBorder(),
+            ),
+          ),
+          actions: [
+            TextButton(onPressed: () => Navigator.pop(context), child: const Text('Cancel')),
+            ElevatedButton(
+              onPressed: () async {
+                String newName = nameController.text.trim();
+                if (newName.isNotEmpty) {
+                  await DatabaseService(uid: user.uid).updateUserData(newName);
+                  Navigator.pop(context);
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text('Name updated successfully!'), backgroundColor: Colors.green),
+                  );
+                } else {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text('Name cannot be empty!'), backgroundColor: Colors.red),
+                  );
+                }
+              },
+              child: const Text('Save'),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  void _showChangePasswordDialog() {
+    final TextEditingController passwordController = TextEditingController();
+    bool isPasswordVisible = false; 
+
+    showDialog(
+      context: context,
+      builder: (context) {
+        return StatefulBuilder(
+          builder: (context, setStateDialog) {
+            return AlertDialog(
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
+              title: const Text('Change Password', style: TextStyle(fontWeight: FontWeight.bold)),
+              content: TextField(
+                controller: passwordController,
+                obscureText: !isPasswordVisible,
+                decoration: InputDecoration(
+                  hintText: 'Enter new password',
+                  border: const OutlineInputBorder(),
+                  suffixIcon: IconButton(
+                    icon: Icon(
+                      isPasswordVisible ? Icons.visibility : Icons.visibility_off,
+                      color: Colors.grey,
+                    ),
+                    onPressed: () {
+                      setStateDialog(() {
+                        isPasswordVisible = !isPasswordVisible; 
+                      });
+                    },
+                  ),
+                ),
+              ),
+              actions: [
+                TextButton(onPressed: () => Navigator.pop(context), child: const Text('Cancel')),
+                ElevatedButton(
+                  onPressed: () async {
+                    String password = passwordController.text.trim();
+                    if (password.length >= 6) {
+                      try {
+                        await _auth.updatePassword(password);
+                        Navigator.pop(context);
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(content: Text('Password updated successfully!'), backgroundColor: Colors.green),
+                        );
+                      } catch (e) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(content: Text('Failed to update password. Try again.'), backgroundColor: Colors.red),
+                        );
+                      }
+                    } else {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(content: Text('Password must be at least 6 characters'), backgroundColor: Colors.red),
+                      );
+                    }
+                  },
+                  child: const Text('Save'),
+                ),
+              ],
+            );
+          },
+        );
+      },
+    );
+  }
+
+  void _confirmLogout() {
+    showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: const Text('Confirm Logout'),
+          content: const Text('Are you sure you want to log out?'),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text('Cancel'),
+            ),
+            ElevatedButton(
+              onPressed: () async {
+                Navigator.pop(context);
+                await _auth.signOut();
+              },
+              child: const Text('Logout'),
+            ),
+          ],
+        );
+      },
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -31,133 +155,105 @@ class _SettingsFormState extends State<SettingsForm> {
     }
 
     return StreamBuilder<UserData>(
-        stream: DatabaseService(uid: user.uid).userData,
-        builder: (context, snapshot) {
-          if (snapshot.hasData) {
-            UserData userData = snapshot.data!;
+      stream: DatabaseService(uid: user.uid).userData,
+      builder: (context, snapshot) {
+        if (!snapshot.hasData) {
+          return const Center(child: CircularProgressIndicator());
+        }
 
-            return Padding(
-              padding: const EdgeInsets.only(top: 8.0, left: 20.0, right: 20.0),
-              child: Form(
-                key: _formKey,
-                child: Column(
-                  children: <Widget>[
-                    const SizedBox(height: 20.0),
-                    const Text(
-                      'Update your profile settings',
-                      style: TextStyle(
-                        fontSize: 22.0, 
-                        fontWeight: FontWeight.bold,
-                        color: Colors.deepPurple,
-                      ),
-                      textAlign: TextAlign.left,
-                    ),
-                    const SizedBox(height: 30.0),
-                    const Align(
-                      alignment: Alignment.centerLeft,
-                      child: Text(
-                        'Name',
-                        style: TextStyle(fontSize: 16.0, fontWeight: FontWeight.bold),
-                      ),
-                    ),
-                    const SizedBox(height: 5.0),
-                    TextFormField(
-                      initialValue: userData.name,
-                      decoration: textInputDecoration,
-                      validator: (val) => val!.isEmpty ? 'Please enter a name' : null,
-                      onChanged: (val) => setState(() => _currentName = val),
-                    ),
-                    const SizedBox(height: 20.0),
+        UserData userData = snapshot.data!;
 
-                    const Align(
-                      alignment: Alignment.centerLeft,
-                      child: Text(
-                        'New Password',
-                        style: TextStyle(fontSize: 16.0, fontWeight: FontWeight.bold),
-                      ),
-                    ),
-                    const SizedBox(height: 5.0),
-                    TextFormField(
-                      decoration: textInputDecoration.copyWith(
-                        hintText: 'Enter new password',
-                        suffixIcon: IconButton(
-                          icon: Icon(
-                            _isPasswordVisible 
-                                ? Icons.visibility 
-                                : Icons.visibility_off,
-                            color: Colors.grey,
-                          ),
-                          onPressed: () {
-                            setState(() {
-                              _isPasswordVisible = !_isPasswordVisible;
-                            });
-                          },
-                        ),
-                      ),
-                      obscureText: !_isPasswordVisible, // Toggle visibility
-                      validator: (val) => val != null && val.length < 6 ? 'Password must be at least 6 characters' : null,
-                      onChanged: (val) => setState(() => _currentPassword = val),
-                    ),
-                    const SizedBox(height: 20.0),
-
-                    ElevatedButton.icon(
-                      style: ElevatedButton.styleFrom(backgroundColor: Colors.pink[400]),
-                      icon: const Icon(Icons.update, color: Colors.white),
-                      label: const Text('Update', style: TextStyle(color: Colors.white)),
-                      onPressed: () async {
-                        if (_formKey.currentState!.validate()) {
-                          await DatabaseService(uid: user.uid).updateUserData(
-                              _currentName ?? userData.name,
-                              );
-
-                          if (_currentPassword != null && _currentPassword!.isNotEmpty) {
-                            try {
-                              await _auth.updatePassword(_currentPassword!);
-                            } catch (e) {
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                SnackBar(
-                                  content: Text('Failed to update password: ${e.toString()}'),
-                                  backgroundColor: Colors.red,
-                                ),
-                              );
-                            }
-                          }
-
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(
-                              content: Text('Profile updated successfully!'),
-                              backgroundColor: Colors.green,
-                            ),
-                          );
-                        }
-                      },
-                    ),
-
-                    const SizedBox(height: 20.0),
-
-                    ElevatedButton.icon(
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.deepPurple,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(20),
-                        ),
-                      ),
-                      icon: const Icon(Icons.person, color: Colors.white),
-                      label: const Text(
-                        'Log Out',
-                        style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
-                      ),
-                      onPressed: () async {
-                        await _auth.signOut();
-                      },
-                    ),
-                  ],
+        return Scaffold(
+          backgroundColor: Colors.purple[50],
+          body: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 15.0),
+            child: ListView( // <-- Changed to ListView to prevent overflow
+              children: [
+                const Text(
+                  'Customize Your Experience',
+                  style: TextStyle(
+                    fontSize: 24, // Increase size for better emphasis
+                    fontWeight: FontWeight.w700, // Make it slightly bolder
+                    color: Colors.deepPurple, 
+                  ),
                 ),
+
+                const SizedBox(height: 20),
+
+                _buildSettingsItem(
+                  icon: Icons.person_outline,
+                  title: 'Change Name',
+                  onTap: () => _showChangeNameDialog(user, userData.name),
+                ),
+
+                _buildSettingsItem(
+                  icon: Icons.lock_outline,
+                  title: 'Change Password',
+                  onTap: _showChangePasswordDialog,
+                ),
+
+                _buildSettingsItem(
+                  icon: Icons.description_outlined,
+                  title: 'Terms and Conditions',
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (context) => const TermsAndConditionsScreen()),
+                    );
+                  },
+                ),
+
+                _buildSettingsItem(
+                  icon: Icons.logout,
+                  title: 'Logout',
+                  isLogout: true,
+                  onTap: _confirmLogout, // <-- Uses confirmation dialog
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildSettingsItem({
+    required IconData icon,
+    required String title,
+    required VoidCallback onTap,
+    bool isLogout = false,
+  }) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 15),
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(15),
+        child: Container(
+          padding: const EdgeInsets.symmetric(vertical: 15, horizontal: 15),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(15),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.grey.withOpacity(0.1),
+                spreadRadius: 1,
+                blurRadius: 5,
+                offset: const Offset(0, 2),
               ),
-            );
-          } else {
-            return const Loading();
-          }
-        });
+            ],
+          ),
+          child: Row(
+            children: [
+              Icon(icon, color: isLogout ? Colors.red : Colors.black),
+              const SizedBox(width: 15),
+              Expanded(
+                child: Text(title, style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500, color: isLogout ? Colors.red : Colors.black)),
+              ),
+              const Icon(Icons.arrow_forward_ios, size: 16, color: Colors.grey),
+            ],
+          ),
+        ),
+      ),
+    );
   }
 }
