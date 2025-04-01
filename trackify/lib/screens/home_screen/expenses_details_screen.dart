@@ -293,8 +293,6 @@ class ExpenseDetailsScreen extends StatelessWidget {
     String category = expense['category'];
     DateTime selectedDate = (expense['date'] as Timestamp).toDate();
     List<String> categories = ['Food', 'Transport', 'Shopping', 'Groceries', 'Entertainment', 'Other'];
-    TextEditingController customCategoryController = TextEditingController();
-    bool isAddingCustomCategory = false;
     showDialog(
       context: context,
       builder: (context) {
@@ -443,10 +441,7 @@ class ExpenseDetailsScreen extends StatelessWidget {
                       ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Invalid amount')));
                       return;
                     }
-                    if (isAddingCustomCategory && customCategoryController.text.isNotEmpty) {
-                      category = customCategoryController.text.trim();
-                      await firestore.collection('users').doc(uid).collection('categories').add({'name': category});
-                    }
+                    
                     firestore
                         .collection('users')
                         .doc(uid)
