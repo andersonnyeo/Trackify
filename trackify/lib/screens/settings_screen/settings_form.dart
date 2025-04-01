@@ -132,13 +132,19 @@ class _SettingsScreenState extends State<SettingsScreen> {
         UserData userData = snapshot.data!;
 
         return Scaffold(
+          backgroundColor: Colors.purple[50],
           body: Padding(
             padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 15.0),
             child: Column(
               children: [
               const Text(
                 'Settings',
-                style: TextStyle(fontSize: 30, fontWeight: FontWeight.bold),
+                style: TextStyle(
+                  fontSize: 30,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.deepPurple,
+                  
+                ),
               ),
                 const SizedBox(height: 20),
 
