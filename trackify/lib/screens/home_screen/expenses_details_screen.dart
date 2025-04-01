@@ -351,52 +351,51 @@ class ExpenseDetailsScreen extends StatelessWidget {
                     ),
                     SizedBox(height: 20),
                     // Category Dropdown
-                    DropdownButtonFormField<String>(
-                      value: category,
-                      decoration: InputDecoration(
-                        labelText: 'Category',
-                        labelStyle: TextStyle(color: Colors.deepPurple),
-                        focusedBorder: OutlineInputBorder(
-                          borderSide: BorderSide(color: Colors.deepPurple),
-                          borderRadius: BorderRadius.circular(10),
-                        ),
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(10),
-                        ),
-                        contentPadding: EdgeInsets.symmetric(vertical: 15, horizontal: 10),
-                      ),
-                      items: [
-                        ...categories.map((e) => DropdownMenuItem(value: e, child: Text(e))),
-                        const DropdownMenuItem(value: 'custom', child: Text('Add New Category'))
-                      ],
-                      onChanged: (value) {
-                        if (value == 'custom') {
-                          setDialogState(() => isAddingCustomCategory = true);
-                        } else {
-                          setDialogState(() => category = value!);
+
+
+
+                    StreamBuilder<QuerySnapshot>(
+                      stream: firestore.collection('users').doc(uid).collection('categories').snapshots(),
+                      builder: (context, snapshot) {
+                        if (snapshot.connectionState == ConnectionState.waiting) {
+                          return const CircularProgressIndicator();
                         }
+                    
+                        if (snapshot.hasError) {
+                          return const Text('Error fetching categories');
+                        }
+                    
+                        List<String> categories = ['Food', 'Transport', 'Shopping', 'Groceries', 'Entertainment', 'Other'];
+                    
+                        // Add Firebase categories to the list
+                        snapshot.data?.docs.forEach((doc) {
+                          categories.add(doc['name']);
+                        });
+                    
+                        return DropdownButtonFormField<String>(
+                          value: categories.contains(category) ? category : null,
+                          decoration: InputDecoration(
+                            labelText: 'Category',
+                            labelStyle: TextStyle(color: Colors.deepPurple),
+                            focusedBorder: OutlineInputBorder(
+                              borderSide: BorderSide(color: Colors.deepPurple),
+                              borderRadius: BorderRadius.circular(10),
+                            ),
+                            border: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(10),
+                            ),
+                            contentPadding: EdgeInsets.symmetric(vertical: 15, horizontal: 10),
+                          ),
+                          items: [
+                            ...categories.map((e) => DropdownMenuItem(value: e, child: Text(e))),
+                          ],
+                          onChanged: (value) {
+                            setDialogState(() => category = value!);
+                          },
+                        );
                       },
                     ),
-                    SizedBox(height: 20),
-                    // Custom Category TextField
-                    if (isAddingCustomCategory)
-                      TextField(
-                        controller: customCategoryController,
-                        decoration: InputDecoration(
-                          labelText: 'Enter New Category',
-                          labelStyle: TextStyle(color: Colors.deepPurple),
-                          hintText: 'Enter a new custom category',
-                          hintStyle: TextStyle(color: Colors.grey),
-                          focusedBorder: OutlineInputBorder(
-                            borderSide: BorderSide(color: Colors.deepPurple),
-                            borderRadius: BorderRadius.circular(10),
-                          ),
-                          border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(10),
-                          ),
-                          contentPadding: EdgeInsets.symmetric(vertical: 15, horizontal: 10),
-                        ),
-                      ),
+
                     SizedBox(height: 10),
                     // Date Picker Button
                     TextButton(
