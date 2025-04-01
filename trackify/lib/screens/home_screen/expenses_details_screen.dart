@@ -292,7 +292,7 @@ class ExpenseDetailsScreen extends StatelessWidget {
     double amount = expense['amount'];
     String category = expense['category'];
     DateTime selectedDate = (expense['date'] as Timestamp).toDate();
-    List<String> categories = ['Food', 'Transport', 'Shopping', 'Groceries', 'Entertainment', 'Other'];
+    // List<String> categories = ['Food', 'Transport', 'Shopping', 'Groceries', 'Entertainment', 'Other'];
     showDialog(
       context: context,
       builder: (context) {
