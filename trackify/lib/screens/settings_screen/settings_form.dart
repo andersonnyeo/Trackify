@@ -14,10 +14,10 @@ class SettingsScreen extends StatefulWidget {
 
 class _SettingsScreenState extends State<SettingsScreen> {
   final AuthService _auth = AuthService();
-  bool _isPasswordVisible = false; // Toggle for password visibility
 
   void _showChangeNameDialog(User user, String currentName) {
-    final TextEditingController nameController = TextEditingController(text: currentName);
+    final TextEditingController nameController =
+        TextEditingController(text: currentName);
 
     showDialog(
       context: context,
@@ -36,11 +36,16 @@ class _SettingsScreenState extends State<SettingsScreen> {
             TextButton(onPressed: () => Navigator.pop(context), child: const Text('Cancel')),
             ElevatedButton(
               onPressed: () async {
-                if (nameController.text.trim().isNotEmpty) {
-                  await DatabaseService(uid: user.uid).updateUserData(nameController.text.trim());
+                String newName = nameController.text.trim();
+                if (newName.isNotEmpty) {
+                  await DatabaseService(uid: user.uid).updateUserData(newName);
                   Navigator.pop(context);
                   ScaffoldMessenger.of(context).showSnackBar(
                     const SnackBar(content: Text('Name updated successfully!'), backgroundColor: Colors.green),
+                  );
+                } else {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text('Name cannot be empty!'), backgroundColor: Colors.red),
                   );
                 }
               },
@@ -54,59 +59,86 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
   void _showChangePasswordDialog() {
     final TextEditingController passwordController = TextEditingController();
+    bool isPasswordVisible = false; 
 
     showDialog(
       context: context,
       builder: (context) {
-        return AlertDialog(
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
-          title: const Text('Change Password', style: TextStyle(fontWeight: FontWeight.bold)),
-          content: StatefulBuilder(
-            builder: (context, setStateDialog) {
-              return TextField(
+        return StatefulBuilder(
+          builder: (context, setStateDialog) {
+            return AlertDialog(
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
+              title: const Text('Change Password', style: TextStyle(fontWeight: FontWeight.bold)),
+              content: TextField(
                 controller: passwordController,
-                obscureText: !_isPasswordVisible,
+                obscureText: !isPasswordVisible,
                 decoration: InputDecoration(
                   hintText: 'Enter new password',
                   border: const OutlineInputBorder(),
                   suffixIcon: IconButton(
                     icon: Icon(
-                      _isPasswordVisible ? Icons.visibility : Icons.visibility_off,
+                      isPasswordVisible ? Icons.visibility : Icons.visibility_off,
                       color: Colors.grey,
                     ),
                     onPressed: () {
                       setStateDialog(() {
-                        _isPasswordVisible = !_isPasswordVisible; // Toggle visibility inside dialog
+                        isPasswordVisible = !isPasswordVisible; 
                       });
                     },
                   ),
                 ),
-              );
-            },
-          ),
+              ),
+              actions: [
+                TextButton(onPressed: () => Navigator.pop(context), child: const Text('Cancel')),
+                ElevatedButton(
+                  onPressed: () async {
+                    String password = passwordController.text.trim();
+                    if (password.length >= 6) {
+                      try {
+                        await _auth.updatePassword(password);
+                        Navigator.pop(context);
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(content: Text('Password updated successfully!'), backgroundColor: Colors.green),
+                        );
+                      } catch (e) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(content: Text('Failed to update password. Try again.'), backgroundColor: Colors.red),
+                        );
+                      }
+                    } else {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(content: Text('Password must be at least 6 characters'), backgroundColor: Colors.red),
+                      );
+                    }
+                  },
+                  child: const Text('Save'),
+                ),
+              ],
+            );
+          },
+        );
+      },
+    );
+  }
+
+  void _confirmLogout() {
+    showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: const Text('Confirm Logout'),
+          content: const Text('Are you sure you want to log out?'),
           actions: [
-            TextButton(onPressed: () => Navigator.pop(context), child: const Text('Cancel')),
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text('Cancel'),
+            ),
             ElevatedButton(
               onPressed: () async {
-                if (passwordController.text.length >= 6) {
-                  try {
-                    await _auth.updatePassword(passwordController.text.trim());
-                    Navigator.pop(context);
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(content: Text('Password updated successfully!'), backgroundColor: Colors.green),
-                    );
-                  } catch (e) {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(content: Text('Error: ${e.toString()}'), backgroundColor: Colors.red),
-                    );
-                  }
-                } else {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('Password must be at least 6 characters'), backgroundColor: Colors.red),
-                  );
-                }
+                Navigator.pop(context);
+                await _auth.signOut();
               },
-              child: const Text('Save'),
+              child: const Text('Logout'),
             ),
           ],
         );
@@ -135,35 +167,26 @@ class _SettingsScreenState extends State<SettingsScreen> {
           backgroundColor: Colors.purple[50],
           body: Padding(
             padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 15.0),
-            child: Column(
+            child: ListView( // <-- Changed to ListView to prevent overflow
               children: [
-              const Text(
-                'Settings',
-                style: TextStyle(
-                  fontSize: 30,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.deepPurple,
-                  
+                const Text(
+                  'Settings',
+                  style: TextStyle(fontSize: 30, fontWeight: FontWeight.bold, color: Colors.deepPurple),
                 ),
-              ),
                 const SizedBox(height: 20),
 
-
-                // Change Name
                 _buildSettingsItem(
                   icon: Icons.person_outline,
                   title: 'Change Name',
                   onTap: () => _showChangeNameDialog(user, userData.name),
                 ),
 
-                // Change Password
                 _buildSettingsItem(
                   icon: Icons.lock_outline,
                   title: 'Change Password',
                   onTap: _showChangePasswordDialog,
                 ),
 
-                // Terms and Conditions
                 _buildSettingsItem(
                   icon: Icons.description_outlined,
                   title: 'Terms and Conditions',
@@ -175,14 +198,11 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   },
                 ),
 
-                // Logout
                 _buildSettingsItem(
                   icon: Icons.logout,
                   title: 'Logout',
                   isLogout: true,
-                  onTap: () async {
-                    await _auth.signOut();
-                  },
+                  onTap: _confirmLogout, // <-- Uses confirmation dialog
                 ),
               ],
             ),
@@ -222,14 +242,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
               Icon(icon, color: isLogout ? Colors.red : Colors.black),
               const SizedBox(width: 15),
               Expanded(
-                child: Text(
-                  title,
-                  style: TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.w500,
-                    color: isLogout ? Colors.red : Colors.black,
-                  ),
-                ),
+                child: Text(title, style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500, color: isLogout ? Colors.red : Colors.black)),
               ),
               const Icon(Icons.arrow_forward_ios, size: 16, color: Colors.grey),
             ],
