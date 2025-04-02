@@ -53,7 +53,9 @@ class _FutureExpenseScreenState extends State<FutureExpenseScreen> {
 
       Map<String, double> monthlyExpenses = {};
       for (var doc in snapshot.docs) {
+        if (doc['date'] == null || doc['amount'] == null) continue;
         DateTime date = (doc['date'] as Timestamp).toDate();
+
         String monthKey = "${date.year}-${date.month}";
 
         monthlyExpenses[monthKey] =
@@ -85,7 +87,7 @@ class _FutureExpenseScreenState extends State<FutureExpenseScreen> {
       if (historicalExpenses.length >= 2) {
         predictedExpense = await _predictWithMLModel(historicalExpenses);
       } else {
-        predictedExpense = null;
+        predictedExpense = historicalExpenses.isNotEmpty ? historicalExpenses.last : null;
       }
 
       setState(() {
@@ -104,8 +106,9 @@ class _FutureExpenseScreenState extends State<FutureExpenseScreen> {
     // Prepare data for training
     final dataset = [
       ['month', 'amount'],
-      for (int i = 0; i < data.length; i++) [i + 1, data[i]],
+      for (int i = 0; i < data.length; i++) [i, data[i]],  // Using 0-based month index
     ];
+
 
     var df = DataFrame(dataset);
 
@@ -131,7 +134,7 @@ class _FutureExpenseScreenState extends State<FutureExpenseScreen> {
                 showTitles: true,
                 getTitlesWidget: (value, meta) {
                 int index = value.toInt();
-                if (index < 0 || index >= sortedMonths.length + 1) return Container();
+                if (index < 0 || index >= sortedMonths.length) return Container();
               
                 // Convert sortedMonths to month names safely
                 if (index < sortedMonths.length) {
@@ -171,10 +174,24 @@ class _FutureExpenseScreenState extends State<FutureExpenseScreen> {
               belowBarData: BarAreaData(show: false),
             ),
             if (predictedExpense != null)
+
+            // LineChartBarData(
+            //     spots: [
+            //       FlSpot(historicalExpenses.length.toDouble(),
+            //           predictedExpense!),
+            //     ],
+            //     isCurved: true,
+            //     color: Colors.red,
+            //     barWidth: 4,
+            //     dotData: FlDotData(show: true),
+            //     belowBarData: BarAreaData(show: false),
+            //     dashArray: [5, 5],
+            //   ),
               LineChartBarData(
                 spots: [
-                  FlSpot(historicalExpenses.length.toDouble(),
-                      predictedExpense!),
+                  for (int i = 0; i < historicalExpenses.length; i++)
+                    FlSpot(i.toDouble(), historicalExpenses[i]),
+                  FlSpot(historicalExpenses.length.toDouble(), predictedExpense!),  // Ensure continuity
                 ],
                 isCurved: true,
                 color: Colors.red,
@@ -183,6 +200,7 @@ class _FutureExpenseScreenState extends State<FutureExpenseScreen> {
                 belowBarData: BarAreaData(show: false),
                 dashArray: [5, 5],
               ),
+
           ],
         ),
       ),
