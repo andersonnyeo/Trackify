@@ -68,7 +68,7 @@ class _ChartScreenState extends State<ChartScreen> {
           return const Center(
             child: Text(
               "No expenses available for Monthly Overview.",
-              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.grey, ),
+              style: TextStyle(fontSize: 18, color: Colors.grey, ),
               textAlign: TextAlign.center,
             ),
           );
