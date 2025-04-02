@@ -67,8 +67,9 @@ class _ChartScreenState extends State<ChartScreen> {
         if (monthlyTotals.isEmpty) {
           return const Center(
             child: Text(
-              "No data available",
-              style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.grey),
+              "No expenses available for Monthly Overview.",
+              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.grey, ),
+              textAlign: TextAlign.center,
             ),
           );
         }
