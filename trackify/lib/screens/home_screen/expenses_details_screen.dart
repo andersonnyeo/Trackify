@@ -212,7 +212,7 @@ class ExpenseDetailsScreen extends StatelessWidget {
                             child: const Icon(Icons.delete, color: Colors.white),
                           ),
                           confirmDismiss: (direction) async {
-                            return await _showDeleteConfirmationDialog(context, expense.id);
+                            return await showDeleteConfirmationDialog(context, expense.id);
                           },
                           onDismissed: (direction) {
                             _deleteExpenseDetails(expense.id);
@@ -253,9 +253,6 @@ class ExpenseDetailsScreen extends StatelessWidget {
               );
             }).toList(),
           );
-
-          
-          
         },
       ),
 
@@ -264,13 +261,6 @@ class ExpenseDetailsScreen extends StatelessWidget {
         child: const Icon(Icons.add, color: Colors.white),
         onPressed: () => _addExpense(context, firestore, uid, docId),
       ),
-
-      
-
-      
-
-
-      
     );
   }
 
@@ -353,23 +343,6 @@ class ExpenseDetailsScreen extends StatelessWidget {
           },
         );
       },
-    );
-  }
-
-  Future<bool?> _showDeleteConfirmationDialog(BuildContext context, String docId) async {
-    return showDialog<bool>(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Delete Expense Detail'),
-        content: const Text('Are you sure you want to delete this expense?'),
-        actions: [
-          TextButton(child: const Text('Cancel'), onPressed: () => Navigator.pop(context, false)),
-          TextButton(
-            child: const Text('Delete', style: TextStyle(color: Colors.red)),
-            onPressed: () => Navigator.pop(context, true),
-          ),
-        ],
-      ),
     );
   }
 
@@ -569,29 +542,4 @@ class ExpenseDetailsScreen extends StatelessWidget {
       },
     );
   }   
-
-
-   
-  
-
-  // void _deleteExpenseDocument(BuildContext context, FirebaseFirestore firestore, String uid, String docId) {
-  //   showDialog(
-  //     context: context,
-  //     builder: (context) => AlertDialog(
-  //       title: const Text("Delete Expense Document"),
-  //       content: const Text("Are you sure you want to delete this expense document? This action cannot be undone."),
-  //       actions: [
-  //         TextButton(onPressed: () => Navigator.pop(context), child: const Text("Cancel")),
-  //         TextButton(
-  //           onPressed: () {
-  //             firestore.collection('users').doc(uid).collection('expenseDocuments').doc(docId).delete();
-  //             Navigator.pop(context);
-  //             Navigator.pop(context); // Go back to the previous screen after deletion
-  //           },
-  //           child: const Text("Delete", style: TextStyle(color: Colors.red)),
-  //         ),
-  //       ],
-  //     ),
-  //   );
-  // }
 }

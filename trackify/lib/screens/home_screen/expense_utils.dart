@@ -3,6 +3,22 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 
+Future<bool?> showDeleteConfirmationDialog(BuildContext context, String docId) async {
+    return showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Delete Expense Detail'),
+        content: const Text('Are you sure you want to delete this expense?'),
+        actions: [
+          TextButton(child: const Text('Cancel'), onPressed: () => Navigator.pop(context, false)),
+          TextButton(
+            child: const Text('Delete', style: TextStyle(color: Colors.red)),
+            onPressed: () => Navigator.pop(context, true),
+          ),
+        ],
+      ),
+    );
+  }
 
 void deleteExpenseWhenEdit(BuildContext context, FirebaseFirestore firestore, String uid, String docId, String expenseId) {
     showDialog(
