@@ -7,12 +7,14 @@ import 'package:trackify/screens/FutureExpensesScreen/future_expenses_screen.dar
 import 'package:trackify/screens/chart_screen/chart.dart';
 import 'package:trackify/screens/chart_screen/stats_screen.dart';
 import 'package:trackify/screens/budget/budget_recommendation.dart';
+import 'package:trackify/screens/home_screen/expense_utils.dart'; // Import the utility file
 
 class ExpenseDetailsScreen extends StatelessWidget {
   final String docId;
   final String title;
 
   const ExpenseDetailsScreen({super.key, required this.docId, required this.title});
+  
 
   @override
   Widget build(BuildContext context) {
@@ -55,7 +57,7 @@ class ExpenseDetailsScreen extends StatelessWidget {
                   MaterialPageRoute(builder: (_) => BudgetRecommendationScreen(docId: docId)),
                 );
               } else if (value == 'Delete') {
-                _deleteExpenseDocument(context, firestore, uid, docId);
+                deleteExpenseDocument(context, firestore, uid, docId);
               }
             },
             itemBuilder: (context) => [
@@ -242,13 +244,115 @@ class ExpenseDetailsScreen extends StatelessWidget {
                         );
                       }).toList(),
                     ),
+
+                    
+
+                    
                   ],
                 ),
               );
             }).toList(),
           );
+
+          
+          
         },
       ),
+
+      floatingActionButton: FloatingActionButton(
+        backgroundColor: Colors.deepPurple,
+        child: const Icon(Icons.add, color: Colors.white),
+        onPressed: () => _addExpense(context, firestore, uid, docId),
+      ),
+
+      
+
+      
+
+
+      
+    );
+  }
+
+
+  void _addExpense(BuildContext context, FirebaseFirestore firestore, String uid, String docId) {
+    String description = '';
+    double amount = 0.0;
+    String category = 'Other';
+    DateTime selectedDate = DateTime.now();
+
+    showDialog(
+      context: context,
+      builder: (context) {
+        return StatefulBuilder(
+          builder: (context, setDialogState) {
+            return AlertDialog(
+              title: const Text('Add Expense', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.deepPurple)),
+              content: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  TextField(
+                    decoration: InputDecoration(labelText: 'Description'),
+                    onChanged: (value) => description = value,
+                  ),
+                  TextField(
+                    keyboardType: TextInputType.number,
+                    decoration: InputDecoration(labelText: 'Amount'),
+                    onChanged: (value) => amount = double.tryParse(value) ?? 0.0,
+                  ),
+                  DropdownButtonFormField<String>(
+                    value: category,
+                    items: ['Food', 'Transport', 'Shopping', 'Other']
+                        .map((e) => DropdownMenuItem(value: e, child: Text(e)))
+                        .toList(),
+                    onChanged: (value) => setDialogState(() => category = value!),
+                  ),
+                  TextButton(
+                    onPressed: () async {
+                      DateTime? pickedDate = await showDatePicker(
+                        context: context,
+                        initialDate: selectedDate,
+                        firstDate: DateTime(2000),
+                        lastDate: DateTime(2101),
+                      );
+                      if (pickedDate != null) setDialogState(() => selectedDate = pickedDate);
+                    },
+                    child: Text('Select Date: ${DateFormat('yyyy-MM-dd').format(selectedDate)}'),
+                  ),
+                ],
+              ),
+              actions: [
+                TextButton(
+                  child: const Text('Cancel'),
+                  onPressed: () => Navigator.pop(context),
+                ),
+                TextButton(
+                  child: const Text('Save', style: TextStyle(color: Colors.deepPurple, fontWeight: FontWeight.bold)),
+                  onPressed: () async {
+                    if (amount <= 0 || description.isEmpty) {
+                      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Invalid input')));
+                      return;
+                    }
+                    await firestore
+                        .collection('users')
+                        .doc(uid)
+                        .collection('expenseDocuments')
+                        .doc(docId)
+                        .collection('expenses')
+                        .add({
+                      'description': description,
+                      'amount': amount,
+                      'category': category,
+                      'date': Timestamp.fromDate(selectedDate),
+                    });
+                    Navigator.pop(context);
+                  },
+                ),
+              ],
+            );
+          },
+        );
+      },
     );
   }
 
@@ -419,7 +523,7 @@ class ExpenseDetailsScreen extends StatelessWidget {
                         
                         icon: const Icon(Icons.delete, color: Colors.white),
                         label: const Text('Delete', style: TextStyle(color: Colors.white)),
-                        onPressed: () => _deleteExpenseWhenEdit(context, firestore, uid, docId, expense.id),
+                        onPressed: () => deleteExpenseWhenEdit(context, firestore, uid, docId, expense.id),
                         
                       ),
                     ),
@@ -467,54 +571,27 @@ class ExpenseDetailsScreen extends StatelessWidget {
   }   
 
 
-   void _deleteExpenseWhenEdit(BuildContext context, FirebaseFirestore firestore, String uid, String docId, String expenseId) {
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text("Delete Expense"),
-        content: const Text("Are you sure you want to delete this expense?"),
-        actions: [
-          TextButton(onPressed: () => Navigator.pop(context), child: const Text("Cancel")),
-          TextButton(
-            onPressed: () {
-              firestore
-                  .collection('users')
-                  .doc(uid)
-                  .collection('expenseDocuments')
-                  .doc(docId)
-                  .collection('expenses')
-                  .doc(expenseId)
-                  .delete();
-
-              Navigator.pop(context);
-              Navigator.pop(context);
-            },
-            child: const Text("Delete", style: TextStyle(color: Colors.red)),
-          ),
-        ],
-      ),
-    );
-  }
+   
   
 
-  void _deleteExpenseDocument(BuildContext context, FirebaseFirestore firestore, String uid, String docId) {
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text("Delete Expense Document"),
-        content: const Text("Are you sure you want to delete this expense document? This action cannot be undone."),
-        actions: [
-          TextButton(onPressed: () => Navigator.pop(context), child: const Text("Cancel")),
-          TextButton(
-            onPressed: () {
-              firestore.collection('users').doc(uid).collection('expenseDocuments').doc(docId).delete();
-              Navigator.pop(context);
-              Navigator.pop(context); // Go back to the previous screen after deletion
-            },
-            child: const Text("Delete", style: TextStyle(color: Colors.red)),
-          ),
-        ],
-      ),
-    );
-  }
+  // void _deleteExpenseDocument(BuildContext context, FirebaseFirestore firestore, String uid, String docId) {
+  //   showDialog(
+  //     context: context,
+  //     builder: (context) => AlertDialog(
+  //       title: const Text("Delete Expense Document"),
+  //       content: const Text("Are you sure you want to delete this expense document? This action cannot be undone."),
+  //       actions: [
+  //         TextButton(onPressed: () => Navigator.pop(context), child: const Text("Cancel")),
+  //         TextButton(
+  //           onPressed: () {
+  //             firestore.collection('users').doc(uid).collection('expenseDocuments').doc(docId).delete();
+  //             Navigator.pop(context);
+  //             Navigator.pop(context); // Go back to the previous screen after deletion
+  //           },
+  //           child: const Text("Delete", style: TextStyle(color: Colors.red)),
+  //         ),
+  //       ],
+  //     ),
+  //   );
+  // }
 }

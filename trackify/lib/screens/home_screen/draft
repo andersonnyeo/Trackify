@@ -1,7 +1,0 @@
-void _suggestCategory(String description, Function(String) updateCategory) async {
-  ExpenseClassifier classifier = ExpenseClassifier();
-  await classifier.loadModel();
-  
-  String predictedCategory = classifier.predictCategory(description);
-  updateCategory(predictedCategory);
-}
