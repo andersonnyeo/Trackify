@@ -316,203 +316,203 @@ class _ExpenseRecordScreenState extends State<ExpenseRecordScreen> {
   }
 
   void _showAddExpenseDialog(BuildContext context, String docId, {String? expenseId, String? existingDescription, double? existingAmount, String? existingCategory, DateTime? existingDate}) {
-  String description = existingDescription ?? '';
-  TextEditingController descriptionController = TextEditingController(text: description);
-  double amount = existingAmount ?? 0.0;
-  TextEditingController amountController = TextEditingController(text: existingAmount != null ? existingAmount.toString() : '');
-  String category = existingCategory ?? 'Food';
-  DateTime selectedDate = existingDate ?? DateTime.now();
-  List<String> categories = ['Food', 'Transport', 'Shopping', 'Groceries', 'Entertainment', 'Other'];
-  TextEditingController customCategoryController = TextEditingController();
-  bool isAddingCustomCategory = false;
+    String description = existingDescription ?? '';
+    TextEditingController descriptionController = TextEditingController(text: description);
+    double amount = existingAmount ?? 0.0;
+    TextEditingController amountController = TextEditingController(text: existingAmount != null ? existingAmount.toString() : '');
+    String category = existingCategory ?? 'Food';
+    DateTime selectedDate = existingDate ?? DateTime.now();
+    List<String> categories = ['Food', 'Transport', 'Shopping', 'Groceries', 'Entertainment', 'Other'];
+    TextEditingController customCategoryController = TextEditingController();
+    bool isAddingCustomCategory = false;
 
-  // Error messages
-  String? descriptionError;
-  String? amountError;
-  String? customCategoryError;
+    // Error messages
+    String? descriptionError;
+    String? amountError;
+    String? customCategoryError;
 
-  // Timer for debounce
-  Timer? _debounceTimer;
+    // Timer for debounce
+    Timer? _debounceTimer;
 
-  // Fetch categories from Firestore
-  void fetchCategories() async {
-    var categoryDocs = await _firestore.collection('users').doc(_uid).collection('categories').get();
-    categories.addAll(categoryDocs.docs.map((doc) => doc['name'].toString()).toSet());
-  }
+    // Fetch categories from Firestore
+    void fetchCategories() async {
+      var categoryDocs = await _firestore.collection('users').doc(_uid).collection('categories').get();
+      categories.addAll(categoryDocs.docs.map((doc) => doc['name'].toString()).toSet());
+    }
 
-  fetchCategories();
+    fetchCategories();
 
-  // Debounce function to suggest category after typing stops
-  void _suggestCategoryWithDelay(String value, Function(String) updateCategory) {
-    if (_debounceTimer?.isActive ?? false) _debounceTimer!.cancel();
+    // Debounce function to suggest category after typing stops
+    void _suggestCategoryWithDelay(String value, Function(String) updateCategory) {
+      if (_debounceTimer?.isActive ?? false) _debounceTimer!.cancel();
 
-    _debounceTimer = Timer(const Duration(milliseconds: 500), () async {
-      _suggestCategory(value, updateCategory);
-    });
-  }
+      _debounceTimer = Timer(const Duration(milliseconds: 500), () async {
+        _suggestCategory(value, updateCategory);
+      });
+    }
 
-  showDialog(
-    context: context,
-    builder: (context) {
-      return StatefulBuilder(
-        builder: (context, setDialogState) {
-          return AlertDialog(
-            contentPadding: EdgeInsets.all(20),
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
-            title: Text(
-              expenseId == null ? 'Add Expense' : 'Edit Expense',
-              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 20, color: Colors.deepPurple),
-            ),
-            content: SingleChildScrollView(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  // Description TextField
-                  TextField(
-                    controller: descriptionController,
-                    onChanged: (value) {
-                      description = value;
-                      setDialogState(() => descriptionError = value.isEmpty ? 'Description is required' : null);
-
-                      _suggestCategoryWithDelay(value, (suggestedCategory) {
-                        setDialogState(() {
-                          category = suggestedCategory;
-                        });
-                      });
-                    },
-                    decoration: InputDecoration(
-                      labelText: 'Expense Description',
-                      errorText: descriptionError,
-                      border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
-                      contentPadding: EdgeInsets.symmetric(vertical: 15, horizontal: 10),
-                    ),
-                  ),
-                  SizedBox(height: 20),
-
-                  // Amount TextField
-                  TextField(
-                    controller: amountController,
-                    keyboardType: TextInputType.number,
-                    onChanged: (value) {
-                      amount = double.tryParse(value) ?? 0.0;
-                      setDialogState(() => amountError = (amount <= 0) ? 'Enter a valid amount' : null);
-                    },
-                    decoration: InputDecoration(
-                      labelText: 'Amount',
-                      errorText: amountError,
-                      border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
-                      contentPadding: EdgeInsets.symmetric(vertical: 15, horizontal: 10),
-                    ),
-                  ),
-                  SizedBox(height: 20),
-
-                  // Category Dropdown
-                  DropdownButtonFormField<String>(
-                    value: categories.contains(category) ? category : 'Other',
-                    decoration: InputDecoration(
-                      labelText: 'Category',
-                      border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
-                      contentPadding: EdgeInsets.symmetric(vertical: 15, horizontal: 10),
-                    ),
-                    items: [
-                      ...categories.map((e) => DropdownMenuItem(value: e, child: Text(e))),
-                      const DropdownMenuItem(value: 'custom', child: Text('Add New Category'))
-                    ],
-                    onChanged: (value) {
-                      if (value == 'custom') {
-                        setDialogState(() {
-                          isAddingCustomCategory = true;
-                          customCategoryError = null;
-                        });
-                      } else {
-                        setDialogState(() {
-                          category = value!;
-                          isAddingCustomCategory = false;
-                        });
-                      }
-                    },
-                  ),
-                  SizedBox(height: 20),
-
-                  // Custom Category TextField (only appears when 'Add New Category' is selected)
-                  if (isAddingCustomCategory)
+    showDialog(
+      context: context,
+      builder: (context) {
+        return StatefulBuilder(
+          builder: (context, setDialogState) {
+            return AlertDialog(
+              contentPadding: EdgeInsets.all(20),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
+              title: Text(
+                expenseId == null ? 'Add Expense' : 'Edit Expense',
+                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 20, color: Colors.deepPurple),
+              ),
+              content: SingleChildScrollView(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // Description TextField
                     TextField(
-                      controller: customCategoryController,
+                      controller: descriptionController,
+                      onChanged: (value) {
+                        description = value;
+                        setDialogState(() => descriptionError = value.isEmpty ? 'Description is required' : null);
+
+                        _suggestCategoryWithDelay(value, (suggestedCategory) {
+                          setDialogState(() {
+                            category = suggestedCategory;
+                          });
+                        });
+                      },
                       decoration: InputDecoration(
-                        labelText: 'Enter New Category',
-                        errorText: customCategoryError,
+                        labelText: 'Expense Description',
+                        errorText: descriptionError,
                         border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
                         contentPadding: EdgeInsets.symmetric(vertical: 15, horizontal: 10),
                       ),
                     ),
-                  SizedBox(height: 20),
+                    SizedBox(height: 20),
 
-                  // Date Picker Button
-                  TextButton(
-                    onPressed: () async {
-                      DateTime? pickedDate = await showDatePicker(
-                        context: context,
-                        initialDate: selectedDate,
-                        firstDate: DateTime(2000),
-                        lastDate: DateTime(2101),
-                      );
-                      if (pickedDate != null) setDialogState(() => selectedDate = pickedDate);
-                    },
-                    child: Text(
-                      'Select Date: ${DateFormat('yyyy-MM-dd').format(selectedDate)}',
-                      style: TextStyle(fontSize: 16, color: Colors.deepPurple),
+                    // Amount TextField
+                    TextField(
+                      controller: amountController,
+                      keyboardType: TextInputType.number,
+                      onChanged: (value) {
+                        amount = double.tryParse(value) ?? 0.0;
+                        setDialogState(() => amountError = (amount <= 0) ? 'Enter a valid amount' : null);
+                      },
+                      decoration: InputDecoration(
+                        labelText: 'Amount',
+                        errorText: amountError,
+                        border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
+                        contentPadding: EdgeInsets.symmetric(vertical: 15, horizontal: 10),
+                      ),
                     ),
-                  ),
-                ],
-              ),
-            ),
-            actions: [
-              TextButton(
-                child: const Text('Cancel', style: TextStyle(color: Colors.grey)),
-                onPressed: () => Navigator.pop(context),
-              ),
-              TextButton(
-                child: Text(
-                  expenseId == null ? 'Add' : 'Save',
-                  style: TextStyle(color: Colors.deepPurple, fontWeight: FontWeight.bold),
+                    SizedBox(height: 20),
+
+                    // Category Dropdown
+                    DropdownButtonFormField<String>(
+                      value: categories.contains(category) ? category : 'Other',
+                      decoration: InputDecoration(
+                        labelText: 'Category',
+                        border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
+                        contentPadding: EdgeInsets.symmetric(vertical: 15, horizontal: 10),
+                      ),
+                      items: [
+                        ...categories.map((e) => DropdownMenuItem(value: e, child: Text(e))),
+                        const DropdownMenuItem(value: 'custom', child: Text('Add New Category'))
+                      ],
+                      onChanged: (value) {
+                        if (value == 'custom') {
+                          setDialogState(() {
+                            isAddingCustomCategory = true;
+                            customCategoryError = null;
+                          });
+                        } else {
+                          setDialogState(() {
+                            category = value!;
+                            isAddingCustomCategory = false;
+                          });
+                        }
+                      },
+                    ),
+                    SizedBox(height: 20),
+
+                    // Custom Category TextField (only appears when 'Add New Category' is selected)
+                    if (isAddingCustomCategory)
+                      TextField(
+                        controller: customCategoryController,
+                        decoration: InputDecoration(
+                          labelText: 'Enter New Category',
+                          errorText: customCategoryError,
+                          border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
+                          contentPadding: EdgeInsets.symmetric(vertical: 15, horizontal: 10),
+                        ),
+                      ),
+                    SizedBox(height: 20),
+
+                    // Date Picker Button
+                    TextButton(
+                      onPressed: () async {
+                        DateTime? pickedDate = await showDatePicker(
+                          context: context,
+                          initialDate: selectedDate,
+                          firstDate: DateTime(2000),
+                          lastDate: DateTime(2101),
+                        );
+                        if (pickedDate != null) setDialogState(() => selectedDate = pickedDate);
+                      },
+                      child: Text(
+                        'Select Date: ${DateFormat('yyyy-MM-dd').format(selectedDate)}',
+                        style: TextStyle(fontSize: 16, color: Colors.deepPurple),
+                      ),
+                    ),
+                  ],
                 ),
-                onPressed: () async {
-                  bool isValid = true;
-
-                  if (description.isEmpty) {
-                    setDialogState(() => descriptionError = 'Description is required');
-                    isValid = false;
-                  }
-                  if (amount <= 0) {
-                    setDialogState(() => amountError = 'Enter a valid amount');
-                    isValid = false;
-                  }
-                  if (isAddingCustomCategory && customCategoryController.text.trim().isEmpty) {
-                    setDialogState(() => customCategoryError = 'Custom category is required');
-                    isValid = false;
-                  }
-
-                  if (isValid) {
-                    if (isAddingCustomCategory) {
-                      category = customCategoryController.text.trim();
-                      await _firestore.collection('users').doc(_uid).collection('categories').add({'name': category});
-                    }
-                    if (expenseId == null) {
-                      _addExpense(docId, description, amount, category, selectedDate);
-                    } else {
-                      _editExpense(docId, expenseId, description, amount, category, selectedDate);
-                    }
-                    Navigator.pop(context);
-                  }
-                },
               ),
-            ],
-          );
-        },
-      );
-    },
-  );
-}
+              actions: [
+                TextButton(
+                  child: const Text('Cancel', style: TextStyle(color: Colors.grey)),
+                  onPressed: () => Navigator.pop(context),
+                ),
+                TextButton(
+                  child: Text(
+                    expenseId == null ? 'Add' : 'Save',
+                    style: TextStyle(color: Colors.deepPurple, fontWeight: FontWeight.bold),
+                  ),
+                  onPressed: () async {
+                    bool isValid = true;
+
+                    if (description.isEmpty) {
+                      setDialogState(() => descriptionError = 'Description is required');
+                      isValid = false;
+                    }
+                    if (amount <= 0) {
+                      setDialogState(() => amountError = 'Enter a valid amount');
+                      isValid = false;
+                    }
+                    if (isAddingCustomCategory && customCategoryController.text.trim().isEmpty) {
+                      setDialogState(() => customCategoryError = 'Custom category is required');
+                      isValid = false;
+                    }
+
+                    if (isValid) {
+                      if (isAddingCustomCategory) {
+                        category = customCategoryController.text.trim();
+                        await _firestore.collection('users').doc(_uid).collection('categories').add({'name': category});
+                      }
+                      if (expenseId == null) {
+                        _addExpense(docId, description, amount, category, selectedDate);
+                      } else {
+                        _editExpense(docId, expenseId, description, amount, category, selectedDate);
+                      }
+                      Navigator.pop(context);
+                    }
+                  },
+                ),
+              ],
+            );
+          },
+        );
+      },
+    );
+  }
 
 
 }
