@@ -14,6 +14,7 @@ class ExpenseDetailsScreen extends StatelessWidget {
   final String title;
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   final String _uid = FirebaseAuth.instance.currentUser?.uid ?? '';
+  
 
   ExpenseDetailsScreen({super.key, required this.docId, required this.title});
 
@@ -107,7 +108,11 @@ class ExpenseDetailsScreen extends StatelessWidget {
   String category = existingCategory ?? 'Food';
   DateTime selectedDate = existingDate ?? DateTime.now();
   List<String> categories = ['Food', 'Transport', 'Shopping', 'Groceries', 'Entertainment', 'Other'];
-  
+
+  String? descriptionError;
+  String? amountError;
+  String? customCategoryError;
+
   TextEditingController descriptionController = TextEditingController(text: existingDescription ?? '');
   TextEditingController amountController = TextEditingController(text: existingAmount != null ? existingAmount.toString() : '');
   TextEditingController customCategoryController = TextEditingController();
@@ -130,7 +135,7 @@ class ExpenseDetailsScreen extends StatelessWidget {
   }
 
   showDialog(
-    context: context, // ✅ FIXED: Pass the context properly
+    context: context, 
     builder: (context) {
       return StatefulBuilder(
         builder: (context, setDialogState) {
@@ -145,19 +150,15 @@ class ExpenseDetailsScreen extends StatelessWidget {
                   TextField(
                     controller: descriptionController,
                     onChanged: (value) {
-                      int cursorPosition = descriptionController.selection.baseOffset;
                       description = value;
+                      setDialogState(() => descriptionError = value.isEmpty ? 'Description is required' : null);
                       _suggestCategoryWithDelay(value, (suggestedCategory) {
                         setDialogState(() => category = suggestedCategory);
                       });
-                      descriptionController.value = descriptionController.value.copyWith(
-                        text: value,
-                        selection: TextSelection.collapsed(offset: cursorPosition),
-                      );
                     },
                     decoration: InputDecoration(
                       labelText: 'Expense Description',
-                      labelStyle: TextStyle(color: Colors.deepPurple),
+                      errorText: descriptionError,
                       border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
                     ),
                   ),
@@ -167,9 +168,13 @@ class ExpenseDetailsScreen extends StatelessWidget {
                   TextField(
                     controller: amountController,
                     keyboardType: TextInputType.number,
-                    onChanged: (value) => amount = double.tryParse(value) ?? 0.0,
+                    onChanged: (value) {
+                      amount = double.tryParse(value) ?? 0.0;
+                      setDialogState(() => amountError = (amount <= 0) ? 'Enter a valid amount' : null);
+                    },
                     decoration: InputDecoration(
                       labelText: 'Amount',
+                      errorText: amountError,
                       border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
                     ),
                   ),
@@ -188,33 +193,34 @@ class ExpenseDetailsScreen extends StatelessWidget {
                     ],
                     onChanged: (value) {
                       if (value == 'custom') {
-                        setDialogState(() => isAddingCustomCategory = true);
+                        setDialogState(() {
+                          isAddingCustomCategory = true;
+                          customCategoryError = null;
+                        });
                       } else {
-                        setDialogState(() => category = value!);
+                        setDialogState(() {
+                          category = value!;
+                          isAddingCustomCategory = false;
+                        });
                       }
                     },
                   ),
                   SizedBox(height: 20),
 
                   // Custom Category TextField
-                    if (isAddingCustomCategory)
-                      TextField(
-                        controller: customCategoryController,
-                        decoration: InputDecoration(
-                          labelText: 'Enter New Category',
-                          labelStyle: TextStyle(color: Colors.deepPurple),
-                          hintText: 'Enter a new custom category',
-                          hintStyle: TextStyle(color: Colors.grey),
-                          focusedBorder: OutlineInputBorder(
-                            borderSide: BorderSide(color: Colors.deepPurple),
-                            borderRadius: BorderRadius.circular(10),
-                          ),
-                          border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(10),
-                          ),
-                          contentPadding: EdgeInsets.symmetric(vertical: 15, horizontal: 10),
-                        ),
+                  if (isAddingCustomCategory)
+                    TextField(
+                      controller: customCategoryController,
+                      onChanged: (value) {
+                        setDialogState(() => customCategoryError = value.trim().isEmpty ? 'Custom category is required' : null);
+                      },
+                      decoration: InputDecoration(
+                        labelText: 'Enter New Category',
+                        errorText: customCategoryError,
+                        border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
+                        contentPadding: EdgeInsets.symmetric(vertical: 15, horizontal: 10),
                       ),
+                    ),
                   SizedBox(height: 20),
 
                   // Date Picker
@@ -241,18 +247,33 @@ class ExpenseDetailsScreen extends StatelessWidget {
                   Navigator.pop(context);
                 },
               ),
+              // When the user submits the form
               TextButton(
                 child: Text(expenseId == null ? 'Add' : 'Save', style: TextStyle(color: Colors.deepPurple, fontWeight: FontWeight.bold)),
                 onPressed: () async {
-                  if (description.isNotEmpty && amount > 0) {
+                  bool isValid = true;
 
-                    if (isAddingCustomCategory && customCategoryController.text.isNotEmpty) {
-                        category = customCategoryController.text.trim();
-                        await _firestore.collection('users').doc(_uid).collection('categories').add({'name': category});
+                  if (description.isEmpty) {
+                    setDialogState(() => descriptionError = 'Description is required');
+                    isValid = false;
+                  }
+                  if (amount <= 0) {
+                    setDialogState(() => amountError = 'Enter a valid amount');
+                    isValid = false;
+                  }
+                  if (isAddingCustomCategory && customCategoryController.text.trim().isEmpty) {
+                    setDialogState(() => customCategoryError = 'Custom category is required');
+                    isValid = false;
+                  }
+
+                  if (isValid) {
+                    if (isAddingCustomCategory) {
+                      category = customCategoryController.text.trim();
+                      await _firestore.collection('users').doc(_uid).collection('categories').add({'name': category});
                     }
-                      _addExpense(docId, description, amount, category, selectedDate);
-                      Navigator.pop(context);
-                    }
+                    _addExpense(docId, description, amount, category, selectedDate);
+                    Navigator.pop(context);
+                  }
                 },
               ),
             ],
@@ -262,6 +283,7 @@ class ExpenseDetailsScreen extends StatelessWidget {
     },
   );
 }
+
 
 
   @override
