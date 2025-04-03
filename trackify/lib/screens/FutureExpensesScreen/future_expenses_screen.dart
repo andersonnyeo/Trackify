@@ -187,18 +187,31 @@ class _FutureExpenseScreenState extends State<FutureExpenseScreen> {
             //     belowBarData: BarAreaData(show: false),
             //     dashArray: [5, 5],
             //   ),
+              // LineChartBarData(
+              //   spots: [
+              //     for (int i = 0; i < historicalExpenses.length; i++)
+              //       FlSpot(i.toDouble(), historicalExpenses[i]),
+              //     FlSpot(historicalExpenses.length.toDouble(), predictedExpense!),  // Ensure continuity
+              //   ],
+              //   isCurved: true,
+              //   color: Colors.red,
+              //   barWidth: 4,
+              //   dotData: FlDotData(show: true),
+              //   belowBarData: BarAreaData(show: false),
+              //   dashArray: [5, 5],
+              // ),
+
               LineChartBarData(
                 spots: [
-                  for (int i = 0; i < historicalExpenses.length; i++)
-                    FlSpot(i.toDouble(), historicalExpenses[i]),
-                  FlSpot(historicalExpenses.length.toDouble(), predictedExpense!),  // Ensure continuity
+                  FlSpot((historicalExpenses.length - 1).toDouble(), historicalExpenses.last), // Current month
+                  FlSpot(historicalExpenses.length.toDouble(), predictedExpense!), // Next month
                 ],
                 isCurved: true,
                 color: Colors.red,
                 barWidth: 4,
                 dotData: FlDotData(show: true),
                 belowBarData: BarAreaData(show: false),
-                dashArray: [5, 5],
+                dashArray: [5, 5], // Makes it dotted
               ),
 
           ],
