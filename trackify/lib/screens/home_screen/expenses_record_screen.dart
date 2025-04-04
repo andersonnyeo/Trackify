@@ -313,7 +313,7 @@ class _ExpenseRecordScreenState extends State<ExpenseRecordScreen> {
                       });
                     },
                     decoration: InputDecoration(
-                      hintText: 'Document title',
+                      labelText : 'Document title',
                       errorText: titleError, // Display error message if title is empty
                       border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
                       contentPadding: const EdgeInsets.symmetric(vertical: 15, horizontal: 10),
