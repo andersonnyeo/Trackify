@@ -9,17 +9,27 @@ import 'package:trackify/screens/chart_screen/stats_screen.dart';
 import 'package:trackify/screens/budget/budget_recommendation.dart';
 import 'package:trackify/screens/home_screen/expense_utils.dart'; // Import the utility file
 
-class ExpenseDetailsScreen extends StatelessWidget {
+class ExpenseDetailsScreen extends StatefulWidget {
   final String docId;
   final String title;
-  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
-  final String _uid = FirebaseAuth.instance.currentUser?.uid ?? '';
-  
 
   ExpenseDetailsScreen({super.key, required this.docId, required this.title});
 
-  final TextEditingController descriptionController = TextEditingController();
+  @override
+  State<ExpenseDetailsScreen> createState() => _ExpenseDetailsScreenState();
+}
+
+class _ExpenseDetailsScreenState extends State<ExpenseDetailsScreen> {
+  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+
+  final String _uid = FirebaseAuth.instance.currentUser?.uid ?? '';
+
+  late String _title; 
+
   
+
+  final TextEditingController descriptionController = TextEditingController();
+
   // Local NLP-based categorization model (keywords)
   final Map<String, String> _categoryKeywords = {
     'food': 'Food',
@@ -100,40 +110,38 @@ class ExpenseDetailsScreen extends StatelessWidget {
   }
 }
 
-
-
   void _showAddExpenseDialog(BuildContext context, String docId, {String? expenseId, String? existingDescription, double? existingAmount, String? existingCategory, DateTime? existingDate}) {
     String description = existingDescription ?? '';
     double amount = existingAmount ?? 0.0;
     String category = existingCategory ?? 'Food';
     DateTime selectedDate = existingDate ?? DateTime.now();
     List<String> categories = ['Food', 'Transport', 'Shopping', 'Groceries', 'Entertainment', 'Other'];
-  
+
     String? descriptionError;
     String? amountError;
     String? customCategoryError;
-  
+
     TextEditingController descriptionController = TextEditingController(text: existingDescription ?? '');
     TextEditingController amountController = TextEditingController(text: existingAmount != null ? existingAmount.toString() : '');
     TextEditingController customCategoryController = TextEditingController();
-  
+
     bool isAddingCustomCategory = false;
     Timer? _debounceTimer;
-  
+
     void fetchCategories() async {
       var categoryDocs = await _firestore.collection('users').doc(_uid).collection('categories').get();
       categories.addAll(categoryDocs.docs.map((doc) => doc['name'].toString()).toSet()); // Avoid duplicates
     }
-  
+
     fetchCategories(); 
-  
+
     void _suggestCategoryWithDelay(String value, Function(String) updateCategory) {
       if (_debounceTimer?.isActive ?? false) _debounceTimer!.cancel();
       _debounceTimer = Timer(const Duration(milliseconds: 500), () {
         _suggestCategory(value, updateCategory);
       });
     }
-  
+
     showDialog(
       context: context, 
       builder: (context) {
@@ -163,7 +171,7 @@ class ExpenseDetailsScreen extends StatelessWidget {
                       ),
                     ),
                     SizedBox(height: 20),
-  
+
                     // Amount Field
                     TextField(
                       controller: amountController,
@@ -179,7 +187,7 @@ class ExpenseDetailsScreen extends StatelessWidget {
                       ),
                     ),
                     SizedBox(height: 20),
-  
+
                     // Category Dropdown
                     DropdownButtonFormField<String>(
                       value: categories.contains(category) ? category : 'Other',
@@ -206,7 +214,7 @@ class ExpenseDetailsScreen extends StatelessWidget {
                       },
                     ),
                     SizedBox(height: 20),
-  
+
                     // Custom Category TextField
                     if (isAddingCustomCategory)
                       TextField(
@@ -222,7 +230,7 @@ class ExpenseDetailsScreen extends StatelessWidget {
                         ),
                       ),
                     SizedBox(height: 20),
-  
+
                     // Date Picker
                     TextButton(
                       onPressed: () async {
@@ -252,7 +260,7 @@ class ExpenseDetailsScreen extends StatelessWidget {
                   child: Text(expenseId == null ? 'Add' : 'Save', style: TextStyle(color: Colors.deepPurple, fontWeight: FontWeight.bold)),
                   onPressed: () async {
                     bool isValid = true;
-  
+
                     if (description.isEmpty) {
                       setDialogState(() => descriptionError = 'Description is required');
                       isValid = false;
@@ -265,7 +273,7 @@ class ExpenseDetailsScreen extends StatelessWidget {
                       setDialogState(() => customCategoryError = 'Custom category is required');
                       isValid = false;
                     }
-  
+
                     if (isValid) {
                       if (isAddingCustomCategory) {
                         category = customCategoryController.text.trim();
@@ -284,6 +292,99 @@ class ExpenseDetailsScreen extends StatelessWidget {
     );
   }
 
+  @override
+  void initState() {
+    super.initState();
+    _title = widget.title; // Initialize with passed title
+  }
+
+  // Function to edit document name
+  void _editDocumentName(BuildContext context) {
+    TextEditingController nameController = TextEditingController(text: _title);
+
+    showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: const Text("Edit Document Name"),
+          content: TextField(
+            controller: nameController,
+            decoration: InputDecoration(
+              labelText: "New Document Name",
+              border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
+            ),
+          ),
+          actions: [
+            TextButton(
+              child: const Text("Cancel", style: TextStyle(color: Colors.grey)),
+              onPressed: () => Navigator.pop(context),
+            ),
+            TextButton(
+              child: const Text("Save", style: TextStyle(fontWeight: FontWeight.bold, color: Colors.deepPurple)),
+              onPressed: () async {
+                String newName = nameController.text.trim();
+                if (newName.isEmpty) return;
+
+                try {
+                  await _firestore
+                      .collection('users')
+                      .doc(_uid)
+                      .collection('expenseDocuments')
+                      .doc(widget.docId)
+                      .update({'title': newName});
+
+                  setState(() {
+                    _title = newName; // Update the UI title immediately
+                  });
+
+                  Navigator.pop(context);
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Row(
+                        children: [
+                          Icon(Icons.check_circle, color: Colors.white),
+                          SizedBox(width: 10),
+                          Text(
+                            "Document name updated!",
+                            style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+                          ),
+                        ],
+                      ),
+                      backgroundColor: Colors.green,
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                      elevation: 6,
+                    ),
+                  );
+
+
+                } catch (e) {
+                  print("Error updating document name: $e");
+
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Row(
+                        children: [
+                          Icon(Icons.check_circle, color: Colors.white),
+                          SizedBox(width: 10),
+                          Text(
+                            "Failed to update document name.",
+                            style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+                          ),
+                        ],
+                      ),
+                      backgroundColor: Colors.green,
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                      elevation: 6,
+                    ),
+                  );
+                }
+              },
+            ),
+          ],
+        );
+      },
+    );
+  }
 
 
   @override
@@ -295,7 +396,7 @@ class ExpenseDetailsScreen extends StatelessWidget {
       backgroundColor: Colors.purple[50],
       appBar: AppBar(
         backgroundColor: Colors.deepPurple,
-        title: Text(title, 
+        title: Text(_title, 
           style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
         ),
         iconTheme: const IconThemeData(color: Colors.white), // Set back arrow color to white
@@ -307,31 +408,48 @@ class ExpenseDetailsScreen extends StatelessWidget {
             iconColor: Colors.white,
             offset: const Offset(0, 50),
             onSelected: (value) {
-              if (value == 'Monthly Overview') {
+              if (value == 'EditDocumentName') {
+                _editDocumentName(context
+                );
+              } else if (value == 'Monthly Overview') {
                 Navigator.push(
                   context,
-                  MaterialPageRoute(builder: (_) => Chart(docId: docId)),
+                  MaterialPageRoute(builder: (_) => Chart(docId: widget.docId)),
                 );
               } else if (value == 'Stats') {
                 Navigator.push(
                   context,
-                  MaterialPageRoute(builder: (_) => StatsScreen(docId: docId)),
+                  MaterialPageRoute(builder: (_) => StatsScreen(docId: widget.docId)),
                 );
               } else if (value == 'FutureExpenses') {
                 Navigator.push(
                   context,
-                  MaterialPageRoute(builder: (_) => FutureExpenseScreen(docId: docId)),
+                  MaterialPageRoute(builder: (_) => FutureExpenseScreen(docId: widget.docId)),
                 );
               } else if (value == 'Budget') {
                 Navigator.push(
                   context,
-                  MaterialPageRoute(builder: (_) => BudgetRecommendationScreen(docId: docId)),
+                  MaterialPageRoute(builder: (_) => BudgetRecommendationScreen(docId: widget.docId)),
                 );
               } else if (value == 'Delete') {
-                deleteExpenseDocument(context, firestore, uid, docId);
+                deleteExpenseDocument(context, firestore, uid, widget.docId);
               }
             },
             itemBuilder: (context) => [
+
+              PopupMenuItem(
+                value: 'EditDocumentName',
+                child: Row(
+                  children: [
+                    Icon(Icons.edit, color: Colors.orangeAccent),
+                    SizedBox(width: 10),
+                    Text('Edit Document Name', style: TextStyle(fontSize: 16)),
+                  ],
+                ),
+              ),
+
+
+
               const PopupMenuItem(
                 value: 'Monthly Overview',
                 child: Row(
@@ -392,7 +510,7 @@ class ExpenseDetailsScreen extends StatelessWidget {
             .collection('users')
             .doc(uid)
             .collection('expenseDocuments')
-            .doc(docId)
+            .doc(widget.docId)
             .collection('expenses')
             .orderBy('date', descending: true)
             .snapshots(),
@@ -506,7 +624,7 @@ class ExpenseDetailsScreen extends StatelessWidget {
                                   ),
                                   IconButton(
                                     icon: const Icon(Icons.edit, color: Colors.blue),
-                                    onPressed: () => _editExpense(context, firestore, uid, docId, expense),
+                                    onPressed: () => _editExpense(context, firestore, uid, widget.docId, expense),
                                   ),
                                 ],
                               ),
@@ -530,11 +648,10 @@ class ExpenseDetailsScreen extends StatelessWidget {
       floatingActionButton: FloatingActionButton(
         backgroundColor: Colors.deepPurple,
         child: const Icon(Icons.add, color: Colors.white),
-        onPressed: () => _showAddExpenseDialog(context, docId ),
+        onPressed: () => _showAddExpenseDialog(context, widget.docId ),
       ),
     );
   }
-
 
   void _deleteExpenseDetails(String expenseId) async {
     final FirebaseFirestore firestore = FirebaseFirestore.instance;
@@ -545,14 +662,12 @@ class ExpenseDetailsScreen extends StatelessWidget {
           .collection('users')
           .doc(uid)
           .collection('expenseDocuments')
-          .doc(docId) // Use the document ID from the parent screen
+          .doc(widget.docId) // Use the document ID from the parent screen
           .collection('expenses')
           .doc(expenseId) // Use the specific expense ID
           .delete();
     }
   }
-
-
 
   void _editExpense(BuildContext context, FirebaseFirestore firestore, String uid, String docId, QueryDocumentSnapshot expense) {
     String description = expense['description'];
