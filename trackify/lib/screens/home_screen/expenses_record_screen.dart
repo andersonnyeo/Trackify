@@ -291,29 +291,59 @@ class _ExpenseRecordScreenState extends State<ExpenseRecordScreen> {
 
   void _showNewDocumentDialog() {
     String title = '';
+    String? titleError; // Variable for error message
+  
     showDialog(
       context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('New Expense Document'),
-        content: TextField(
-          onChanged: (value) => title = value,
-          decoration: const InputDecoration(hintText: 'Document title'),
-        ),
-        actions: [
-          TextButton(child: const Text('Cancel'), onPressed: () => Navigator.pop(context)),
-          TextButton(
-            child: const Text('Create'),
-            onPressed: () {
-              if (title.isNotEmpty) {
-                _createNewDocument(title);
-                Navigator.pop(context);
-              }
-            },
-          ),
-        ],
-      ),
+      builder: (context) {
+        return StatefulBuilder(
+          builder: (context, setDialogState) {
+            return AlertDialog(
+              title: const Text('New Expense Document'),
+              content: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  TextField(
+                    onChanged: (value) {
+                      title = value;
+                      setDialogState(() {
+                        // Clear error when the user starts typing
+                        titleError = value.isEmpty ? 'Title is required' : null;
+                      });
+                    },
+                    decoration: InputDecoration(
+                      hintText: 'Document title',
+                      errorText: titleError, // Display error message if title is empty
+                      border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
+                      contentPadding: const EdgeInsets.symmetric(vertical: 15, horizontal: 10),
+                    ),
+                  ),
+                ],
+              ),
+              actions: [
+                TextButton(child: const Text('Cancel'), onPressed: () => Navigator.pop(context)),
+                TextButton(
+                  child: const Text('Create'),
+                  onPressed: () {
+                    if (title.isNotEmpty) {
+                      _createNewDocument(title);
+                      Navigator.pop(context);
+                    } else {
+                      setDialogState(() {
+                        // Show error message if the title is empty
+                        titleError = 'Title is required';
+                      });
+                    }
+                  },
+                ),
+              ],
+            );
+          },
+        );
+      },
     );
   }
+
 
   void _showAddExpenseDialog(BuildContext context, String docId, {String? expenseId, String? existingDescription, double? existingAmount, String? existingCategory, DateTime? existingDate}) {
     String description = existingDescription ?? '';
