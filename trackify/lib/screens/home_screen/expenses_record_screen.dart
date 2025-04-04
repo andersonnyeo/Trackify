@@ -179,6 +179,7 @@ class _ExpenseRecordScreenState extends State<ExpenseRecordScreen> {
                         .collection('users')
                         .doc(_uid)
                         .collection('expenseDocuments')
+                        .orderBy('createdAt', descending: true) // Order by 'createdAt' in descending order
                         .snapshots(),
                     builder: (context, snapshot) {
                       if (snapshot.connectionState == ConnectionState.waiting) {
