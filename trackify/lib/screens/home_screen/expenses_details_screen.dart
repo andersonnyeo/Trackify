@@ -1,4 +1,4 @@
-
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -7,12 +7,385 @@ import 'package:trackify/screens/FutureExpensesScreen/future_expenses_screen.dar
 import 'package:trackify/screens/chart_screen/chart.dart';
 import 'package:trackify/screens/chart_screen/stats_screen.dart';
 import 'package:trackify/screens/budget/budget_recommendation.dart';
+import 'package:trackify/screens/home_screen/expense_utils.dart'; // Import the utility file
 
-class ExpenseDetailsScreen extends StatelessWidget {
+class ExpenseDetailsScreen extends StatefulWidget {
   final String docId;
   final String title;
 
-  const ExpenseDetailsScreen({super.key, required this.docId, required this.title});
+  ExpenseDetailsScreen({super.key, required this.docId, required this.title});
+
+  @override
+  State<ExpenseDetailsScreen> createState() => _ExpenseDetailsScreenState();
+}
+
+class _ExpenseDetailsScreenState extends State<ExpenseDetailsScreen> {
+  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+
+  final String _uid = FirebaseAuth.instance.currentUser?.uid ?? '';
+
+  late String _title; 
+
+  
+
+  final TextEditingController descriptionController = TextEditingController();
+
+  // Local NLP-based categorization model (keywords)
+  final Map<String, String> _categoryKeywords = {
+    'food': 'Food',
+    'restaurant': 'Food',
+    'grocery': 'Groceries',
+    'supermarket': 'Groceries',
+    'bus': 'Transport',
+    'train': 'Transport',
+    'fuel': 'Transport',
+    'uber': 'Transport',
+    'shopping': 'Shopping',
+    'clothes': 'Shopping',
+    'movie': 'Entertainment',
+    'netflix': 'Entertainment',
+    'game': 'Entertainment',
+  };
+
+  // NLP-based category prediction
+  String _predictCategory(String description) {
+    description = description.toLowerCase();
+    for (var keyword in _categoryKeywords.keys) {
+      if (description.contains(keyword)) {
+        return _categoryKeywords[keyword]!;
+      }
+    }
+    return 'Other';
+  }
+
+  // Suggest category using NLP first, then Firestore
+  Future<void> _suggestCategory(String description, Function(String) updateCategory) async {
+    String predictedCategory = _predictCategory(description);
+    updateCategory(predictedCategory);
+
+    var categoryRef = _firestore.collection('users').doc(_uid).collection('categoryMappings');
+    var query = await categoryRef.where('description', isEqualTo: description.toLowerCase()).get();
+
+    if (query.docs.isNotEmpty) {
+      updateCategory(query.docs.first['category']);
+    }
+  }
+
+  void _addExpense(String docId, String description, double amount, String category, DateTime date) async {
+  try {
+    if (_uid.isNotEmpty) {
+      CollectionReference expensesRef = _firestore
+          .collection('users')
+          .doc(_uid)
+          .collection('expenseDocuments')
+          .doc(docId)
+          .collection('expenses');
+
+      // Add the new expense
+      await expensesRef.add({
+        'description': description.toLowerCase(),
+        'amount': amount,
+        'category': category,
+        'date': Timestamp.fromDate(date),
+      });
+
+      // Check if the description already has a category mapping
+      var categoryRef = _firestore.collection('users').doc(_uid).collection('categoryMappings');
+      var query = await categoryRef.where('description', isEqualTo: description.toLowerCase()).get();
+
+      if (query.docs.isNotEmpty) {
+        // If a mapping exists but has a different category, update it
+        if (query.docs.first.get('category') != category) {
+          await categoryRef.doc(query.docs.first.id).update({'category': category});
+        }
+      } else {
+        // If no mapping exists, create a new one
+        await categoryRef.add({'description': description.toLowerCase(), 'category': category});
+      }
+    }
+  } catch (e) {
+    // Handle any errors that occur during the Firestore operations
+    print('Error adding expense: $e');
+    // Optionally, show an alert or feedback to the user
+  }
+}
+
+  void _showAddExpenseDialog(BuildContext context, String docId, {String? expenseId, String? existingDescription, double? existingAmount, String? existingCategory, DateTime? existingDate}) {
+    String description = existingDescription ?? '';
+    double amount = existingAmount ?? 0.0;
+    String category = existingCategory ?? 'Food';
+    DateTime selectedDate = existingDate ?? DateTime.now();
+    List<String> categories = ['Food', 'Transport', 'Shopping', 'Groceries', 'Entertainment', 'Other'];
+
+    String? descriptionError;
+    String? amountError;
+    String? customCategoryError;
+
+    TextEditingController descriptionController = TextEditingController(text: existingDescription ?? '');
+    TextEditingController amountController = TextEditingController(text: existingAmount != null ? existingAmount.toString() : '');
+    TextEditingController customCategoryController = TextEditingController();
+
+    bool isAddingCustomCategory = false;
+    Timer? _debounceTimer;
+
+    void fetchCategories() async {
+      var categoryDocs = await _firestore.collection('users').doc(_uid).collection('categories').get();
+      categories.addAll(categoryDocs.docs.map((doc) => doc['name'].toString()).toSet()); // Avoid duplicates
+    }
+
+    fetchCategories(); 
+
+    void _suggestCategoryWithDelay(String value, Function(String) updateCategory) {
+      if (_debounceTimer?.isActive ?? false) _debounceTimer!.cancel();
+      _debounceTimer = Timer(const Duration(milliseconds: 500), () {
+        _suggestCategory(value, updateCategory);
+      });
+    }
+
+    showDialog(
+      context: context, 
+      builder: (context) {
+        return StatefulBuilder(
+          builder: (context, setDialogState) {
+            return AlertDialog(
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
+              title: Text(expenseId == null ? 'Add Expense' : 'Edit Expense', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 20, color: Colors.deepPurple)),
+              content: SingleChildScrollView(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // Description Field
+                    TextField(
+                      controller: descriptionController,
+                      onChanged: (value) {
+                        description = value;
+                        setDialogState(() => descriptionError = value.isEmpty ? 'Description is required' : null);
+                        _suggestCategoryWithDelay(value, (suggestedCategory) {
+                          setDialogState(() => category = suggestedCategory);
+                        });
+                      },
+                      decoration: InputDecoration(
+                        labelText: 'Expense Description',
+                        errorText: descriptionError,
+                        border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
+                      ),
+                    ),
+                    SizedBox(height: 20),
+
+                    // Amount Field
+                    TextField(
+                      controller: amountController,
+                      keyboardType: TextInputType.number,
+                      onChanged: (value) {
+                        amount = double.tryParse(value) ?? 0.0;
+                        setDialogState(() => amountError = (amount <= 0) ? 'Enter a valid amount' : null);
+                      },
+                      decoration: InputDecoration(
+                        labelText: 'Amount',
+                        errorText: amountError,
+                        border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
+                      ),
+                    ),
+                    SizedBox(height: 20),
+
+                    // Category Dropdown
+                    DropdownButtonFormField<String>(
+                      value: categories.contains(category) ? category : 'Other',
+                      decoration: InputDecoration(
+                        labelText: 'Category',
+                        border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
+                      ),
+                      items: [
+                        ...categories.map((e) => DropdownMenuItem(value: e, child: Text(e))),
+                        const DropdownMenuItem(value: 'custom', child: Text('Add New Category')),
+                      ],
+                      onChanged: (value) {
+                        if (value == 'custom') {
+                          setDialogState(() {
+                            isAddingCustomCategory = true;
+                            customCategoryError = null;
+                          });
+                        } else {
+                          setDialogState(() {
+                            category = value!;
+                            isAddingCustomCategory = false;
+                          });
+                        }
+                      },
+                    ),
+                    SizedBox(height: 20),
+
+                    // Custom Category TextField
+                    if (isAddingCustomCategory)
+                      TextField(
+                        controller: customCategoryController,
+                        onChanged: (value) {
+                          setDialogState(() => customCategoryError = value.trim().isEmpty ? 'Custom category is required' : null);
+                        },
+                        decoration: InputDecoration(
+                          labelText: 'Enter New Category',
+                          errorText: customCategoryError,
+                          border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
+                          contentPadding: EdgeInsets.symmetric(vertical: 15, horizontal: 10),
+                        ),
+                      ),
+                    SizedBox(height: 20),
+
+                    // Date Picker
+                    TextButton(
+                      onPressed: () async {
+                        DateTime? pickedDate = await showDatePicker(
+                          context: context,
+                          initialDate: selectedDate,
+                          firstDate: DateTime(2000),
+                          lastDate: DateTime(2101),
+                        );
+                        if (pickedDate != null) setDialogState(() => selectedDate = pickedDate);
+                      },
+                      child: Text('Select Date: ${DateFormat('yyyy-MM-dd').format(selectedDate)}', style: TextStyle(fontSize: 16, color: Colors.deepPurple)),
+                    ),
+                  ],
+                ),
+              ),
+              actions: [
+                TextButton(
+                  child: const Text('Cancel', style: TextStyle(color: Colors.grey)),
+                  onPressed: () {
+                    _debounceTimer?.cancel(); // Cancel debounce when closing
+                    Navigator.pop(context);
+                  },
+                ),
+                // When the user submits the form
+                TextButton(
+                  child: Text(expenseId == null ? 'Add' : 'Save', style: TextStyle(color: Colors.deepPurple, fontWeight: FontWeight.bold)),
+                  onPressed: () async {
+                    bool isValid = true;
+
+                    if (description.isEmpty) {
+                      setDialogState(() => descriptionError = 'Description is required');
+                      isValid = false;
+                    }
+                    if (amount <= 0) {
+                      setDialogState(() => amountError = 'Enter a valid amount');
+                      isValid = false;
+                    }
+                    if (isAddingCustomCategory && customCategoryController.text.trim().isEmpty) {
+                      setDialogState(() => customCategoryError = 'Custom category is required');
+                      isValid = false;
+                    }
+
+                    if (isValid) {
+                      if (isAddingCustomCategory) {
+                        category = customCategoryController.text.trim();
+                        await _firestore.collection('users').doc(_uid).collection('categories').add({'name': category});
+                      }
+                      _addExpense(docId, description, amount, category, selectedDate);
+                      Navigator.pop(context);
+                    }
+                  },
+                ),
+              ],
+            );
+          },
+        );
+      },
+    );
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    _title = widget.title; // Initialize with passed title
+  }
+
+  // Function to edit document name
+  void _editDocumentName(BuildContext context) {
+    TextEditingController nameController = TextEditingController(text: _title);
+
+    showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: const Text("Edit Document Name"),
+          content: TextField(
+            controller: nameController,
+            decoration: InputDecoration(
+              labelText: "New Document Name",
+              border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
+            ),
+          ),
+          actions: [
+            TextButton(
+              child: const Text("Cancel", style: TextStyle(color: Colors.grey)),
+              onPressed: () => Navigator.pop(context),
+            ),
+            TextButton(
+              child: const Text("Save", style: TextStyle(fontWeight: FontWeight.bold, color: Colors.deepPurple)),
+              onPressed: () async {
+                String newName = nameController.text.trim();
+                if (newName.isEmpty) return;
+
+                try {
+                  await _firestore
+                      .collection('users')
+                      .doc(_uid)
+                      .collection('expenseDocuments')
+                      .doc(widget.docId)
+                      .update({'title': newName});
+
+                  setState(() {
+                    _title = newName; // Update the UI title immediately
+                  });
+
+                  Navigator.pop(context);
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Row(
+                        children: [
+                          Icon(Icons.check_circle, color: Colors.white),
+                          SizedBox(width: 10),
+                          Text(
+                            "Document name updated!",
+                            style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+                          ),
+                        ],
+                      ),
+                      backgroundColor: Colors.green,
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                      elevation: 6,
+                    ),
+                  );
+
+
+                } catch (e) {
+                  print("Error updating document name: $e");
+
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Row(
+                        children: [
+                          Icon(Icons.check_circle, color: Colors.white),
+                          SizedBox(width: 10),
+                          Text(
+                            "Failed to update document name.",
+                            style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+                          ),
+                        ],
+                      ),
+                      backgroundColor: Colors.green,
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                      elevation: 6,
+                    ),
+                  );
+                }
+              },
+            ),
+          ],
+        );
+      },
+    );
+  }
+
 
   @override
   Widget build(BuildContext context) {
@@ -23,10 +396,11 @@ class ExpenseDetailsScreen extends StatelessWidget {
       backgroundColor: Colors.purple[50],
       appBar: AppBar(
         backgroundColor: Colors.deepPurple,
-        title: Text(title, 
+        title: Text(_title, 
           style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
         ),
         iconTheme: const IconThemeData(color: Colors.white), // Set back arrow color to white
+
         actions: [
           PopupMenuButton<String>(
             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
@@ -34,31 +408,48 @@ class ExpenseDetailsScreen extends StatelessWidget {
             iconColor: Colors.white,
             offset: const Offset(0, 50),
             onSelected: (value) {
-              if (value == 'Monthly Overview') {
+              if (value == 'EditDocumentName') {
+                _editDocumentName(context
+                );
+              } else if (value == 'Monthly Overview') {
                 Navigator.push(
                   context,
-                  MaterialPageRoute(builder: (_) => Chart(docId: docId)),
+                  MaterialPageRoute(builder: (_) => Chart(docId: widget.docId)),
                 );
               } else if (value == 'Stats') {
                 Navigator.push(
                   context,
-                  MaterialPageRoute(builder: (_) => StatsScreen(docId: docId)),
+                  MaterialPageRoute(builder: (_) => StatsScreen(docId: widget.docId)),
                 );
               } else if (value == 'FutureExpenses') {
                 Navigator.push(
                   context,
-                  MaterialPageRoute(builder: (_) => FutureExpenseScreen(docId: docId)),
+                  MaterialPageRoute(builder: (_) => FutureExpenseScreen(docId: widget.docId)),
                 );
               } else if (value == 'Budget') {
                 Navigator.push(
                   context,
-                  MaterialPageRoute(builder: (_) => BudgetRecommendationScreen(docId: docId)),
+                  MaterialPageRoute(builder: (_) => BudgetRecommendationScreen(docId: widget.docId)),
                 );
               } else if (value == 'Delete') {
-                _deleteExpenseDocument(context, firestore, uid, docId);
+                deleteExpenseDocument(context, firestore, uid, widget.docId);
               }
             },
             itemBuilder: (context) => [
+
+              PopupMenuItem(
+                value: 'EditDocumentName',
+                child: Row(
+                  children: [
+                    Icon(Icons.edit, color: Colors.orangeAccent),
+                    SizedBox(width: 10),
+                    Text('Edit Document Name', style: TextStyle(fontSize: 16)),
+                  ],
+                ),
+              ),
+
+
+
               const PopupMenuItem(
                 value: 'Monthly Overview',
                 child: Row(
@@ -119,7 +510,7 @@ class ExpenseDetailsScreen extends StatelessWidget {
             .collection('users')
             .doc(uid)
             .collection('expenseDocuments')
-            .doc(docId)
+            .doc(widget.docId)
             .collection('expenses')
             .orderBy('date', descending: true)
             .snapshots(),
@@ -210,7 +601,7 @@ class ExpenseDetailsScreen extends StatelessWidget {
                             child: const Icon(Icons.delete, color: Colors.white),
                           ),
                           confirmDismiss: (direction) async {
-                            return await _showDeleteConfirmationDialog(context, expense.id);
+                            return await showDeleteConfirmationDialog(context, expense.id);
                           },
                           onDismissed: (direction) {
                             _deleteExpenseDetails(expense.id);
@@ -233,7 +624,7 @@ class ExpenseDetailsScreen extends StatelessWidget {
                                   ),
                                   IconButton(
                                     icon: const Icon(Icons.edit, color: Colors.blue),
-                                    onPressed: () => _editExpense(context, firestore, uid, docId, expense),
+                                    onPressed: () => _editExpense(context, firestore, uid, widget.docId, expense),
                                   ),
                                 ],
                               ),
@@ -242,6 +633,10 @@ class ExpenseDetailsScreen extends StatelessWidget {
                         );
                       }).toList(),
                     ),
+
+                    
+
+                    
                   ],
                 ),
               );
@@ -249,22 +644,11 @@ class ExpenseDetailsScreen extends StatelessWidget {
           );
         },
       ),
-    );
-  }
 
-  Future<bool?> _showDeleteConfirmationDialog(BuildContext context, String docId) async {
-    return showDialog<bool>(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Delete Expense Detail'),
-        content: const Text('Are you sure you want to delete this expense?'),
-        actions: [
-          TextButton(child: const Text('Cancel'), onPressed: () => Navigator.pop(context, false)),
-          TextButton(
-            child: const Text('Delete', style: TextStyle(color: Colors.red)),
-            onPressed: () => Navigator.pop(context, true),
-          ),
-        ],
+      floatingActionButton: FloatingActionButton(
+        backgroundColor: Colors.deepPurple,
+        child: const Icon(Icons.add, color: Colors.white),
+        onPressed: () => _showAddExpenseDialog(context, widget.docId ),
       ),
     );
   }
@@ -278,14 +662,12 @@ class ExpenseDetailsScreen extends StatelessWidget {
           .collection('users')
           .doc(uid)
           .collection('expenseDocuments')
-          .doc(docId) // Use the document ID from the parent screen
+          .doc(widget.docId) // Use the document ID from the parent screen
           .collection('expenses')
           .doc(expenseId) // Use the specific expense ID
           .delete();
     }
   }
-
-
 
   void _editExpense(BuildContext context, FirebaseFirestore firestore, String uid, String docId, QueryDocumentSnapshot expense) {
     String description = expense['description'];
@@ -419,7 +801,7 @@ class ExpenseDetailsScreen extends StatelessWidget {
                         
                         icon: const Icon(Icons.delete, color: Colors.white),
                         label: const Text('Delete', style: TextStyle(color: Colors.white)),
-                        onPressed: () => _deleteExpenseWhenEdit(context, firestore, uid, docId, expense.id),
+                        onPressed: () => deleteExpenseWhenEdit(context, firestore, uid, docId, expense.id),
                         
                       ),
                     ),
@@ -465,56 +847,4 @@ class ExpenseDetailsScreen extends StatelessWidget {
       },
     );
   }   
-
-
-   void _deleteExpenseWhenEdit(BuildContext context, FirebaseFirestore firestore, String uid, String docId, String expenseId) {
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text("Delete Expense"),
-        content: const Text("Are you sure you want to delete this expense?"),
-        actions: [
-          TextButton(onPressed: () => Navigator.pop(context), child: const Text("Cancel")),
-          TextButton(
-            onPressed: () {
-              firestore
-                  .collection('users')
-                  .doc(uid)
-                  .collection('expenseDocuments')
-                  .doc(docId)
-                  .collection('expenses')
-                  .doc(expenseId)
-                  .delete();
-
-              Navigator.pop(context);
-              Navigator.pop(context);
-            },
-            child: const Text("Delete", style: TextStyle(color: Colors.red)),
-          ),
-        ],
-      ),
-    );
-  }
-  
-
-  void _deleteExpenseDocument(BuildContext context, FirebaseFirestore firestore, String uid, String docId) {
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text("Delete Expense Document"),
-        content: const Text("Are you sure you want to delete this expense document? This action cannot be undone."),
-        actions: [
-          TextButton(onPressed: () => Navigator.pop(context), child: const Text("Cancel")),
-          TextButton(
-            onPressed: () {
-              firestore.collection('users').doc(uid).collection('expenseDocuments').doc(docId).delete();
-              Navigator.pop(context);
-              Navigator.pop(context); // Go back to the previous screen after deletion
-            },
-            child: const Text("Delete", style: TextStyle(color: Colors.red)),
-          ),
-        ],
-      ),
-    );
-  }
 }

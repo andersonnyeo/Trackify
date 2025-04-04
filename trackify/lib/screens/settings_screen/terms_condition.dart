@@ -66,19 +66,19 @@ class TermsAndConditionsScreen extends StatelessWidget {
               ),
               const SizedBox(height: 30),
 
-              Center(
-                child: ElevatedButton(
-                  onPressed: () => Navigator.pop(context),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.deepPurple,
-                    padding: const EdgeInsets.symmetric(horizontal: 30, vertical: 12),
-                  ),
-                  child: const Text(
-                    'Accept & Continue',
-                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.white),
-                  ),
-                ),
-              ),
+              // Center(
+              //   child: ElevatedButton(
+              //     onPressed: () => Navigator.pop(context),
+              //     style: ElevatedButton.styleFrom(
+              //       backgroundColor: Colors.deepPurple,
+              //       padding: const EdgeInsets.symmetric(horizontal: 30, vertical: 12),
+              //     ),
+              //     child: const Text(
+              //       'Accept & Continue',
+              //       style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.white),
+              //     ),
+              //   ),
+              // ),
             ],
           ),
         ),

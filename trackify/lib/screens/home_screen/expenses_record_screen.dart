@@ -239,7 +239,7 @@ class _ExpenseRecordScreenState extends State<ExpenseRecordScreen> {
                                         fontWeight: FontWeight.bold)),
                                 trailing: IconButton(
                                   icon: const Icon(Icons.add),
-                                  onPressed: () => _showAddExpenseDialog(doc.id),
+                                  onPressed: () => _showAddExpenseDialog(context, doc.id),
                                 ),
                                 onTap: () {
                                   Navigator.push(
@@ -291,59 +291,96 @@ class _ExpenseRecordScreenState extends State<ExpenseRecordScreen> {
 
   void _showNewDocumentDialog() {
     String title = '';
+    String? titleError; // Variable for error message
+  
     showDialog(
       context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('New Expense Document'),
-        content: TextField(
-          onChanged: (value) => title = value,
-          decoration: const InputDecoration(hintText: 'Document title'),
-        ),
-        actions: [
-          TextButton(child: const Text('Cancel'), onPressed: () => Navigator.pop(context)),
-          TextButton(
-            child: const Text('Create'),
-            onPressed: () {
-              if (title.isNotEmpty) {
-                _createNewDocument(title);
-                Navigator.pop(context);
-              }
-            },
-          ),
-        ],
-      ),
+      builder: (context) {
+        return StatefulBuilder(
+          builder: (context, setDialogState) {
+            return AlertDialog(
+              title: const Text('New Expense Document'),
+              content: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  TextField(
+                    onChanged: (value) {
+                      title = value;
+                      setDialogState(() {
+                        // Clear error when the user starts typing
+                        titleError = value.isEmpty ? 'Title is required' : null;
+                      });
+                    },
+                    decoration: InputDecoration(
+                      hintText: 'Document title',
+                      errorText: titleError, // Display error message if title is empty
+                      border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
+                      contentPadding: const EdgeInsets.symmetric(vertical: 15, horizontal: 10),
+                    ),
+                  ),
+                ],
+              ),
+              actions: [
+                TextButton(child: const Text('Cancel'), onPressed: () => Navigator.pop(context)),
+                TextButton(
+                  child: const Text('Create'),
+                  onPressed: () {
+                    if (title.isNotEmpty) {
+                      _createNewDocument(title);
+                      Navigator.pop(context);
+                    } else {
+                      setDialogState(() {
+                        // Show error message if the title is empty
+                        titleError = 'Title is required';
+                      });
+                    }
+                  },
+                ),
+              ],
+            );
+          },
+        );
+      },
     );
   }
 
-  void _showAddExpenseDialog(String docId, {String? expenseId, String? existingDescription, double? existingAmount, String? existingCategory, DateTime? existingDate}) {
+
+  void _showAddExpenseDialog(BuildContext context, String docId, {String? expenseId, String? existingDescription, double? existingAmount, String? existingCategory, DateTime? existingDate}) {
     String description = existingDescription ?? '';
-    descriptionController.text = existingDescription ?? '';
+    TextEditingController descriptionController = TextEditingController(text: description);
     double amount = existingAmount ?? 0.0;
+    TextEditingController amountController = TextEditingController(text: existingAmount != null ? existingAmount.toString() : '');
     String category = existingCategory ?? 'Food';
     DateTime selectedDate = existingDate ?? DateTime.now();
     List<String> categories = ['Food', 'Transport', 'Shopping', 'Groceries', 'Entertainment', 'Other'];
     TextEditingController customCategoryController = TextEditingController();
     bool isAddingCustomCategory = false;
-  
+
+    // Error messages
+    String? descriptionError;
+    String? amountError;
+    String? customCategoryError;
+
     // Timer for debounce
     Timer? _debounceTimer;
+
     // Fetch categories from Firestore
     void fetchCategories() async {
       var categoryDocs = await _firestore.collection('users').doc(_uid).collection('categories').get();
-      categories.addAll(categoryDocs.docs.map((doc) => doc['name'].toString()));
+      categories.addAll(categoryDocs.docs.map((doc) => doc['name'].toString()).toSet());
     }
-  
+
     fetchCategories();
-  
+
     // Debounce function to suggest category after typing stops
     void _suggestCategoryWithDelay(String value, Function(String) updateCategory) {
       if (_debounceTimer?.isActive ?? false) _debounceTimer!.cancel();
-  
+
       _debounceTimer = Timer(const Duration(milliseconds: 500), () async {
         _suggestCategory(value, updateCategory);
       });
     }
-  
+
     showDialog(
       context: context,
       builder: (context) {
@@ -362,73 +399,49 @@ class _ExpenseRecordScreenState extends State<ExpenseRecordScreen> {
                   children: [
                     // Description TextField
                     TextField(
-          controller: descriptionController,
-          onChanged: (value) {
-            // Save current cursor position before updating
-            int cursorPosition = descriptionController.selection.baseOffset;
-        
-            description = value;
-            _suggestCategoryWithDelay(value, (suggestedCategory) {
-              setDialogState(() {
-                category = suggestedCategory;
-              });
-            });
-        
-            // Restore cursor position after text change
-            descriptionController.selection = TextSelection.fromPosition(
-              TextPosition(offset: cursorPosition),
-            );
-          },
-          decoration: InputDecoration(
-            labelText: 'Expense Description',
-            labelStyle: TextStyle(color: Colors.deepPurple),
-            focusedBorder: OutlineInputBorder(
-              borderSide: BorderSide(color: Colors.deepPurple),
-              borderRadius: BorderRadius.circular(10),
-            ),
-            border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(10),
-            ),
-            contentPadding: EdgeInsets.symmetric(vertical: 15, horizontal: 10),
-          ),
-        ),
-                    SizedBox(height: 20),
-  
-                    // Amount TextField
-                    TextField(
-                      controller: TextEditingController(text: amount > 0 ? amount.toString() : ''),
-                      onChanged: (value) => amount = double.tryParse(value) ?? 0.0,
-                      keyboardType: TextInputType.number,
+                      controller: descriptionController,
+                      onChanged: (value) {
+                        description = value;
+                        setDialogState(() => descriptionError = value.isEmpty ? 'Description is required' : null);
+
+                        _suggestCategoryWithDelay(value, (suggestedCategory) {
+                          setDialogState(() {
+                            category = suggestedCategory;
+                          });
+                        });
+                      },
                       decoration: InputDecoration(
-                        labelText: 'Amount',
-                        hintText: 'Enter the amount spent',
-                        hintStyle: TextStyle(color: Colors.grey),
-                        labelStyle: TextStyle(color: Colors.deepPurple),
-                        focusedBorder: OutlineInputBorder(
-                          borderSide: BorderSide(color: Colors.deepPurple),
-                          borderRadius: BorderRadius.circular(10),
-                        ),
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(10),
-                        ),
+                        labelText: 'Expense Description',
+                        errorText: descriptionError,
+                        border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
                         contentPadding: EdgeInsets.symmetric(vertical: 15, horizontal: 10),
                       ),
                     ),
                     SizedBox(height: 20),
-  
+
+                    // Amount TextField
+                    TextField(
+                      controller: amountController,
+                      keyboardType: TextInputType.number,
+                      onChanged: (value) {
+                        amount = double.tryParse(value) ?? 0.0;
+                        setDialogState(() => amountError = (amount <= 0) ? 'Enter a valid amount' : null);
+                      },
+                      decoration: InputDecoration(
+                        labelText: 'Amount',
+                        errorText: amountError,
+                        border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
+                        contentPadding: EdgeInsets.symmetric(vertical: 15, horizontal: 10),
+                      ),
+                    ),
+                    SizedBox(height: 20),
+
                     // Category Dropdown
                     DropdownButtonFormField<String>(
-                      value: categories.contains(category) ? category : 'Other', // Ensure category exists
+                      value: categories.contains(category) ? category : 'Other',
                       decoration: InputDecoration(
                         labelText: 'Category',
-                        labelStyle: TextStyle(color: Colors.deepPurple),
-                        focusedBorder: OutlineInputBorder(
-                          borderSide: BorderSide(color: Colors.deepPurple),
-                          borderRadius: BorderRadius.circular(10),
-                        ),
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(10),
-                        ),
+                        border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
                         contentPadding: EdgeInsets.symmetric(vertical: 15, horizontal: 10),
                       ),
                       items: [
@@ -437,35 +450,33 @@ class _ExpenseRecordScreenState extends State<ExpenseRecordScreen> {
                       ],
                       onChanged: (value) {
                         if (value == 'custom') {
-                          setDialogState(() => isAddingCustomCategory = true);
+                          setDialogState(() {
+                            isAddingCustomCategory = true;
+                            customCategoryError = null;
+                          });
                         } else {
-                          setDialogState(() => category = value!);
+                          setDialogState(() {
+                            category = value!;
+                            isAddingCustomCategory = false;
+                          });
                         }
                       },
                     ),
                     SizedBox(height: 20),
-  
-                    // Custom Category TextField
+
+                    // Custom Category TextField (only appears when 'Add New Category' is selected)
                     if (isAddingCustomCategory)
                       TextField(
                         controller: customCategoryController,
                         decoration: InputDecoration(
                           labelText: 'Enter New Category',
-                          labelStyle: TextStyle(color: Colors.deepPurple),
-                          hintText: 'Enter a new custom category',
-                          hintStyle: TextStyle(color: Colors.grey),
-                          focusedBorder: OutlineInputBorder(
-                            borderSide: BorderSide(color: Colors.deepPurple),
-                            borderRadius: BorderRadius.circular(10),
-                          ),
-                          border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(10),
-                          ),
+                          errorText: customCategoryError,
+                          border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
                           contentPadding: EdgeInsets.symmetric(vertical: 15, horizontal: 10),
                         ),
                       ),
                     SizedBox(height: 20),
-  
+
                     // Date Picker Button
                     TextButton(
                       onPressed: () async {
@@ -496,8 +507,23 @@ class _ExpenseRecordScreenState extends State<ExpenseRecordScreen> {
                     style: TextStyle(color: Colors.deepPurple, fontWeight: FontWeight.bold),
                   ),
                   onPressed: () async {
-                    if (description.isNotEmpty && amount > 0) {
-                      if (isAddingCustomCategory && customCategoryController.text.isNotEmpty) {
+                    bool isValid = true;
+
+                    if (description.isEmpty) {
+                      setDialogState(() => descriptionError = 'Description is required');
+                      isValid = false;
+                    }
+                    if (amount <= 0) {
+                      setDialogState(() => amountError = 'Enter a valid amount');
+                      isValid = false;
+                    }
+                    if (isAddingCustomCategory && customCategoryController.text.trim().isEmpty) {
+                      setDialogState(() => customCategoryError = 'Custom category is required');
+                      isValid = false;
+                    }
+
+                    if (isValid) {
+                      if (isAddingCustomCategory) {
                         category = customCategoryController.text.trim();
                         await _firestore.collection('users').doc(_uid).collection('categories').add({'name': category});
                       }
@@ -517,5 +543,7 @@ class _ExpenseRecordScreenState extends State<ExpenseRecordScreen> {
       },
     );
   }
+
+
 }
 

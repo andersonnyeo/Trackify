@@ -101,7 +101,10 @@ class _BudgetRecommendationScreenState extends State<BudgetRecommendationScreen>
       body: isLoading
           ? const Center(child: CircularProgressIndicator())
           : categorySpending.isEmpty
-              ? const Center(child: Text("No expense data available."))
+              ? const Center(child: Text("No expense available for Budget Recommendation.",
+              style: TextStyle(fontSize: 18, color: Colors.grey),
+              textAlign: TextAlign.center,
+              ))
               : ListView(
                   padding: const EdgeInsets.all(15),
                   children: categorySpending.keys.map((category) {

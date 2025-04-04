@@ -43,8 +43,8 @@ class StatsScreen extends StatelessWidget {
             if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
               return const Center(
                 child: Text(
-                  'No expenses to show.',
-                  style: TextStyle(color: Colors.white, fontSize: 18),
+                  'No expenses available for Spending Insight.',
+                  style: TextStyle(color: Colors.grey, fontSize: 18),
                 ),
               );
             }

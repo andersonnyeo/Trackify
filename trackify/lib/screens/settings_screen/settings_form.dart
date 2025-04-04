@@ -16,50 +16,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
   final AuthService _auth = AuthService();
 
   void _showChangeNameDialog(User user, String currentName) {
-    final TextEditingController nameController =
-        TextEditingController(text: currentName);
-
-    showDialog(
-      context: context,
-      builder: (context) {
-        return AlertDialog(
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
-          title: const Text('Change Name', style: TextStyle(fontWeight: FontWeight.bold)),
-          content: TextField(
-            controller: nameController,
-            decoration: const InputDecoration(
-              hintText: 'Enter new name',
-              border: OutlineInputBorder(),
-            ),
-          ),
-          actions: [
-            TextButton(onPressed: () => Navigator.pop(context), child: const Text('Cancel')),
-            ElevatedButton(
-              onPressed: () async {
-                String newName = nameController.text.trim();
-                if (newName.isNotEmpty) {
-                  await DatabaseService(uid: user.uid).updateUserData(newName);
-                  Navigator.pop(context);
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('Name updated successfully!'), backgroundColor: Colors.green),
-                  );
-                } else {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('Name cannot be empty!'), backgroundColor: Colors.red),
-                  );
-                }
-              },
-              child: const Text('Save'),
-            ),
-          ],
-        );
-      },
-    );
-  }
-
-  void _showChangePasswordDialog() {
-    final TextEditingController passwordController = TextEditingController();
-    bool isPasswordVisible = false; 
+    final TextEditingController nameController = TextEditingController(text: currentName);
+    String errorMessage = ""; // To store the error message
 
     showDialog(
       context: context,
@@ -68,46 +26,39 @@ class _SettingsScreenState extends State<SettingsScreen> {
           builder: (context, setStateDialog) {
             return AlertDialog(
               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
-              title: const Text('Change Password', style: TextStyle(fontWeight: FontWeight.bold)),
-              content: TextField(
-                controller: passwordController,
-                obscureText: !isPasswordVisible,
-                decoration: InputDecoration(
-                  hintText: 'Enter new password',
-                  border: const OutlineInputBorder(),
-                  suffixIcon: IconButton(
-                    icon: Icon(
-                      isPasswordVisible ? Icons.visibility : Icons.visibility_off,
-                      color: Colors.grey,
+              title: const Text('Change Name', style: TextStyle(fontWeight: FontWeight.bold)),
+              content: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  TextField(
+                    controller: nameController,
+                    decoration: const InputDecoration(
+                      hintText: 'Enter new name',
+                      border: OutlineInputBorder(),
                     ),
-                    onPressed: () {
-                      setStateDialog(() {
-                        isPasswordVisible = !isPasswordVisible; 
-                      });
-                    },
                   ),
-                ),
+                  const SizedBox(height: 10),
+                  if (errorMessage.isNotEmpty)
+                    Text(
+                      errorMessage,
+                      style: TextStyle(color: Colors.red, fontSize: 12),
+                    ),
+                ],
               ),
               actions: [
                 TextButton(onPressed: () => Navigator.pop(context), child: const Text('Cancel')),
                 ElevatedButton(
                   onPressed: () async {
-                    String password = passwordController.text.trim();
-                    if (password.length >= 6) {
-                      try {
-                        await _auth.updatePassword(password);
-                        Navigator.pop(context);
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(content: Text('Password updated successfully!'), backgroundColor: Colors.green),
-                        );
-                      } catch (e) {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(content: Text('Failed to update password. Try again.'), backgroundColor: Colors.red),
-                        );
-                      }
+                    String newName = nameController.text.trim();
+                    if (newName.isEmpty) {
+                      setStateDialog(() {
+                        errorMessage = 'Name cannot be empty!';
+                      });
                     } else {
+                      await DatabaseService(uid: user.uid).updateUserData(newName);
+                      Navigator.pop(context);
                       ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(content: Text('Password must be at least 6 characters'), backgroundColor: Colors.red),
+                        const SnackBar(content: Text('Name updated successfully!'), backgroundColor: Colors.green),
                       );
                     }
                   },
@@ -120,6 +71,88 @@ class _SettingsScreenState extends State<SettingsScreen> {
       },
     );
   }
+
+
+  void _showChangePasswordDialog() {
+    final TextEditingController passwordController = TextEditingController();
+    bool isPasswordVisible = false;
+    String errorMessage = ""; // To store the error message
+
+    showDialog(
+      context: context,
+      builder: (context) {
+        return StatefulBuilder(
+          builder: (context, setStateDialog) {
+            return AlertDialog(
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
+              title: const Text('Change Password', style: TextStyle(fontWeight: FontWeight.bold)),
+              content: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  TextField(
+                    controller: passwordController,
+                    obscureText: !isPasswordVisible,
+                    decoration: InputDecoration(
+                      hintText: 'Enter new password',
+                      border: const OutlineInputBorder(),
+                      suffixIcon: IconButton(
+                        icon: Icon(
+                          isPasswordVisible ? Icons.visibility : Icons.visibility_off,
+                          color: Colors.grey,
+                        ),
+                        onPressed: () {
+                          setStateDialog(() {
+                            isPasswordVisible = !isPasswordVisible; 
+                          });
+                        },
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 10),
+                  if (errorMessage.isNotEmpty)
+                    Text(
+                      errorMessage,
+                      style: TextStyle(color: Colors.red, fontSize: 12),
+                    ),
+                ],
+              ),
+              actions: [
+                TextButton(onPressed: () => Navigator.pop(context), child: const Text('Cancel')),
+                ElevatedButton(
+                  onPressed: () async {
+                    String password = passwordController.text.trim();
+                    if (password.isEmpty) {
+                      setStateDialog(() {
+                        errorMessage = 'Password cannot be empty!';
+                      });
+                    } else if (password.length < 6) {
+                      setStateDialog(() {
+                        errorMessage = 'Password must be at least 6 characters';
+                      });
+                    } else {
+                      try {
+                        await _auth.updatePassword(password);
+                        Navigator.pop(context);
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(content: Text('Password updated successfully!'), backgroundColor: Colors.green),
+                        );
+                      } catch (e) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(content: Text('Failed to update password. Try again.'), backgroundColor: Colors.red),
+                        );
+                      }
+                    }
+                  },
+                  child: const Text('Save'),
+                ),
+              ],
+            );
+          },
+        );
+      },
+    );
+  }
+
 
   void _confirmLogout() {
     showDialog(
@@ -170,7 +203,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
             child: ListView( // <-- Changed to ListView to prevent overflow
               children: [
                 const Text(
-                  'Customize Your Experience',
+                  'Settings',
                   style: TextStyle(
                     fontSize: 24, // Increase size for better emphasis
                     fontWeight: FontWeight.w700, // Make it slightly bolder
