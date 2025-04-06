@@ -499,7 +499,7 @@ class _ExpenseDetailsScreenState extends State<ExpenseDetailsScreen> {
                   children: [
                     Icon(Icons.pie_chart, color: Colors.green),
                     SizedBox(width: 10),
-                    Text('Spending Insights', style: TextStyle(fontSize: 16)),
+                    Text('Category Breakdown', style: TextStyle(fontSize: 16)),
                   ],
                 ),
               ),

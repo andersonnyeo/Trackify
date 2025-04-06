@@ -17,7 +17,7 @@ class StatsScreen extends StatelessWidget {
       backgroundColor: Colors.purple[50],
       appBar: AppBar(
         title: const Text(
-          'Spending Insights',
+          'Category Breakdown',
           style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
         ),
         backgroundColor: Colors.deepPurple,
@@ -63,7 +63,8 @@ class StatsScreen extends StatelessWidget {
             }
 
             final List<PieChartSectionData> sections = categoryTotals.entries.map((entry) {
-              final percentage = (entry.value / totalAmount * 100).round();
+              final percentage = totalAmount == 0 ? 0 : (entry.value / totalAmount * 100).round();
+
               return PieChartSectionData(
                 value: entry.value,
                 title: '${entry.key}\n$percentage%',
@@ -93,6 +94,7 @@ class StatsScreen extends StatelessWidget {
                         ),
                       ),
                     ),
+                    
                   ),
                 ),
                 const SizedBox(height: 20),
@@ -100,7 +102,8 @@ class StatsScreen extends StatelessWidget {
                   child: ListView(
                     padding: const EdgeInsets.symmetric(horizontal: 15),
                     children: categoryTotals.entries.map((entry) {
-                      final percentage = (entry.value / totalAmount * 100).round();
+                      final percentage = totalAmount == 0 ? 0 : (entry.value / totalAmount * 100).round();
+
                       return Card(
                         elevation: 3,
                         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
