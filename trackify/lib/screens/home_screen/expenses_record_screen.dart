@@ -19,8 +19,6 @@ class _ExpenseRecordScreenState extends State<ExpenseRecordScreen> {
   late String _uid;
   TextEditingController descriptionController = TextEditingController();
   
-
-
   // Local NLP-based categorization model (keywords)
   final Map<String, String> _categoryKeywords = {
     'food': 'Food',
@@ -118,7 +116,6 @@ class _ExpenseRecordScreenState extends State<ExpenseRecordScreen> {
       }
     }
   }
-
 
 
   // Edit Expense
@@ -279,8 +276,6 @@ class _ExpenseRecordScreenState extends State<ExpenseRecordScreen> {
       ),
     );
   }
-
-  
 
 
   Future<bool?> _showDeleteConfirmationDialog(String docId) async {
@@ -573,7 +568,5 @@ class _ExpenseRecordScreenState extends State<ExpenseRecordScreen> {
       },
     );
   }
-
-
 }
 
