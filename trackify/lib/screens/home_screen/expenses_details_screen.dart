@@ -181,7 +181,7 @@ class _ExpenseDetailsScreenState extends State<ExpenseDetailsScreen> {
                         setDialogState(() => amountError = (amount <= 0) ? 'Enter a valid amount' : null);
                       },
                       decoration: InputDecoration(
-                        labelText: 'Amount',
+                        labelText: 'Amount (£)',
                         errorText: amountError,
                         border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
                       ),
@@ -301,90 +301,108 @@ class _ExpenseDetailsScreenState extends State<ExpenseDetailsScreen> {
   // Function to edit document name
   void _editDocumentName(BuildContext context) {
     TextEditingController nameController = TextEditingController(text: _title);
-
+    
+    // Error message variable
+    String? nameError;
+  
     showDialog(
       context: context,
       builder: (context) {
-        return AlertDialog(
-          title: const Text("Edit Document Name"),
-          content: TextField(
-            controller: nameController,
-            decoration: InputDecoration(
-              labelText: "New Document Name",
-              border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
-            ),
-          ),
-          actions: [
-            TextButton(
-              child: const Text("Cancel", style: TextStyle(color: Colors.grey)),
-              onPressed: () => Navigator.pop(context),
-            ),
-            TextButton(
-              child: const Text("Save", style: TextStyle(fontWeight: FontWeight.bold, color: Colors.deepPurple)),
-              onPressed: () async {
-                String newName = nameController.text.trim();
-                if (newName.isEmpty) return;
-
-                try {
-                  await _firestore
-                      .collection('users')
-                      .doc(_uid)
-                      .collection('expenseDocuments')
-                      .doc(widget.docId)
-                      .update({'title': newName});
-
-                  setState(() {
-                    _title = newName; // Update the UI title immediately
-                  });
-
-                  Navigator.pop(context);
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(
-                      content: Row(
-                        children: [
-                          Icon(Icons.check_circle, color: Colors.white),
-                          SizedBox(width: 10),
-                          Text(
-                            "Document name updated!",
-                            style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
-                          ),
-                        ],
-                      ),
-                      backgroundColor: Colors.green,
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-                      elevation: 6,
+        return StatefulBuilder(
+          builder: (context, setDialogState) {
+            return AlertDialog(
+              title: const Text("Edit Document Name"),
+              content: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  TextField(
+                    controller: nameController,
+                    decoration: InputDecoration(
+                      labelText: "New Document Name",
+                      errorText: nameError, // Display error text if exists
+                      border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
                     ),
-                  );
-
-
-                } catch (e) {
-                  print("Error updating document name: $e");
-
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(
-                      content: Row(
-                        children: [
-                          Icon(Icons.check_circle, color: Colors.white),
-                          SizedBox(width: 10),
-                          Text(
-                            "Failed to update document name.",
-                            style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+                  ),
+                ],
+              ),
+              actions: [
+                TextButton(
+                  child: const Text("Cancel", style: TextStyle(color: Colors.grey)),
+                  onPressed: () => Navigator.pop(context),
+                ),
+                TextButton(
+                  child: const Text("Save", style: TextStyle(fontWeight: FontWeight.bold, color: Colors.deepPurple)),
+                  onPressed: () async {
+                    String newName = nameController.text.trim();
+  
+                    // Validate if the name is empty
+                    if (newName.isEmpty) {
+                      setDialogState(() => nameError = "Document name cannot be empty");
+                      return;
+                    }
+  
+                    try {
+                      await _firestore
+                          .collection('users')
+                          .doc(_uid)
+                          .collection('expenseDocuments')
+                          .doc(widget.docId)
+                          .update({'title': newName});
+  
+                      setState(() {
+                        _title = newName; // Update the UI title immediately
+                      });
+  
+                      Navigator.pop(context);
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          content: Row(
+                            children: [
+                              Icon(Icons.check_circle, color: Colors.white),
+                              SizedBox(width: 10),
+                              Text(
+                                "Document name updated!",
+                                style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+                              ),
+                            ],
                           ),
-                        ],
-                      ),
-                      backgroundColor: Colors.green,
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-                      elevation: 6,
-                    ),
-                  );
-                }
-              },
-            ),
-          ],
+                          backgroundColor: Colors.green,
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                          elevation: 6,
+                        ),
+                      );
+                    } catch (e) {
+                      print("Error updating document name: $e");
+  
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          content: Row(
+                            children: [
+                              Icon(Icons.check_circle, color: Colors.white),
+                              SizedBox(width: 10),
+                              Text(
+                                "Failed to update document name.",
+                                style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+                              ),
+                            ],
+                          ),
+                          backgroundColor: Colors.red,
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                          elevation: 6,
+                        ),
+                      );
+                    }
+                  },
+                ),
+              ],
+            );
+          },
         );
       },
     );
   }
+
 
 
   @override
@@ -674,7 +692,14 @@ class _ExpenseDetailsScreenState extends State<ExpenseDetailsScreen> {
     double amount = expense['amount'];
     String category = expense['category'];
     DateTime selectedDate = (expense['date'] as Timestamp).toDate();
-    // List<String> categories = ['Food', 'Transport', 'Shopping', 'Groceries', 'Entertainment', 'Other'];
+
+    // Error messages
+    String? descriptionError;
+    String? amountError;
+
+    TextEditingController descriptionController = TextEditingController(text: description);
+    TextEditingController amountController = TextEditingController(text: amount.toString());
+
     showDialog(
       context: context,
       builder: (context) {
@@ -693,77 +718,59 @@ class _ExpenseDetailsScreenState extends State<ExpenseDetailsScreen> {
                   children: [
                     // Description TextField
                     TextField(
-                      controller: TextEditingController(text: description),
-                      onChanged: (value) => description = value,
+                      controller: descriptionController,
+                      onChanged: (value) {
+                        description = value;
+                        setDialogState(() => descriptionError = value.isEmpty ? 'Description is required' : null);
+                      },
                       decoration: InputDecoration(
                         labelText: 'Expense Description',
-                        labelStyle: TextStyle(color: Colors.deepPurple),
-                        focusedBorder: OutlineInputBorder(
-                          borderSide: BorderSide(color: Colors.deepPurple),
-                          borderRadius: BorderRadius.circular(10),
-                        ),
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(10),
-                        ),
+                        errorText: descriptionError,
+                        border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
                         contentPadding: EdgeInsets.symmetric(vertical: 15, horizontal: 10),
                       ),
                     ),
                     SizedBox(height: 20),
                     // Amount TextField
                     TextField(
-                      controller: TextEditingController(text: amount > 0 ? amount.toString() : ''),
-                      onChanged: (value) => amount = double.tryParse(value) ?? 0.0,
+                      controller: amountController,
                       keyboardType: TextInputType.number,
+                      onChanged: (value) {
+                        amount = double.tryParse(value) ?? 0.0;
+                        setDialogState(() => amountError = (amount <= 0) ? 'Enter a valid amount' : null);
+                      },
                       decoration: InputDecoration(
-                        labelText: 'Amount',
-                        hintText: 'Enter the amount spent',
-                        hintStyle: TextStyle(color: Colors.grey),
-                        labelStyle: TextStyle(color: Colors.deepPurple),
-                        focusedBorder: OutlineInputBorder(
-                          borderSide: BorderSide(color: Colors.deepPurple),
-                          borderRadius: BorderRadius.circular(10),
-                        ),
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(10),
-                        ),
+                        labelText: 'Amount (£)',
+                        errorText: amountError,
+                        border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
                         contentPadding: EdgeInsets.symmetric(vertical: 15, horizontal: 10),
                       ),
                     ),
                     SizedBox(height: 20),
                     // Category Dropdown
-
-
-
                     StreamBuilder<QuerySnapshot>(
                       stream: firestore.collection('users').doc(uid).collection('categories').snapshots(),
                       builder: (context, snapshot) {
                         if (snapshot.connectionState == ConnectionState.waiting) {
                           return const CircularProgressIndicator();
                         }
-                    
+
                         if (snapshot.hasError) {
                           return const Text('Error fetching categories');
                         }
-                    
+
                         List<String> categories = ['Food', 'Transport', 'Shopping', 'Groceries', 'Entertainment', 'Other'];
-                    
+
                         // Add Firebase categories to the list
                         snapshot.data?.docs.forEach((doc) {
                           categories.add(doc['name']);
                         });
-                    
+
                         return DropdownButtonFormField<String>(
                           value: categories.contains(category) ? category : null,
                           decoration: InputDecoration(
                             labelText: 'Category',
-                            labelStyle: TextStyle(color: Colors.deepPurple),
-                            focusedBorder: OutlineInputBorder(
-                              borderSide: BorderSide(color: Colors.deepPurple),
-                              borderRadius: BorderRadius.circular(10),
-                            ),
-                            border: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(10),
-                            ),
+                            border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
                             contentPadding: EdgeInsets.symmetric(vertical: 15, horizontal: 10),
                           ),
                           items: [
@@ -775,7 +782,6 @@ class _ExpenseDetailsScreenState extends State<ExpenseDetailsScreen> {
                         );
                       },
                     ),
-
                     SizedBox(height: 10),
                     // Date Picker Button
                     TextButton(
@@ -793,18 +799,6 @@ class _ExpenseDetailsScreenState extends State<ExpenseDetailsScreen> {
                         style: TextStyle(fontSize: 16, color: Colors.deepPurple),
                       ),
                     ),
-                    SizedBox(height: 10),
-
-                    Center(
-                      child: ElevatedButton.icon(
-                        style: ElevatedButton.styleFrom(backgroundColor: Colors.pink[400]),
-                        
-                        icon: const Icon(Icons.delete, color: Colors.white),
-                        label: const Text('Delete', style: TextStyle(color: Colors.white)),
-                        onPressed: () => deleteExpenseWhenEdit(context, firestore, uid, docId, expense.id),
-                        
-                      ),
-                    ),
                   ],
                 ),
               ),
@@ -819,25 +813,33 @@ class _ExpenseDetailsScreenState extends State<ExpenseDetailsScreen> {
                     style: TextStyle(color: Colors.deepPurple, fontWeight: FontWeight.bold),
                   ),
                   onPressed: () async {
-                    if (amount <= 0) {
-                      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Invalid amount')));
-                      return;
+                    bool isValid = true;
+
+                    if (description.isEmpty) {
+                      setDialogState(() => descriptionError = 'Description is required');
+                      isValid = false;
                     }
-                    
-                    firestore
-                        .collection('users')
-                        .doc(uid)
-                        .collection('expenseDocuments')
-                        .doc(docId)
-                        .collection('expenses')
-                        .doc(expense.id)
-                        .update({
-                      'description': description,
-                      'amount': amount,
-                      'category': category,
-                      'date': Timestamp.fromDate(selectedDate),
-                    });
-                    Navigator.pop(context);
+                    if (amount <= 0) {
+                      setDialogState(() => amountError = 'Enter a valid amount');
+                      isValid = false;
+                    }
+
+                    if (isValid) {
+                      firestore
+                          .collection('users')
+                          .doc(uid)
+                          .collection('expenseDocuments')
+                          .doc(docId)
+                          .collection('expenses')
+                          .doc(expense.id)
+                          .update({
+                        'description': description,
+                        'amount': amount,
+                        'category': category,
+                        'date': Timestamp.fromDate(selectedDate),
+                      });
+                      Navigator.pop(context);
+                    }
                   },
                 ),
               ],
@@ -846,5 +848,6 @@ class _ExpenseDetailsScreenState extends State<ExpenseDetailsScreen> {
         );
       },
     );
-  }   
+  }
+
 }
