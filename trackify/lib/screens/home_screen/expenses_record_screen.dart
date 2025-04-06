@@ -158,7 +158,7 @@ class _ExpenseRecordScreenState extends State<ExpenseRecordScreen> {
           Padding(
             padding: const EdgeInsets.only(top: 8.0, left: 20.0, right: 20.0),
             child: Text(
-              'Expense Records',
+              'Expense Records 📒 ',
               style: TextStyle(
                 fontSize: 22,
                 fontWeight: FontWeight.bold,
@@ -194,14 +194,18 @@ class _ExpenseRecordScreenState extends State<ExpenseRecordScreen> {
                               Icon(Icons.inbox, size: 80, color: Colors.grey[500]),
                               const SizedBox(height: 20),
                               const Text(
-                                "No expense documents available.",
+                                "You haven't added any expense records yet!",
                                 style: TextStyle(fontSize: 18, color: Colors.grey),
+                                textAlign: TextAlign.center,
                               ),
+
                               const SizedBox(height: 10),
                               const Text(
-                                "Tap the + button below to add a new document.",
+                                "Tap the '+' button at the bottom right to create your first record.",
                                 style: TextStyle(fontSize: 14, color: Colors.grey),
+                                textAlign: TextAlign.center,
                               ),
+
                             ],
                           ),
                         );
@@ -237,7 +241,13 @@ class _ExpenseRecordScreenState extends State<ExpenseRecordScreen> {
                               child: ListTile(
                                 title: Text(doc['title'],
                                     style: const TextStyle(
-                                        fontWeight: FontWeight.bold)),
+                                        fontWeight: FontWeight.bold)
+                                        ),
+                                subtitle: const Text(
+                                  "Tap to view or add expenses",
+                                  style: TextStyle(color: Colors.grey),
+                                ),
+
                                 trailing: IconButton(
                                   icon: const Icon(Icons.add),
                                   onPressed: () => _showAddExpenseDialog(context, doc.id),
@@ -304,6 +314,13 @@ class _ExpenseRecordScreenState extends State<ExpenseRecordScreen> {
               content: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
+
+                  const Text(
+                    "Each document can represent a budget, trip, or a month of spending.",
+                    style: TextStyle(fontSize: 13, color: Colors.grey),
+                  ),
+                  const SizedBox(height: 20),
+
                   TextField(
                     onChanged: (value) {
                       title = value;
@@ -399,6 +416,12 @@ class _ExpenseRecordScreenState extends State<ExpenseRecordScreen> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     // Description TextField
+
+                    Text(
+                      "Fill out the details below. We'll try to guess the category for you!",
+                      style: TextStyle(fontSize: 13, color: Colors.grey),
+                    ),
+                    SizedBox(height: 15),
                     TextField(
                       controller: descriptionController,
                       onChanged: (value) {
@@ -463,6 +486,12 @@ class _ExpenseRecordScreenState extends State<ExpenseRecordScreen> {
                         }
                       },
                     ),
+                    SizedBox(height: 10),
+                    Text(
+                      "Tip: Type something like 'Netflix' to auto-suggest 'Entertainment'",
+                      style: TextStyle(fontSize: 12, color: Colors.deepPurple),
+                    ),
+
                     SizedBox(height: 20),
 
                     // Custom Category TextField (only appears when 'Add New Category' is selected)

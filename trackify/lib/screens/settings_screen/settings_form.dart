@@ -30,6 +30,11 @@ class _SettingsScreenState extends State<SettingsScreen> {
               content: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
+                  const Text(
+                    "Update your display name used across the app.",
+                    style: TextStyle(fontSize: 13, color: Colors.grey),
+                  ),
+                  const SizedBox(height: 10),
                   TextField(
                     controller: nameController,
                     decoration: const InputDecoration(
@@ -89,6 +94,12 @@ class _SettingsScreenState extends State<SettingsScreen> {
               content: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
+                  const Text(
+                    "Use at least 6 characters for your new password.",
+                    style: TextStyle(fontSize: 13, color: Colors.grey),
+                  ),
+                  const SizedBox(height: 10),
+
                   TextField(
                     controller: passwordController,
                     obscureText: !isPasswordVisible,
@@ -160,7 +171,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
       builder: (context) {
         return AlertDialog(
           title: const Text('Confirm Logout'),
-          content: const Text('Are you sure you want to log out?'),
+          content: const Text('Are you sure you want to log out?\nYou can always log back in anytime.'),
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(context),
@@ -210,12 +221,20 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     color: Colors.deepPurple, 
                   ),
                 ),
+                const SizedBox(height: 5),
+                const Text(
+                  "Manage your account and app preferences below.",
+                  style: TextStyle(fontSize: 14, color: Colors.grey),
+                ),
+                // const SizedBox(height: 20),
+
 
                 const SizedBox(height: 20),
 
                 _buildSettingsItem(
                   icon: Icons.person_outline,
                   title: 'Change Name',
+                  
                   onTap: () => _showChangeNameDialog(user, userData.name),
                 ),
 
