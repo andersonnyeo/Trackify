@@ -429,7 +429,7 @@ class _ExpenseRecordScreenState extends State<ExpenseRecordScreen> {
                         setDialogState(() => amountError = (amount <= 0) ? 'Enter a valid amount' : null);
                       },
                       decoration: InputDecoration(
-                        labelText: 'Amount',
+                        labelText: 'Amount (£)',
                         errorText: amountError,
                         border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
                         contentPadding: EdgeInsets.symmetric(vertical: 15, horizontal: 10),
