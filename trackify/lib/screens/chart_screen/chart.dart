@@ -16,40 +16,47 @@ class Chart extends StatelessWidget {
         ),
         backgroundColor: Colors.deepPurple,
         iconTheme: const IconThemeData(color: Colors.white),
+        elevation: 4,
       ),
       body: SafeArea(
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 15.0),
-          child: Column(
-            children: [
-              
-              const SizedBox(height: 10),
-              Text(
-                'The chart below shows your monthly expense overview, helping you visualize spending trends.',
-                style: TextStyle(fontSize: 16, color: Colors.grey[700]),
-                textAlign: TextAlign.center,
-              ),
-              const SizedBox(height: 20),
-              Container(
-                height: 500, // Set the desired height for the chart
-                width: double.infinity,
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(12),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.black12,
-                      blurRadius: 6,
-                      spreadRadius: 2,
-                    ),
-                  ],
+          child: SingleChildScrollView(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                const SizedBox(height: 15),
+                Text(
+                  'Explore your spending patterns and identify key trends for this month.',
+                  style: TextStyle(
+                    fontSize: 16, 
+                    color: Colors.grey[700],
+                  ),
+                  textAlign: TextAlign.center,
                 ),
-                child: Padding(
-                  padding: const EdgeInsets.fromLTRB(12, 20, 8, 8),
-                  child: ChartScreen(docId: docId),
+                const SizedBox(height: 20),
+                Container(
+                  height: 500, 
+                  width: double.infinity,
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(15),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black26,
+                        blurRadius: 10,
+                        spreadRadius: 3,
+                      ),
+                    ],
+                  ),
+                  child: Padding(
+                    padding: const EdgeInsets.fromLTRB(15, 20, 15, 15),
+                    child: ChartScreen(docId: docId),
+                  ),
                 ),
-              ),
-            ],
+                const SizedBox(height: 20),
+              ],
+            ),
           ),
         ),
       ),

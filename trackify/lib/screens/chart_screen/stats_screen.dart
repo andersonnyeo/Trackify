@@ -99,25 +99,26 @@ class StatsScreen extends StatelessWidget {
                 ),
                 const SizedBox(height: 20),
                 Expanded(
-                  child: ListView(
-                    padding: const EdgeInsets.symmetric(horizontal: 15),
-                    children: categoryTotals.entries.map((entry) {
-                      final percentage = totalAmount == 0 ? 0 : (entry.value / totalAmount * 100).round();
+                  child: ListView.builder(
+                   itemCount: categoryTotals.entries.length,
+                   itemBuilder: (context, index) {
+                     final entry = categoryTotals.entries.elementAt(index);
+                     final percentage = totalAmount == 0 ? 0 : (entry.value / totalAmount * 100).round();
+                     return Card(
+                       elevation: 3,
+                       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
+                       child: ListTile(
+                         leading: CircleAvatar(
+                           backgroundColor: Colors.primaries[entry.key.hashCode % Colors.primaries.length].withOpacity(0.7),
+                           child: const Icon(Icons.pie_chart, color: Colors.white),
+                         ),
+                         title: Text(entry.key, style: const TextStyle(fontWeight: FontWeight.bold)),
+                         subtitle: Text('£${entry.value.toStringAsFixed(2)} ($percentage%)'),
+                       ),
+                     );
+                   },
+)                 
 
-                      return Card(
-                        elevation: 3,
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
-                        child: ListTile(
-                          leading: CircleAvatar(
-                            backgroundColor: Colors.primaries[entry.key.hashCode % Colors.primaries.length].withOpacity(0.7),
-                            child: const Icon(Icons.pie_chart, color: Colors.white),
-                          ),
-                          title: Text(entry.key, style: const TextStyle(fontWeight: FontWeight.bold)),
-                          subtitle: Text('£${entry.value.toStringAsFixed(2)} ($percentage%)'),
-                        ),
-                      );
-                    }).toList(),
-                  ),
                 ),
               ],
             );
