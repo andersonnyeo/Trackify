@@ -154,6 +154,13 @@ class _ExpenseDetailsScreenState extends State<ExpenseDetailsScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
+                    
+                    Text(
+                      "Fill out the details below. We'll try to guess the category for you!",
+                      style: TextStyle(fontSize: 13, color: Colors.grey),
+                    ),
+                    
+                    SizedBox(height: 15),
                     // Description Field
                     TextField(
                       controller: descriptionController,
@@ -213,7 +220,15 @@ class _ExpenseDetailsScreenState extends State<ExpenseDetailsScreen> {
                         }
                       },
                     ),
+                    SizedBox(height: 10),
+                    Text(
+                      "Tip: Type something like 'Netflix' to auto-suggest 'Entertainment'",
+                      style: TextStyle(fontSize: 12, color: Colors.deepPurple),
+                    ),
+
                     SizedBox(height: 20),
+
+                    
 
                     // Custom Category TextField
                     if (isAddingCustomCategory)
