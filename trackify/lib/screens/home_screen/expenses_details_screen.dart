@@ -253,7 +253,7 @@ class _ExpenseDetailsScreenState extends State<ExpenseDetailsScreen> {
                           context: context,
                           initialDate: selectedDate,
                           firstDate: DateTime(2000),
-                          lastDate: DateTime(2101),
+                          lastDate: DateTime.now(),
                         );
                         if (pickedDate != null) setDialogState(() => selectedDate = pickedDate);
                       },
@@ -805,7 +805,7 @@ class _ExpenseDetailsScreenState extends State<ExpenseDetailsScreen> {
                           context: context,
                           initialDate: selectedDate,
                           firstDate: DateTime(2000),
-                          lastDate: DateTime(2101),
+                          lastDate: DateTime.now(),
                         );
                         if (pickedDate != null) setDialogState(() => selectedDate = pickedDate);
                       },

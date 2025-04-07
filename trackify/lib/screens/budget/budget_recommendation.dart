@@ -89,7 +89,7 @@ class _BudgetRecommendationScreenState extends State<BudgetRecommendationScreen>
         backgroundColor: Colors.deepPurple,
         title: const Text(
           "Budget Recommendations",
-          style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+          style: TextStyle(fontSize: 20.0 ,color: Colors.white, fontWeight: FontWeight.bold),
         ),
         iconTheme: const IconThemeData(color: Colors.white),
         actions: [
@@ -110,7 +110,7 @@ class _BudgetRecommendationScreenState extends State<BudgetRecommendationScreen>
               Padding(
                 padding: EdgeInsets.symmetric(horizontal: 15.0, vertical: 10.0),
                 child: Text(
-                  "This screen provides personalized budget recommendations based on your past spending.",
+                  "Personalized Budget Recommendations Based on Your Spending.",
                   style: TextStyle(
                     fontSize: 16,
                     color: Colors.grey[700],
@@ -268,7 +268,7 @@ class _BudgetRecommendationScreenState extends State<BudgetRecommendationScreen>
             Expanded(  // Use Expanded to prevent overflow
               child: Text(
                 "Budget Recommendation Guide",
-                style: TextStyle(fontWeight: FontWeight.bold),
+                style: TextStyle(fontSize:20, fontWeight: FontWeight.bold),
               ),
             ),
           ],
