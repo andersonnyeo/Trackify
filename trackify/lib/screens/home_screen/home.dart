@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:trackify/screens/home_screen/expenses_record_screen.dart';
+import 'package:trackify/screens/home_screen/expenses_tab_screen.dart';
 import 'package:trackify/screens/settings_screen/settings_form.dart';
 import 'package:trackify/services/database.dart';
 import 'package:provider/provider.dart';
