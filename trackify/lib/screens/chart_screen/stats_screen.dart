@@ -43,8 +43,9 @@ class StatsScreen extends StatelessWidget {
             if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
               return const Center(
                 child: Text(
-                  'No expenses available for Spending Insight.',
+                  'No expenses available for\n Category Breakdown.',
                   style: TextStyle(color: Colors.grey, fontSize: 18),
+                  textAlign: TextAlign.center,
                 ),
               );
             }
@@ -76,6 +77,18 @@ class StatsScreen extends StatelessWidget {
 
             return Column(
               children: [
+                const SizedBox(height: 15),
+                Padding(
+                  padding: EdgeInsets.symmetric(horizontal: 20),
+                  child: Text(
+                    'This chart shows where your money goes so you can manage your budget more easily.',
+                    style: TextStyle(
+                      fontSize: 16,
+                      color: Colors.grey[700],
+                    ),
+                  ),
+                ),
+
                 const SizedBox(height: 20),
                 Card(
                   elevation: 4,

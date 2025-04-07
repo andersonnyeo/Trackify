@@ -102,51 +102,77 @@ class _BudgetRecommendationScreenState extends State<BudgetRecommendationScreen>
         ],
       ),
       body: isLoading
-          ? const Center(child: CircularProgressIndicator())
-          : categorySpending.isEmpty
-              ? const Center(child: Text("No expense available for Budget Recommendation.",
-              style: TextStyle(fontSize: 18, color: Colors.grey),
-              textAlign: TextAlign.center,
-              ))
-              : ListView(
-                  padding: const EdgeInsets.all(15),
-                  children: categorySpending.keys.map((category) {
-                    double spent = categorySpending[category]!; 
-                    double goal = budgetGoals[category] ?? _getRecommendedBudget(category, spent);
-                    bool isOverBudget = spent > goal;
-
-                    return Card(
-                      margin: const EdgeInsets.symmetric(vertical: 8),
-                      elevation: 3,
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-                      color: isOverBudget ? Colors.red[100] : Colors.white, // Highlight overspending
-                      child: ListTile(
-                        title: Text(
-                          category, 
-                          style: TextStyle(fontWeight: FontWeight.bold, color: isOverBudget ? Colors.red : Colors.black),
-                        ),
-                        subtitle: Text(
-                          "Spent: £${spent.toStringAsFixed(2)}\nRecommended Budget: £${goal.toStringAsFixed(2)}",
-                          style: TextStyle(color: isOverBudget ? Colors.red[800] : Colors.black),
-                        ),
-                        trailing: ElevatedButton(
-                          style: ElevatedButton.styleFrom(backgroundColor: isOverBudget ? Colors.red : Colors.green),
-                          child: Text(
-                            isOverBudget ? "Over Budget!" : "Set Goal",
-                            style: const TextStyle(color: Colors.white),
-                          ),
-                          onPressed: () {
-                            if (isOverBudget) {
-                              _showWarningDialog(category, spent, goal); // Show warning if over budget
-                            } else {
-                              _showBudgetDialog(category, spent);
-                            }
-                          },
-                        ),
-                      ),
-                    );
-                  }).toList(),
+      ? const Center(child: CircularProgressIndicator())
+      : Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            if (categorySpending.isNotEmpty)
+              Padding(
+                padding: EdgeInsets.symmetric(horizontal: 15.0, vertical: 10.0),
+                child: Text(
+                  "This screen provides personalized budget recommendations based on your past spending.",
+                  style: TextStyle(
+                    fontSize: 16,
+                    color: Colors.grey[700],
+                  ),
                 ),
+              ),
+            
+            Expanded(
+              child: categorySpending.isEmpty
+                  ? const Center(
+                      child: Text(
+                        "No expense available for Budget Recommendation.",
+                        style: TextStyle(fontSize: 18, color: Colors.grey),
+                        textAlign: TextAlign.center,
+                      ),
+                    )
+                  : ListView(
+                      padding: const EdgeInsets.symmetric(horizontal: 15),
+                      children: 
+                      
+                      categorySpending.keys.map((category) {
+                        double spent = categorySpending[category]!;
+                        double goal = budgetGoals[category] ?? _getRecommendedBudget(category, spent);
+                        bool isOverBudget = spent > goal;
+
+                        return Card(
+                          margin: const EdgeInsets.symmetric(vertical: 8),
+                          elevation: 3,
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                          color: isOverBudget ? Colors.red[100] : Colors.white,
+                          child: ListTile(
+                            title: Text(
+                              category,
+                              style: TextStyle(fontWeight: FontWeight.bold, color: isOverBudget ? Colors.red : Colors.black),
+                            ),
+                            subtitle: Text(
+                              "Spent: £${spent.toStringAsFixed(2)}\nRecommended Budget: £${goal.toStringAsFixed(2)}",
+                              style: TextStyle(color: isOverBudget ? Colors.red[800] : Colors.black),
+                            ),
+                            trailing: ElevatedButton(
+                              style: ElevatedButton.styleFrom(
+                                  backgroundColor: isOverBudget ? Colors.red : Colors.green),
+                              child: Text(
+                                isOverBudget ? "Over Budget!" : "Set Goal",
+                                style: const TextStyle(color: Colors.white),
+                              ),
+                              onPressed: () {
+                                if (isOverBudget) {
+                                  _showWarningDialog(category, spent, goal);
+                                } else {
+                                  _showBudgetDialog(category, spent);
+                                }
+                              },
+                            ),
+                          ),
+                        );
+                      }).toList(),
+                    ),
+            ),
+          ],
+        ),
+
     );
   }
 
@@ -234,23 +260,79 @@ class _BudgetRecommendationScreenState extends State<BudgetRecommendationScreen>
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text("How Budget Recommendations Are Made"),
-        content: const Text(
-          "Our budget recommendations are based on your past spending behavior:\n\n"
-          "- If you've spent a lot in a category (e.g., over £500), we suggest reducing your budget by 20% to encourage savings.\n"
-          "- For moderate spending (e.g., between £200-£500), we suggest reducing your budget by 10%.\n"
-          "- For low spending (e.g., less than £200), we recommend maintaining your current budget.\n"
-          "- If your spending is very low (e.g., under £50), we allow a 10% increase to help you avoid underspending.\n\n"
-          "You can also set your own budget goal for each category by clicking 'Set Goal' next to each category.",
-          style: TextStyle(color: Colors.black),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
+        title: Row(
+          children: const [
+            Icon(Icons.info_outline, color: Colors.deepPurple),
+            SizedBox(width: 8),
+            Expanded(  // Use Expanded to prevent overflow
+              child: Text(
+                "Budget Recommendation Guide",
+                style: TextStyle(fontWeight: FontWeight.bold),
+              ),
+            ),
+          ],
+        ),
+        content: SingleChildScrollView(  // Make the content scrollable
+          child: Container(
+            width: MediaQuery.of(context).size.width * 0.8,  // Set custom width, 80% of the screen width
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: const [
+                Text(
+                  "Here's how we recommend your budget based on your past spending:",
+                  style: TextStyle(fontSize: 16),
+                ),
+                SizedBox(height: 12),
+                ListTile(
+                  leading: Text("💸"),
+                  title: Text(
+                    "Spent over £500",
+                    style: TextStyle(fontWeight: FontWeight.bold),
+                  ),
+                  subtitle: Text("Reduce budget by 20% to encourage savings."),
+                ),
+                ListTile(
+                  leading: Text("📉"),
+                  title: Text(
+                    "Spent £200 - £500",
+                    style: TextStyle(fontWeight: FontWeight.bold),
+                  ),
+                  subtitle: Text("Reduce budget by 10%."),
+                ),
+                ListTile(
+                  leading: Text("✅"),
+                  title: Text(
+                    "Spent £50 - £200",
+                    style: TextStyle(fontWeight: FontWeight.bold),
+                  ),
+                  subtitle: Text("Keep your budget as is."),
+                ),
+                ListTile(
+                  leading: Text("📈"),
+                  title: Text(
+                    "Spent under £50",
+                    style: TextStyle(fontWeight: FontWeight.bold),
+                  ),
+                  subtitle: Text("Slightly increase budget by 10% to avoid underspending."),
+                ),
+                SizedBox(height: 10),
+                Text(
+                  "💡 You can also manually adjust your budget by tapping the 'Set Goal' button next to each category.",
+                  style: TextStyle(fontStyle: FontStyle.italic, fontSize: 14),
+                ),
+              ],
+            ),
+          ),
         ),
         actions: [
           TextButton(
-            child: const Text("Close"),
+            child: const Text("Got it!"),
             onPressed: () => Navigator.pop(context),
           ),
         ],
       ),
     );
   }
+
 }

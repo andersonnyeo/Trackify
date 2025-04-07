@@ -137,7 +137,22 @@ class _FutureExpenseScreenState extends State<FutureExpenseScreen> {
               ),
             ),
             axisNameSize: 26,
-            sideTitles: SideTitles(showTitles: true, reservedSize: 35),
+            sideTitles: SideTitles(
+              showTitles: true,
+              reservedSize: 35,
+              interval: 10, // Adjust based on your typical expense range (e.g. 50, 100, 200)
+              getTitlesWidget: (value, meta) {
+                return Text(
+                  '£${value.toInt()}',
+                  style: TextStyle(
+                    color: Colors.black,
+                    fontWeight: FontWeight.bold,
+                    fontSize: 12,
+                  ),
+                );
+              },
+            ),
+
           ),
           bottomTitles: AxisTitles(
             axisNameWidget: Padding(
@@ -252,6 +267,17 @@ class _FutureExpenseScreenState extends State<FutureExpenseScreen> {
                 : Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
+                      Padding(
+                        padding: EdgeInsets.symmetric(horizontal: 10),
+                        child: Text(
+                          "Track your spending & preview next month with AI ",
+                          style: TextStyle(
+                            fontSize: 16,
+                            color: Colors.grey[700],
+                          ),
+                        ),
+                      ),
+                      SizedBox(height: 10),
                       Card(
                         elevation: 10,
                         shape: RoundedRectangleBorder(
@@ -259,24 +285,28 @@ class _FutureExpenseScreenState extends State<FutureExpenseScreen> {
                         ),
                         child: Container(
                           width: double.infinity, // 🔥 Ensures the card stretches full width
-                          padding: const EdgeInsets.all(20.0),
+                          padding: const EdgeInsets.all(15.0),
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Text("Predicted Expense for Next Month",
-                                  style: TextStyle(
-                                      fontSize: 18,
-                                      fontWeight: FontWeight.bold,
-                                      color: Colors.deepPurple)),
+                                style: TextStyle(
+                                  fontSize: 18,
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.deepPurple
+                                )
+                              ),
                               SizedBox(height: 10),
                               Text(
-                                  predictedExpense != null
-                                      ? "£${predictedExpense!.toStringAsFixed(2)}"
-                                      : "Not enough data",
-                                  style: TextStyle(
-                                      fontSize: 26,
-                                      fontWeight: FontWeight.bold,
-                                      color: Colors.deepPurpleAccent)),
+                                predictedExpense != null
+                                    ? "£${predictedExpense!.toStringAsFixed(2)}"
+                                    : "Not enough data",
+                                style: TextStyle(
+                                  fontSize: 26,
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.green
+                                )
+                              ),
                             ],
                           ),
                         ),
@@ -294,7 +324,7 @@ class _FutureExpenseScreenState extends State<FutureExpenseScreen> {
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               SizedBox(
-                                height: 480, // Adjust as needed
+                                height: 430, // Adjust as needed
                                 child: _buildLineChart(),
                               ),
                             ],
