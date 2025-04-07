@@ -155,7 +155,7 @@ class _ExpenseRecordScreenState extends State<ExpenseRecordScreen> {
           Padding(
             padding: const EdgeInsets.only(top: 8.0, left: 20.0, right: 20.0),
             child: Text(
-              'Expense Records 📒 ',
+              'Expense Tab 📒 ',
               style: TextStyle(
                 fontSize: 22,
                 fontWeight: FontWeight.bold,
@@ -191,7 +191,7 @@ class _ExpenseRecordScreenState extends State<ExpenseRecordScreen> {
                               Icon(Icons.inbox, size: 80, color: Colors.grey[500]),
                               const SizedBox(height: 20),
                               const Text(
-                                "You haven't added any expense records yet!",
+                                "You haven't added any expense tab yet!",
                                 style: TextStyle(fontSize: 18, color: Colors.grey),
                                 textAlign: TextAlign.center,
                               ),
@@ -305,13 +305,15 @@ class _ExpenseRecordScreenState extends State<ExpenseRecordScreen> {
         return StatefulBuilder(
           builder: (context, setDialogState) {
             return AlertDialog(
-              title: const Text('New Expense Document'),
+              title: const Text('Create New Expense Tab',
+                        style: TextStyle(fontSize: 20,fontWeight: FontWeight.bold,),
+                      ),
               content: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
 
                   const Text(
-                    "Each document can represent a budget, trip, or a month of spending.",
+                    "Each Expense Tab can represent a budget, trip, or a month of spending.",
                     style: TextStyle(fontSize: 13, color: Colors.grey),
                   ),
                   const SizedBox(height: 20),
@@ -325,7 +327,7 @@ class _ExpenseRecordScreenState extends State<ExpenseRecordScreen> {
                       });
                     },
                     decoration: InputDecoration(
-                      labelText : 'Document title',
+                      labelText : 'Expense Tab title',
                       errorText: titleError, // Display error message if title is empty
                       border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
                       contentPadding: const EdgeInsets.symmetric(vertical: 15, horizontal: 10),

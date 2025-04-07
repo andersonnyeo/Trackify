@@ -57,7 +57,6 @@ class _FutureExpenseScreenState extends State<FutureExpenseScreen> {
         DateTime date = (doc['date'] as Timestamp).toDate();
 
         String monthKey = "${date.year}-${date.month}";
-
         monthlyExpenses[monthKey] =
             (monthlyExpenses[monthKey] ?? 0) + (doc['amount'] as num).toDouble();
       }
@@ -70,7 +69,6 @@ class _FutureExpenseScreenState extends State<FutureExpenseScreen> {
       historicalExpenses =
           sortedMonths.map((month) => monthlyExpenses[month] ?? 0).toList();
 
-      // 🔹 Keep the last 3 months, or less if there are not enough months
       int monthCount = historicalExpenses.length;
       if (monthCount > 3) {
         historicalExpenses = historicalExpenses.sublist(monthCount - 3);
@@ -83,11 +81,11 @@ class _FutureExpenseScreenState extends State<FutureExpenseScreen> {
         sortedMonths = sortedMonths.sublist(monthCount - 1);
       }
 
-      // Now make prediction based on the available months
       if (historicalExpenses.length >= 2) {
         predictedExpense = await _predictWithMLModel(historicalExpenses);
       } else {
-        predictedExpense = historicalExpenses.isNotEmpty ? historicalExpenses.last : null;
+        predictedExpense =
+            historicalExpenses.isNotEmpty ? historicalExpenses.last : null;
       }
 
       setState(() {
@@ -101,29 +99,56 @@ class _FutureExpenseScreenState extends State<FutureExpenseScreen> {
     }
   }
 
-  // Use ML model (Linear Regression) to predict next month's expense
   Future<double> _predictWithMLModel(List<double> data) async {
-    // Prepare data for training
     final dataset = [
       ['month', 'amount'],
-      for (int i = 0; i < data.length; i++) [i, data[i]],  // Using 0-based month index
+      for (int i = 0; i < data.length; i++) [i, data[i]],
     ];
 
-
     var df = DataFrame(dataset);
-
-    // Train the Linear Regression model
     final model = LinearRegressor(df, 'amount');
 
-    // Predict the next month's expense (next month is just the data length + 1)
-    final prediction = model.predict(DataFrame([['month'], [data.length + 1]]));
+    final prediction =
+        model.predict(DataFrame([['month'], [data.length + 1]]));
     return prediction.rows.first.first as double;
   }
 
   Widget _buildLineChart() {
+    double maxY = predictedExpense != null
+        ? ([
+              ...historicalExpenses,
+              predictedExpense!
+            ].reduce((a, b) => a > b ? a : b))
+        : (historicalExpenses.isNotEmpty
+            ? historicalExpenses.reduce((a, b) => a > b ? a : b)
+            : 100);
+
+    double roundedMaxY = (maxY / 10).ceil() * 10;
+
     return LineChart(
       LineChartData(
+        minY: 0,
+        maxY: roundedMaxY,
         gridData: FlGridData(show: false),
+        lineTouchData: LineTouchData(
+          handleBuiltInTouches: true,
+          touchTooltipData: LineTouchTooltipData(
+          tooltipRoundedRadius: 12,
+          getTooltipColor: (touchedSpot) => Colors.deepPurple.shade100,
+          getTooltipItems: (List<LineBarSpot> touchedSpots) {
+            return touchedSpots.map((spot) {
+              return LineTooltipItem(
+                '£${spot.y.toStringAsFixed(2)}',
+                const TextStyle(
+                  color: Colors.deepPurple,
+                  fontWeight: FontWeight.bold,
+                  fontSize: 14,
+                ),
+              );
+            }).toList();
+          },
+        ),
+        ),
         titlesData: FlTitlesData(
           leftTitles: AxisTitles(
             axisNameWidget: Padding(
@@ -132,15 +157,13 @@ class _FutureExpenseScreenState extends State<FutureExpenseScreen> {
                   style: TextStyle(
                       color: Colors.black,
                       fontWeight: FontWeight.bold,
-                      fontSize: 14
-                  )
-              ),
+                      fontSize: 14)),
             ),
             axisNameSize: 26,
             sideTitles: SideTitles(
               showTitles: true,
               reservedSize: 35,
-              interval: 10, // Adjust based on your typical expense range (e.g. 50, 100, 200)
+              interval: (roundedMaxY / 10),
               getTitlesWidget: (value, meta) {
                 return Text(
                   '£${value.toInt()}',
@@ -152,7 +175,6 @@ class _FutureExpenseScreenState extends State<FutureExpenseScreen> {
                 );
               },
             ),
-
           ),
           bottomTitles: AxisTitles(
             axisNameWidget: Padding(
@@ -167,38 +189,35 @@ class _FutureExpenseScreenState extends State<FutureExpenseScreen> {
             sideTitles: SideTitles(
               showTitles: true,
               getTitlesWidget: (value, meta) {
-               if (value % 1 != 0) return Container(); // Skip non-integer values
+                if (value % 1 != 0) return Container();
 
-               int index = value.toInt();
-               if (index < 0 || index > sortedMonths.length) return Container();
+                int index = value.toInt();
+                if (index < 0 || index > sortedMonths.length) return Container();
 
-               // If it's the last one (predicted), label as "Next"
-               if (index == sortedMonths.length) {
-                 return Text(
-                   "Next",
-                   style: const TextStyle(
-                     color: Colors.red,
-                     fontWeight: FontWeight.bold,
-                   ),
-                 );
-               }
+                if (index == sortedMonths.length) {
+                  return Text(
+                    "Next",
+                    style: const TextStyle(
+                      color: Colors.red,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  );
+                }
 
-               // Otherwise show normal month label
-               DateTime parsedDate = DateTime(
-                 int.parse(sortedMonths[index].split('-')[0]),
-                 int.parse(sortedMonths[index].split('-')[1]),
-                 1,
-               );
+                DateTime parsedDate = DateTime(
+                  int.parse(sortedMonths[index].split('-')[0]),
+                  int.parse(sortedMonths[index].split('-')[1]),
+                  1,
+                );
 
-               return Text(
-                 DateFormat.MMM().format(parsedDate),
-                 style: const TextStyle(
-                   color: Colors.black,
-                   fontWeight: FontWeight.bold,
-                 ),
-               );
+                return Text(
+                  DateFormat.MMM().format(parsedDate),
+                  style: const TextStyle(
+                    color: Colors.black,
+                    fontWeight: FontWeight.bold,
+                  ),
+                );
               },
-
             ),
           ),
           topTitles: AxisTitles(
@@ -216,7 +235,8 @@ class _FutureExpenseScreenState extends State<FutureExpenseScreen> {
           LineChartBarData(
             spots: List.generate(
               historicalExpenses.length,
-              (index) => FlSpot(index.toDouble(), historicalExpenses[index]),
+              (index) =>
+                  FlSpot(index.toDouble(), historicalExpenses[index]),
             ),
             isCurved: true,
             color: Colors.deepPurpleAccent,
@@ -227,7 +247,8 @@ class _FutureExpenseScreenState extends State<FutureExpenseScreen> {
           if (predictedExpense != null)
             LineChartBarData(
               spots: [
-                FlSpot((historicalExpenses.length - 1).toDouble(), historicalExpenses.last),
+                FlSpot((historicalExpenses.length - 1).toDouble(),
+                    historicalExpenses.last),
                 FlSpot(historicalExpenses.length.toDouble(), predictedExpense!),
               ],
               isCurved: true,
@@ -240,8 +261,7 @@ class _FutureExpenseScreenState extends State<FutureExpenseScreen> {
         ],
       ),
     );
-  } 
-
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -253,7 +273,7 @@ class _FutureExpenseScreenState extends State<FutureExpenseScreen> {
                 color: Colors.white, fontWeight: FontWeight.bold)),
         backgroundColor: Colors.deepPurple,
         elevation: 0,
-        iconTheme: const IconThemeData(color: Colors.white), // Set back arrow color to white
+        iconTheme: const IconThemeData(color: Colors.white),
       ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
@@ -284,34 +304,29 @@ class _FutureExpenseScreenState extends State<FutureExpenseScreen> {
                           borderRadius: BorderRadius.circular(15),
                         ),
                         child: Container(
-                          width: double.infinity, // 🔥 Ensures the card stretches full width
+                          width: double.infinity,
                           padding: const EdgeInsets.all(15.0),
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Text("Predicted Expense for Next Month",
-                                style: TextStyle(
-                                  fontSize: 18,
-                                  fontWeight: FontWeight.bold,
-                                  color: Colors.deepPurple
-                                )
-                              ),
+                                  style: TextStyle(
+                                      fontSize: 18,
+                                      fontWeight: FontWeight.bold,
+                                      color: Colors.deepPurple)),
                               SizedBox(height: 10),
                               Text(
-                                predictedExpense != null
-                                    ? "£${predictedExpense!.toStringAsFixed(2)}"
-                                    : "Not enough data",
-                                style: TextStyle(
-                                  fontSize: 26,
-                                  fontWeight: FontWeight.bold,
-                                  color: Colors.green
-                                )
-                              ),
+                                  predictedExpense != null
+                                      ? "£${predictedExpense!.toStringAsFixed(2)}"
+                                      : "Not enough data",
+                                  style: TextStyle(
+                                      fontSize: 26,
+                                      fontWeight: FontWeight.bold,
+                                      color: Colors.green)),
                             ],
                           ),
                         ),
                       ),
-
                       SizedBox(height: 10),
                       Card(
                         elevation: 10,
@@ -320,18 +335,12 @@ class _FutureExpenseScreenState extends State<FutureExpenseScreen> {
                         ),
                         child: Padding(
                           padding: const EdgeInsets.all(20.0),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              SizedBox(
-                                height: 430, // Adjust as needed
-                                child: _buildLineChart(),
-                              ),
-                            ],
+                          child: SizedBox(
+                            height: 430,
+                            child: _buildLineChart(),
                           ),
                         ),
                       ),
-
                     ],
                   ),
       ),

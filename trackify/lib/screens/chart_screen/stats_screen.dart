@@ -81,7 +81,7 @@ class StatsScreen extends StatelessWidget {
                 Padding(
                   padding: EdgeInsets.symmetric(horizontal: 20),
                   child: Text(
-                    'This chart shows where your money goes so you can manage your budget more easily.',
+                    'This chart shows your overall spending breakdown.',
                     style: TextStyle(
                       fontSize: 16,
                       color: Colors.grey[700],
