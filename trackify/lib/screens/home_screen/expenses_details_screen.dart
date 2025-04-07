@@ -4,7 +4,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:intl/intl.dart';
 import 'package:trackify/screens/FutureExpensesScreen/future_expenses_screen.dart';
-import 'package:trackify/screens/chart_screen/chart.dart';
+import 'package:trackify/screens/chart_screen/monthly_overview.dart';
 import 'package:trackify/screens/chart_screen/category_breakdown.dart';
 import 'package:trackify/screens/budget/budget_recommendation.dart';
 import 'package:trackify/screens/home_screen/expense_utils.dart'; // Import the utility file
