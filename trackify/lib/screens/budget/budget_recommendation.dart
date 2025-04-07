@@ -108,7 +108,7 @@ class _BudgetRecommendationScreenState extends State<BudgetRecommendationScreen>
           children: [
             if (categorySpending.isNotEmpty)
               Padding(
-                padding: EdgeInsets.symmetric(horizontal: 15.0, vertical: 10.0),
+                padding: EdgeInsets.symmetric(horizontal: 20.0, vertical: 12.0),
                 child: Text(
                   "Personalized Budget Recommendations Based on Your Spending.",
                   style: TextStyle(

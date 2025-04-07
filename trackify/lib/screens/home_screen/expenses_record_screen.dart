@@ -155,7 +155,7 @@ class _ExpenseRecordScreenState extends State<ExpenseRecordScreen> {
           Padding(
             padding: const EdgeInsets.only(top: 8.0, left: 20.0, right: 20.0),
             child: Text(
-              'Expense Tab 📒 ',
+              'Expenses Tab 📒 ',
               style: TextStyle(
                 fontSize: 22,
                 fontWeight: FontWeight.bold,
