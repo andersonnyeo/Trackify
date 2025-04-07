@@ -121,104 +121,112 @@ class _FutureExpenseScreenState extends State<FutureExpenseScreen> {
   }
 
   Widget _buildLineChart() {
-    return Expanded(
-      child: LineChart(
-        LineChartData(
-          gridData: FlGridData(show: false),
-          titlesData: FlTitlesData(
-            leftTitles: AxisTitles(
-                sideTitles:
-                    SideTitles(showTitles: true, reservedSize: 40)),
-            bottomTitles: AxisTitles(
-              sideTitles: SideTitles(
-                showTitles: true,
-                getTitlesWidget: (value, meta) {
-                int index = value.toInt();
-                if (index < 0 || index >= sortedMonths.length) return Container();
-              
-                // Convert sortedMonths to month names safely
-                if (index < sortedMonths.length) {
-                  DateTime parsedDate = DateTime(
-                    int.parse(sortedMonths[index].split('-')[0]),  // Year
-                    int.parse(sortedMonths[index].split('-')[1]),  // Month
-                    1
-                  );
-                  return Text(
-                    DateFormat.MMM().format(parsedDate),
-                    style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold),
-                  );
-                } else {
-                  return Text("Next", style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold));
-                }
-              }
-              
+    return LineChart(
+      LineChartData(
+        gridData: FlGridData(show: false),
+        titlesData: FlTitlesData(
+          leftTitles: AxisTitles(
+            axisNameWidget: Padding(
+              padding: const EdgeInsets.only(right: 8.0),
+              child: Text('Amount Spent (£)',
+                  style: TextStyle(
+                      color: Colors.black,
+                      fontWeight: FontWeight.bold,
+                      fontSize: 14
+                  )
               ),
             ),
-            topTitles: AxisTitles(
-              sideTitles: SideTitles(showTitles: false), // Hide the top x-axis labels
+            axisNameSize: 26,
+            sideTitles: SideTitles(showTitles: true, reservedSize: 35),
+          ),
+          bottomTitles: AxisTitles(
+            axisNameWidget: Padding(
+              padding: const EdgeInsets.only(top: 8.0),
+              child: Text('Month',
+                  style: TextStyle(
+                      color: Colors.black,
+                      fontWeight: FontWeight.bold,
+                      fontSize: 14)),
+            ),
+            axisNameSize: 26,
+            sideTitles: SideTitles(
+              showTitles: true,
+              getTitlesWidget: (value, meta) {
+               if (value % 1 != 0) return Container(); // Skip non-integer values
+
+               int index = value.toInt();
+               if (index < 0 || index > sortedMonths.length) return Container();
+
+               // If it's the last one (predicted), label as "Next"
+               if (index == sortedMonths.length) {
+                 return Text(
+                   "Next",
+                   style: const TextStyle(
+                     color: Colors.red,
+                     fontWeight: FontWeight.bold,
+                   ),
+                 );
+               }
+
+               // Otherwise show normal month label
+               DateTime parsedDate = DateTime(
+                 int.parse(sortedMonths[index].split('-')[0]),
+                 int.parse(sortedMonths[index].split('-')[1]),
+                 1,
+               );
+
+               return Text(
+                 DateFormat.MMM().format(parsedDate),
+                 style: const TextStyle(
+                   color: Colors.black,
+                   fontWeight: FontWeight.bold,
+                 ),
+               );
+              },
+
             ),
           ),
-          borderData: FlBorderData(
-              show: true, border: Border.all(color: Colors.grey, width: 1)),
-          lineBarsData: [
+          topTitles: AxisTitles(
+            sideTitles: SideTitles(showTitles: false),
+          ),
+          rightTitles: AxisTitles(
+            sideTitles: SideTitles(showTitles: false),
+          ),
+        ),
+        borderData: FlBorderData(
+          show: true,
+          border: Border.all(color: Colors.grey, width: 1),
+        ),
+        lineBarsData: [
+          LineChartBarData(
+            spots: List.generate(
+              historicalExpenses.length,
+              (index) => FlSpot(index.toDouble(), historicalExpenses[index]),
+            ),
+            isCurved: true,
+            color: Colors.deepPurpleAccent,
+            barWidth: 4,
+            dotData: FlDotData(show: true),
+            belowBarData: BarAreaData(show: false),
+          ),
+          if (predictedExpense != null)
             LineChartBarData(
-              spots: List.generate(
-                historicalExpenses.length,
-                (index) =>
-                    FlSpot(index.toDouble(), historicalExpenses[index]),
-              ),
+              spots: [
+                FlSpot((historicalExpenses.length - 1).toDouble(), historicalExpenses.last),
+                FlSpot(historicalExpenses.length.toDouble(), predictedExpense!),
+              ],
               isCurved: true,
-              color: Colors.deepPurpleAccent,
+              color: Colors.red,
               barWidth: 4,
               dotData: FlDotData(show: true),
               belowBarData: BarAreaData(show: false),
+              dashArray: [5, 5],
             ),
-            if (predictedExpense != null)
-
-            // LineChartBarData(
-            //     spots: [
-            //       FlSpot(historicalExpenses.length.toDouble(),
-            //           predictedExpense!),
-            //     ],
-            //     isCurved: true,
-            //     color: Colors.red,
-            //     barWidth: 4,
-            //     dotData: FlDotData(show: true),
-            //     belowBarData: BarAreaData(show: false),
-            //     dashArray: [5, 5],
-            //   ),
-              // LineChartBarData(
-              //   spots: [
-              //     for (int i = 0; i < historicalExpenses.length; i++)
-              //       FlSpot(i.toDouble(), historicalExpenses[i]),
-              //     FlSpot(historicalExpenses.length.toDouble(), predictedExpense!),  // Ensure continuity
-              //   ],
-              //   isCurved: true,
-              //   color: Colors.red,
-              //   barWidth: 4,
-              //   dotData: FlDotData(show: true),
-              //   belowBarData: BarAreaData(show: false),
-              //   dashArray: [5, 5],
-              // ),
-
-              LineChartBarData(
-                spots: [
-                  FlSpot((historicalExpenses.length - 1).toDouble(), historicalExpenses.last), // Current month
-                  FlSpot(historicalExpenses.length.toDouble(), predictedExpense!), // Next month
-                ],
-                isCurved: true,
-                color: Colors.red,
-                barWidth: 4,
-                dotData: FlDotData(show: true),
-                belowBarData: BarAreaData(show: false),
-                dashArray: [5, 5], // Makes it dotted
-              ),
-
-          ],
-        ),
+        ],
       ),
     );
-  }
+  } 
+
 
   @override
   Widget build(BuildContext context) {
@@ -247,15 +255,17 @@ class _FutureExpenseScreenState extends State<FutureExpenseScreen> {
                       Card(
                         elevation: 10,
                         shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(15)),
-                        child: Padding(
+                          borderRadius: BorderRadius.circular(15),
+                        ),
+                        child: Container(
+                          width: double.infinity, // 🔥 Ensures the card stretches full width
                           padding: const EdgeInsets.all(20.0),
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Text("Predicted Expense for Next Month",
                                   style: TextStyle(
-                                      fontSize: 20,
+                                      fontSize: 18,
                                       fontWeight: FontWeight.bold,
                                       color: Colors.deepPurple)),
                               SizedBox(height: 10),
@@ -271,8 +281,27 @@ class _FutureExpenseScreenState extends State<FutureExpenseScreen> {
                           ),
                         ),
                       ),
-                      SizedBox(height: 30),
-                      _buildLineChart(),
+
+                      SizedBox(height: 10),
+                      Card(
+                        elevation: 10,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(15),
+                        ),
+                        child: Padding(
+                          padding: const EdgeInsets.all(20.0),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              SizedBox(
+                                height: 480, // Adjust as needed
+                                child: _buildLineChart(),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+
                     ],
                   ),
       ),

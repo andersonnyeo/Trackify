@@ -32,7 +32,7 @@ class Chart extends StatelessWidget {
                     fontSize: 16, 
                     color: Colors.grey[700],
                   ),
-                  textAlign: TextAlign.center,
+                  // textAlign: TextAlign.center,
                 ),
                 const SizedBox(height: 20),
                 Container(
