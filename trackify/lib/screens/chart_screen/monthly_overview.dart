@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:trackify/screens/chart_screen/chart_screen.dart';
+import 'package:trackify/screens/chart_screen/chart_for_monthly.dart';
 
 class Chart extends StatelessWidget {
   final String docId;
