@@ -65,9 +65,6 @@ class _BudgetRecommendationScreenState extends State<BudgetRecommendationScreen>
     });
   }
 
-
-
-
   void _setBudgetGoal(String category, double goal) async {
     setState(() {
       budgetGoals[category] = goal;
@@ -84,8 +81,6 @@ class _BudgetRecommendationScreenState extends State<BudgetRecommendationScreen>
         .set({'goal': goal});
   }
 
-
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -97,6 +92,14 @@ class _BudgetRecommendationScreenState extends State<BudgetRecommendationScreen>
           style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
         ),
         iconTheme: const IconThemeData(color: Colors.white),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.help_outline),
+            onPressed: () {
+              _showBudgetExplanationDialog();
+            },
+          ),
+        ],
       ),
       body: isLoading
           ? const Center(child: CircularProgressIndicator())
@@ -108,7 +111,7 @@ class _BudgetRecommendationScreenState extends State<BudgetRecommendationScreen>
               : ListView(
                   padding: const EdgeInsets.all(15),
                   children: categorySpending.keys.map((category) {
-                    double spent = categorySpending[category]!;
+                    double spent = categorySpending[category]!; 
                     double goal = budgetGoals[category] ?? _getRecommendedBudget(category, spent);
                     bool isOverBudget = spent > goal;
 
@@ -143,65 +146,62 @@ class _BudgetRecommendationScreenState extends State<BudgetRecommendationScreen>
                       ),
                     );
                   }).toList(),
-
                 ),
     );
   }
 
   void _showWarningDialog(String category, double spent, double goal) {
-  showDialog(
-    context: context,
-    builder: (context) => AlertDialog(
-      title: Text("⚠ Over Budget for $category"),
-      content: Text(
-        "You have spent £${spent.toStringAsFixed(2)} in $category, exceeding the recommended budget of £${goal.toStringAsFixed(2)}.\n\n"
-        "Consider reducing your spending or setting a stricter budget goal.",
-        style: TextStyle(color: Colors.red[800]),
-      ),
-      actions: [
-        TextButton(child: const Text("Close"), onPressed: () => Navigator.pop(context)),
-        TextButton(
-          child: const Text("Set New Goal"),
-          onPressed: () {
-            Navigator.pop(context);
-            _showBudgetDialog(category, spent);
-          },
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text("⚠ Over Budget for $category"),
+        content: Text(
+          "You have spent £${spent.toStringAsFixed(2)} in $category, exceeding the recommended budget of £${goal.toStringAsFixed(2)}.\n\n"
+          "Consider reducing your spending or setting a stricter budget goal.",
+          style: TextStyle(color: Colors.red[800]),
         ),
-      ],
-    ),
-  );
-}
-
-
-
-
-  double _getRecommendedBudget(String category, double spent) {
-  // Base rule: Start with past spending
-  double recommendedBudget = spent;
-
-  if (spent > 500) {
-    // If spending is high, reduce budget by 20% to encourage savings
-    recommendedBudget *= 0.8;
-  } else if (spent >= 200) {
-    // If spending is moderate, reduce budget by 10%
-    recommendedBudget *= 0.9;
-  } else if (spent >= 50) {
-    // If spending is low, maintain budget (100%)
-    recommendedBudget = spent;
-  } else {
-    // If spending is very low (< £50), allow a 10% increase
-    recommendedBudget *= 1.1;
+        actions: [
+          TextButton(child: const Text("Close"), onPressed: () => Navigator.pop(context)),
+          TextButton(
+            child: const Text("Set New Goal"),
+            onPressed: () {
+              Navigator.pop(context);
+              _showBudgetDialog(category, spent);
+            },
+          ),
+        ],
+      ),
+    );
   }
 
-  return recommendedBudget;
-}
+  double _getRecommendedBudget(String category, double spent) {
+    // Base rule: Start with past spending
+    double recommendedBudget = spent;
 
+    if (spent > 500) {
+      // If spending is high, reduce budget by 20% to encourage savings
+      recommendedBudget *= 0.8;
+    } else if (spent >= 200) {
+      // If spending is moderate, reduce budget by 10%
+      recommendedBudget *= 0.9;
+    } else if (spent >= 50) {
+      // If spending is low, maintain budget (100%)
+      recommendedBudget = spent;
+    } else {
+      // If spending is very low (< £50), allow a 10% increase
+      recommendedBudget *= 1.1;
+    }
 
+    return recommendedBudget;
+  }
 
   void _showBudgetDialog(String category, double spent) {
+    // Correctly set the initial budget value
+    double initialGoal = budgetGoals[category] ?? _getRecommendedBudget(category, spent);
+  
     TextEditingController budgetController =
-        TextEditingController(text: (budgetGoals[category] ?? (spent * 0.9)).toStringAsFixed(2));
-
+        TextEditingController(text: initialGoal.toStringAsFixed(2));
+  
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
@@ -222,6 +222,31 @@ class _BudgetRecommendationScreenState extends State<BudgetRecommendationScreen>
               }
               Navigator.pop(context);
             },
+          ),
+        ],
+      ),
+    );
+  }
+
+
+  // Show explanation about how budget recommendations are calculated
+  void _showBudgetExplanationDialog() {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text("How Budget Recommendations Are Made"),
+        content: const Text(
+          "Our budget recommendations are based on your past spending behavior:\n\n"
+          "- If you've spent a lot in a category (e.g., over £500), we suggest reducing your budget by 20% to encourage savings.\n"
+          "- For moderate spending (e.g., between £200-£500), we suggest reducing your budget by 10%.\n"
+          "- For low spending (e.g., less than £200), we recommend maintaining your current budget.\n"
+          "- If your spending is very low (e.g., under £50), we allow a 10% increase to help you avoid underspending.",
+          style: TextStyle(color: Colors.black),
+        ),
+        actions: [
+          TextButton(
+            child: const Text("Close"),
+            onPressed: () => Navigator.pop(context),
           ),
         ],
       ),
