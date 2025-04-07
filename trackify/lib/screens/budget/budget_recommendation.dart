@@ -198,10 +198,10 @@ class _BudgetRecommendationScreenState extends State<BudgetRecommendationScreen>
   void _showBudgetDialog(String category, double spent) {
     // Correctly set the initial budget value
     double initialGoal = budgetGoals[category] ?? _getRecommendedBudget(category, spent);
-  
+
     TextEditingController budgetController =
         TextEditingController(text: initialGoal.toStringAsFixed(2));
-  
+
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
@@ -240,7 +240,8 @@ class _BudgetRecommendationScreenState extends State<BudgetRecommendationScreen>
           "- If you've spent a lot in a category (e.g., over £500), we suggest reducing your budget by 20% to encourage savings.\n"
           "- For moderate spending (e.g., between £200-£500), we suggest reducing your budget by 10%.\n"
           "- For low spending (e.g., less than £200), we recommend maintaining your current budget.\n"
-          "- If your spending is very low (e.g., under £50), we allow a 10% increase to help you avoid underspending.",
+          "- If your spending is very low (e.g., under £50), we allow a 10% increase to help you avoid underspending.\n\n"
+          "You can also set your own budget goal for each category by clicking 'Set Goal' next to each category.",
           style: TextStyle(color: Colors.black),
         ),
         actions: [
