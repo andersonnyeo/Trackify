@@ -370,6 +370,7 @@ class _ExpenseRecordScreenState extends State<ExpenseRecordScreen> {
     List<String> categories = ['Food', 'Transport', 'Shopping', 'Groceries', 'Entertainment', 'Other'];
     TextEditingController customCategoryController = TextEditingController();
     bool isAddingCustomCategory = false;
+    bool isCategoryLocked = false; // Flag to lock category
 
     // Error messages
     String? descriptionError;
@@ -413,7 +414,6 @@ class _ExpenseRecordScreenState extends State<ExpenseRecordScreen> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     // Description TextField
-
                     Text(
                       "Fill out the details below. We'll try to guess the category for you!",
                       style: TextStyle(fontSize: 13, color: Colors.grey),
@@ -425,11 +425,13 @@ class _ExpenseRecordScreenState extends State<ExpenseRecordScreen> {
                         description = value;
                         setDialogState(() => descriptionError = value.isEmpty ? 'Description is required' : null);
 
-                        _suggestCategoryWithDelay(value, (suggestedCategory) {
-                          setDialogState(() {
-                            category = suggestedCategory;
+                        if (!isCategoryLocked) {
+                          _suggestCategoryWithDelay(value, (suggestedCategory) {
+                            setDialogState(() {
+                              category = suggestedCategory;
+                            });
                           });
-                        });
+                        }
                       },
                       decoration: InputDecoration(
                         labelText: 'Expense Description',
@@ -473,12 +475,14 @@ class _ExpenseRecordScreenState extends State<ExpenseRecordScreen> {
                         if (value == 'custom') {
                           setDialogState(() {
                             isAddingCustomCategory = true;
+                            isCategoryLocked = true; // Lock category if custom is selected
                             customCategoryError = null;
                           });
                         } else {
                           setDialogState(() {
                             category = value!;
                             isAddingCustomCategory = false;
+                            isCategoryLocked = true; // Lock category if pre-selected
                           });
                         }
                       },
@@ -552,6 +556,7 @@ class _ExpenseRecordScreenState extends State<ExpenseRecordScreen> {
                     if (isValid) {
                       if (isAddingCustomCategory) {
                         category = customCategoryController.text.trim();
+                        isCategoryLocked = true; // Lock after adding custom category
                         await _firestore.collection('users').doc(_uid).collection('categories').add({'name': category});
                       }
                       if (expenseId == null) {
@@ -569,6 +574,7 @@ class _ExpenseRecordScreenState extends State<ExpenseRecordScreen> {
         );
       },
     );
-  }
+  } 
+
 }
 

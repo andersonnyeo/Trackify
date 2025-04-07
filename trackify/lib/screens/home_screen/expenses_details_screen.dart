@@ -111,201 +111,203 @@ class _ExpenseDetailsScreenState extends State<ExpenseDetailsScreen> {
 }
 
   void _showAddExpenseDialog(BuildContext context, String docId, {String? expenseId, String? existingDescription, double? existingAmount, String? existingCategory, DateTime? existingDate}) {
-    String description = existingDescription ?? '';
-    double amount = existingAmount ?? 0.0;
-    String category = existingCategory ?? 'Food';
-    DateTime selectedDate = existingDate ?? DateTime.now();
-    List<String> categories = ['Food', 'Transport', 'Shopping', 'Groceries', 'Entertainment', 'Other'];
+  String description = existingDescription ?? '';
+  double amount = existingAmount ?? 0.0;
+  String category = existingCategory ?? 'Food';
+  DateTime selectedDate = existingDate ?? DateTime.now();
+  List<String> categories = ['Food', 'Transport', 'Shopping', 'Groceries', 'Entertainment', 'Other'];
 
-    String? descriptionError;
-    String? amountError;
-    String? customCategoryError;
+  String? descriptionError;
+  String? amountError;
+  String? customCategoryError;
 
-    TextEditingController descriptionController = TextEditingController(text: existingDescription ?? '');
-    TextEditingController amountController = TextEditingController(text: existingAmount != null ? existingAmount.toString() : '');
-    TextEditingController customCategoryController = TextEditingController();
+  TextEditingController descriptionController = TextEditingController(text: existingDescription ?? '');
+  TextEditingController amountController = TextEditingController(text: existingAmount != null ? existingAmount.toString() : '');
+  TextEditingController customCategoryController = TextEditingController();
 
-    bool isAddingCustomCategory = false;
-    Timer? _debounceTimer;
+  bool isAddingCustomCategory = false;
+  bool isCategoryLocked = false; // Flag to lock category
+  Timer? _debounceTimer;
 
-    void fetchCategories() async {
-      var categoryDocs = await _firestore.collection('users').doc(_uid).collection('categories').get();
-      categories.addAll(categoryDocs.docs.map((doc) => doc['name'].toString()).toSet()); // Avoid duplicates
-    }
+  void fetchCategories() async {
+    var categoryDocs = await _firestore.collection('users').doc(_uid).collection('categories').get();
+    categories.addAll(categoryDocs.docs.map((doc) => doc['name'].toString()).toSet()); // Avoid duplicates
+  }
 
-    fetchCategories(); 
+  fetchCategories();
 
-    void _suggestCategoryWithDelay(String value, Function(String) updateCategory) {
-      if (_debounceTimer?.isActive ?? false) _debounceTimer!.cancel();
-      _debounceTimer = Timer(const Duration(milliseconds: 500), () {
-        _suggestCategory(value, updateCategory);
-      });
-    }
+  void _suggestCategoryWithDelay(String value, Function(String) updateCategory) {
+    if (_debounceTimer?.isActive ?? false) _debounceTimer!.cancel();
+    _debounceTimer = Timer(const Duration(milliseconds: 500), () {
+      _suggestCategory(value, updateCategory);
+    });
+  }
 
-    showDialog(
-      context: context, 
-      builder: (context) {
-        return StatefulBuilder(
-          builder: (context, setDialogState) {
-            return AlertDialog(
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
-              title: Text(expenseId == null ? 'Add Expense' : 'Edit Expense', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 20, color: Colors.deepPurple)),
-              content: SingleChildScrollView(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    
-                    Text(
-                      "Fill out the details below. We'll try to guess the category for you!",
-                      style: TextStyle(fontSize: 13, color: Colors.grey),
-                    ),
-                    
-                    SizedBox(height: 15),
-                    // Description Field
-                    TextField(
-                      controller: descriptionController,
-                      onChanged: (value) {
-                        description = value;
-                        setDialogState(() => descriptionError = value.isEmpty ? 'Description is required' : null);
+  showDialog(
+    context: context, 
+    builder: (context) {
+      return StatefulBuilder(
+        builder: (context, setDialogState) {
+          return AlertDialog(
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
+            title: Text(expenseId == null ? 'Add Expense' : 'Edit Expense', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 20, color: Colors.deepPurple)),
+            content: SingleChildScrollView(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    "Fill out the details below. We'll try to guess the category for you!",
+                    style: TextStyle(fontSize: 13, color: Colors.grey),
+                  ),
+                  SizedBox(height: 15),
+                  
+                  // Description Field
+                  TextField(
+                    controller: descriptionController,
+                    onChanged: (value) {
+                      description = value;
+                      setDialogState(() => descriptionError = value.isEmpty ? 'Description is required' : null);
+                      if (!isCategoryLocked) {
                         _suggestCategoryWithDelay(value, (suggestedCategory) {
                           setDialogState(() => category = suggestedCategory);
                         });
-                      },
-                      decoration: InputDecoration(
-                        labelText: 'Expense Description',
-                        errorText: descriptionError,
-                        border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
-                      ),
-                    ),
-                    SizedBox(height: 20),
-
-                    // Amount Field
-                    TextField(
-                      controller: amountController,
-                      keyboardType: TextInputType.number,
-                      onChanged: (value) {
-                        amount = double.tryParse(value) ?? 0.0;
-                        setDialogState(() => amountError = (amount <= 0) ? 'Enter a valid amount' : null);
-                      },
-                      decoration: InputDecoration(
-                        labelText: 'Amount (£)',
-                        errorText: amountError,
-                        border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
-                      ),
-                    ),
-                    SizedBox(height: 20),
-
-                    // Category Dropdown
-                    DropdownButtonFormField<String>(
-                      value: categories.contains(category) ? category : 'Other',
-                      decoration: InputDecoration(
-                        labelText: 'Category',
-                        border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
-                      ),
-                      items: [
-                        ...categories.map((e) => DropdownMenuItem(value: e, child: Text(e))),
-                        const DropdownMenuItem(value: 'custom', child: Text('Add New Category')),
-                      ],
-                      onChanged: (value) {
-                        if (value == 'custom') {
-                          setDialogState(() {
-                            isAddingCustomCategory = true;
-                            customCategoryError = null;
-                          });
-                        } else {
-                          setDialogState(() {
-                            category = value!;
-                            isAddingCustomCategory = false;
-                          });
-                        }
-                      },
-                    ),
-                    SizedBox(height: 10),
-                    Text(
-                      "Tip: Type something like 'Netflix' to auto-suggest 'Entertainment'",
-                      style: TextStyle(fontSize: 12, color: Colors.deepPurple),
-                    ),
-
-                    SizedBox(height: 20),
-
-                    
-
-                    // Custom Category TextField
-                    if (isAddingCustomCategory)
-                      TextField(
-                        controller: customCategoryController,
-                        onChanged: (value) {
-                          setDialogState(() => customCategoryError = value.trim().isEmpty ? 'Custom category is required' : null);
-                        },
-                        decoration: InputDecoration(
-                          labelText: 'Enter New Category',
-                          errorText: customCategoryError,
-                          border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
-                          contentPadding: EdgeInsets.symmetric(vertical: 15, horizontal: 10),
-                        ),
-                      ),
-                    SizedBox(height: 20),
-
-                    // Date Picker
-                    TextButton(
-                      onPressed: () async {
-                        DateTime? pickedDate = await showDatePicker(
-                          context: context,
-                          initialDate: selectedDate,
-                          firstDate: DateTime(2000),
-                          lastDate: DateTime.now(),
-                        );
-                        if (pickedDate != null) setDialogState(() => selectedDate = pickedDate);
-                      },
-                      child: Text('Select Date: ${DateFormat('yyyy-MM-dd').format(selectedDate)}', style: TextStyle(fontSize: 16, color: Colors.deepPurple)),
-                    ),
-                  ],
-                ),
-              ),
-              actions: [
-                TextButton(
-                  child: const Text('Cancel', style: TextStyle(color: Colors.grey)),
-                  onPressed: () {
-                    _debounceTimer?.cancel(); // Cancel debounce when closing
-                    Navigator.pop(context);
-                  },
-                ),
-                // When the user submits the form
-                TextButton(
-                  child: Text(expenseId == null ? 'Add' : 'Save', style: TextStyle(color: Colors.deepPurple, fontWeight: FontWeight.bold)),
-                  onPressed: () async {
-                    bool isValid = true;
-
-                    if (description.isEmpty) {
-                      setDialogState(() => descriptionError = 'Description is required');
-                      isValid = false;
-                    }
-                    if (amount <= 0) {
-                      setDialogState(() => amountError = 'Enter a valid amount');
-                      isValid = false;
-                    }
-                    if (isAddingCustomCategory && customCategoryController.text.trim().isEmpty) {
-                      setDialogState(() => customCategoryError = 'Custom category is required');
-                      isValid = false;
-                    }
-
-                    if (isValid) {
-                      if (isAddingCustomCategory) {
-                        category = customCategoryController.text.trim();
-                        await _firestore.collection('users').doc(_uid).collection('categories').add({'name': category});
                       }
-                      _addExpense(docId, description, amount, category, selectedDate);
-                      Navigator.pop(context);
+                    },
+                    decoration: InputDecoration(
+                      labelText: 'Expense Description',
+                      errorText: descriptionError,
+                      border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
+                    ),
+                  ),
+                  SizedBox(height: 20),
+
+                  // Amount Field
+                  TextField(
+                    controller: amountController,
+                    keyboardType: TextInputType.number,
+                    onChanged: (value) {
+                      amount = double.tryParse(value) ?? 0.0;
+                      setDialogState(() => amountError = (amount <= 0) ? 'Enter a valid amount' : null);
+                    },
+                    decoration: InputDecoration(
+                      labelText: 'Amount (£)',
+                      errorText: amountError,
+                      border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
+                    ),
+                  ),
+                  SizedBox(height: 20),
+
+                  // Category Dropdown
+                  DropdownButtonFormField<String>(
+                    value: categories.contains(category) ? category : 'Other',
+                    decoration: InputDecoration(
+                      labelText: 'Category',
+                      border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
+                    ),
+                    items: [
+                      ...categories.map((e) => DropdownMenuItem(value: e, child: Text(e))),
+                      const DropdownMenuItem(value: 'custom', child: Text('Add New Category')),
+                    ],
+                    onChanged: (value) {
+                      if (value == 'custom') {
+                        setDialogState(() {
+                          isAddingCustomCategory = true;
+                          customCategoryError = null;
+                          isCategoryLocked = true; // Lock category once custom is selected
+                        });
+                      } else {
+                        setDialogState(() {
+                          category = value!;
+                          isAddingCustomCategory = false;
+                          isCategoryLocked = true; // Lock category once a predefined one is selected
+                        });
+                      }
+                    },
+                  ),
+                  SizedBox(height: 10),
+                  Text(
+                    "Tip: Type something like 'Netflix' to auto-suggest 'Entertainment'",
+                    style: TextStyle(fontSize: 12, color: Colors.deepPurple),
+                  ),
+                  SizedBox(height: 20),
+
+                  // Custom Category TextField
+                  if (isAddingCustomCategory)
+                    TextField(
+                      controller: customCategoryController,
+                      onChanged: (value) {
+                        setDialogState(() => customCategoryError = value.trim().isEmpty ? 'Custom category is required' : null);
+                      },
+                      decoration: InputDecoration(
+                        labelText: 'Enter New Category',
+                        errorText: customCategoryError,
+                        border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
+                        contentPadding: EdgeInsets.symmetric(vertical: 15, horizontal: 10),
+                      ),
+                    ),
+                  SizedBox(height: 20),
+
+                  // Date Picker
+                  TextButton(
+                    onPressed: () async {
+                      DateTime? pickedDate = await showDatePicker(
+                        context: context,
+                        initialDate: selectedDate,
+                        firstDate: DateTime(2000),
+                        lastDate: DateTime.now(),
+                      );
+                      if (pickedDate != null) setDialogState(() => selectedDate = pickedDate);
+                    },
+                    child: Text('Select Date: ${DateFormat('yyyy-MM-dd').format(selectedDate)}', style: TextStyle(fontSize: 16, color: Colors.deepPurple)),
+                  ),
+                ],
+              ),
+            ),
+            actions: [
+              TextButton(
+                child: const Text('Cancel', style: TextStyle(color: Colors.grey)),
+                onPressed: () {
+                  _debounceTimer?.cancel(); // Cancel debounce when closing
+                  Navigator.pop(context);
+                },
+              ),
+              // When the user submits the form
+              TextButton(
+                child: Text(expenseId == null ? 'Add' : 'Save', style: TextStyle(color: Colors.deepPurple, fontWeight: FontWeight.bold)),
+                onPressed: () async {
+                  bool isValid = true;
+
+                  if (description.isEmpty) {
+                    setDialogState(() => descriptionError = 'Description is required');
+                    isValid = false;
+                  }
+                  if (amount <= 0) {
+                    setDialogState(() => amountError = 'Enter a valid amount');
+                    isValid = false;
+                  }
+                  if (isAddingCustomCategory && customCategoryController.text.trim().isEmpty) {
+                    setDialogState(() => customCategoryError = 'Custom category is required');
+                    isValid = false;
+                  }
+
+                  if (isValid) {
+                    if (isAddingCustomCategory) {
+                      category = customCategoryController.text.trim();
+                      await _firestore.collection('users').doc(_uid).collection('categories').add({'name': category});
                     }
-                  },
-                ),
-              ],
-            );
-          },
-        );
-      },
-    );
-  }
+                    _addExpense(docId, description, amount, category, selectedDate);
+                    Navigator.pop(context);
+                  }
+                },
+              ),
+            ],
+          );
+        },
+      );
+    },
+  );
+}
+
 
   @override
   void initState() {
@@ -746,6 +748,7 @@ class _ExpenseDetailsScreenState extends State<ExpenseDetailsScreen> {
                       ),
                     ),
                     SizedBox(height: 20),
+
                     // Amount TextField
                     TextField(
                       controller: amountController,
@@ -762,6 +765,7 @@ class _ExpenseDetailsScreenState extends State<ExpenseDetailsScreen> {
                       ),
                     ),
                     SizedBox(height: 20),
+
                     // Category Dropdown
                     StreamBuilder<QuerySnapshot>(
                       stream: firestore.collection('users').doc(uid).collection('categories').snapshots(),
@@ -774,23 +778,26 @@ class _ExpenseDetailsScreenState extends State<ExpenseDetailsScreen> {
                           return const Text('Error fetching categories');
                         }
 
-                        List<String> categories = ['Food', 'Transport', 'Shopping', 'Groceries', 'Entertainment', 'Other'];
-
                         // Add Firebase categories to the list
+                        Set<String> categories = {'Food', 'Transport', 'Shopping', 'Groceries', 'Entertainment', 'Other'};
+
                         snapshot.data?.docs.forEach((doc) {
                           categories.add(doc['name']);
                         });
 
+                        // Convert the Set back to a list
+                        List<String> categoryList = categories.toList();
+
                         return DropdownButtonFormField<String>(
-                          value: categories.contains(category) ? category : null,
+                          value: categoryList.contains(category) ? category : 'Other', // Default to 'Other' if no match
                           decoration: InputDecoration(
                             labelText: 'Category',
                             border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
                             contentPadding: EdgeInsets.symmetric(vertical: 15, horizontal: 10),
                           ),
-                          items: [
-                            ...categories.map((e) => DropdownMenuItem(value: e, child: Text(e))),
-                          ],
+                          items: categoryList
+                              .map((e) => DropdownMenuItem(value: e, child: Text(e)))
+                              .toList(),
                           onChanged: (value) {
                             setDialogState(() => category = value!);
                           },
@@ -798,6 +805,7 @@ class _ExpenseDetailsScreenState extends State<ExpenseDetailsScreen> {
                       },
                     ),
                     SizedBox(height: 10),
+
                     // Date Picker Button
                     TextButton(
                       onPressed: () async {
@@ -830,6 +838,7 @@ class _ExpenseDetailsScreenState extends State<ExpenseDetailsScreen> {
                   onPressed: () async {
                     bool isValid = true;
 
+                    // Validate description and amount fields
                     if (description.isEmpty) {
                       setDialogState(() => descriptionError = 'Description is required');
                       isValid = false;
@@ -839,6 +848,7 @@ class _ExpenseDetailsScreenState extends State<ExpenseDetailsScreen> {
                       isValid = false;
                     }
 
+                    // If valid, save the changes
                     if (isValid) {
                       firestore
                           .collection('users')
@@ -864,5 +874,6 @@ class _ExpenseDetailsScreenState extends State<ExpenseDetailsScreen> {
       },
     );
   }
+
 
 }
