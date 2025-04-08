@@ -150,14 +150,14 @@ class _ExpenseDetailsScreenState extends State<ExpenseDetailsScreen> {
         builder: (context, setDialogState) {
           return AlertDialog(
             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
-            title: Text(expenseId == null ? 'Add Expense' : 'Edit Expense', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 20, color: Colors.deepPurple)),
+            title: Text(expenseId == null ? 'Add Expense' : 'Edit Expense', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 22, color: Colors.deepPurple)),
             content: SingleChildScrollView(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
                     "Fill out the details below. We'll try to guess the category for you!",
-                    style: TextStyle(fontSize: 13, color: Colors.grey),
+                    style: TextStyle(fontSize: 14, color: Colors.grey[700]),
                   ),
                   SizedBox(height: 15),
                   
@@ -224,10 +224,10 @@ class _ExpenseDetailsScreenState extends State<ExpenseDetailsScreen> {
                       }
                     },
                   ),
-                  SizedBox(height: 10),
+                  SizedBox(height: 15),
                   Text(
                     "Tip: Type something like 'Netflix' to auto-suggest 'Entertainment'",
-                    style: TextStyle(fontSize: 12, color: Colors.deepPurple),
+                    style: TextStyle(fontSize: 14, color: Colors.deepPurple),
                   ),
                   SizedBox(height: 20),
 

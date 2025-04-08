@@ -238,11 +238,11 @@ class _ExpenseRecordScreenState extends State<ExpenseRecordScreen> {
                               child: ListTile(
                                 title: Text(doc['title'],
                                     style: const TextStyle(
-                                        fontWeight: FontWeight.bold)
+                                        fontWeight: FontWeight.bold, fontSize: 17.0)
                                         ),
-                                subtitle: const Text(
+                                subtitle: Text(
                                   "Tap to view or add expenses",
-                                  style: TextStyle(color: Colors.grey),
+                                  style: TextStyle(color: Colors.grey[600] , fontSize: 15.0),
                                 ),
 
                                 trailing: IconButton(
@@ -312,9 +312,9 @@ class _ExpenseRecordScreenState extends State<ExpenseRecordScreen> {
                 mainAxisSize: MainAxisSize.min,
                 children: [
 
-                  const Text(
+                  Text(
                     "Each Expense Tab can represent a budget, trip, or a month of spending.",
-                    style: TextStyle(fontSize: 13, color: Colors.grey),
+                    style: TextStyle(fontSize: 15, color: Colors.grey[700],),
                   ),
                   const SizedBox(height: 20),
 
@@ -407,7 +407,7 @@ class _ExpenseRecordScreenState extends State<ExpenseRecordScreen> {
               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
               title: Text(
                 expenseId == null ? 'Add Expense' : 'Edit Expense',
-                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 20, color: Colors.deepPurple),
+                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 22, color: Colors.deepPurple),
               ),
               content: SingleChildScrollView(
                 child: Column(
@@ -416,9 +416,9 @@ class _ExpenseRecordScreenState extends State<ExpenseRecordScreen> {
                     // Description TextField
                     Text(
                       "Fill out the details below. We'll try to guess the category for you!",
-                      style: TextStyle(fontSize: 13, color: Colors.grey),
+                      style: TextStyle(fontSize: 14, color: Colors.grey[700]),
                     ),
-                    SizedBox(height: 15),
+                    SizedBox(height: 20),
                     TextField(
                       controller: descriptionController,
                       onChanged: (value) {
@@ -487,10 +487,10 @@ class _ExpenseRecordScreenState extends State<ExpenseRecordScreen> {
                         }
                       },
                     ),
-                    SizedBox(height: 10),
+                    SizedBox(height: 20),
                     Text(
                       "Tip: Type something like 'Netflix' to auto-suggest 'Entertainment'",
-                      style: TextStyle(fontSize: 12, color: Colors.deepPurple),
+                      style: TextStyle(fontSize: 14, color: Colors.deepPurple),
                     ),
 
                     SizedBox(height: 20),
