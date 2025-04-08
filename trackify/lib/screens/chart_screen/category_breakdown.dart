@@ -22,11 +22,9 @@ class StatsScreen extends StatelessWidget {
         ),
         backgroundColor: Colors.deepPurple,
         elevation: 0,
-        iconTheme: const IconThemeData(color: Colors.white), // Set back arrow color to white
+        iconTheme: const IconThemeData(color: Colors.white),
       ),
       body: Container(
-        decoration: const BoxDecoration(
-        ),
         child: StreamBuilder<QuerySnapshot>(
           stream: firestore
               .collection('users')
@@ -52,7 +50,6 @@ class StatsScreen extends StatelessWidget {
 
             final expenses = snapshot.data!.docs;
 
-            // Group expenses by category
             final Map<String, double> categoryTotals = {};
             double totalAmount = 0.0;
 
@@ -68,10 +65,16 @@ class StatsScreen extends StatelessWidget {
 
               return PieChartSectionData(
                 value: entry.value,
-                title: '${entry.key}\n$percentage%',
+                // title: '${entry.key}\n$percentage%',
+                title: '$percentage%',
                 color: Colors.primaries[entry.key.hashCode % Colors.primaries.length], // Dynamic colors
                 radius: 70,
-                titleStyle: const TextStyle(color: Colors.white, fontSize: 14, fontWeight: FontWeight.bold),
+                titleStyle: const TextStyle(
+                color: Colors.white,
+                fontSize: 16,
+                fontWeight: FontWeight.bold,
+                shadows: [Shadow(color: Colors.black26, offset: Offset(1, 1), blurRadius: 3)], // Add shadow
+              ),
               );
             }).toList();
 
@@ -79,7 +82,7 @@ class StatsScreen extends StatelessWidget {
               children: [
                 const SizedBox(height: 15),
                 Padding(
-                  padding: EdgeInsets.symmetric(horizontal: 20),
+                  padding: const EdgeInsets.symmetric(horizontal: 20),
                   child: Text(
                     'This chart shows your overall spending breakdown.',
                     style: TextStyle(
@@ -88,7 +91,6 @@ class StatsScreen extends StatelessWidget {
                     ),
                   ),
                 ),
-
                 const SizedBox(height: 20),
                 Card(
                   elevation: 4,
@@ -107,7 +109,6 @@ class StatsScreen extends StatelessWidget {
                         ),
                       ),
                     ),
-                    
                   ),
                 ),
                 const SizedBox(height: 20),
