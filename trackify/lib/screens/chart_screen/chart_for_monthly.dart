@@ -113,6 +113,29 @@ class _ChartScreenState extends State<ChartScreen> {
 
   BarChartData mainBarData() {
     return BarChartData(
+      barTouchData: BarTouchData(
+        enabled: true,
+        touchTooltipData: BarTouchTooltipData(
+          tooltipPadding: const EdgeInsets.all(8),
+          tooltipMargin: 8,
+          tooltipRoundedRadius: 12,
+          getTooltipColor: (touchedSpot) => Colors.deepPurple.shade100,
+          getTooltipItem: (group, groupIndex, rod, rodIndex) {
+            final value = rod.toY;
+            return BarTooltipItem(
+              '£${value.toStringAsFixed(2)}',
+              const TextStyle(
+                color: Colors.deepPurple,
+                fontWeight: FontWeight.bold,
+                fontSize: 14,
+              ),
+            );
+          },
+          fitInsideVertically: true,
+          fitInsideHorizontally: true,
+        ),
+        touchCallback: (event, response) {},
+      ),
       titlesData: FlTitlesData(
         show: true,
         rightTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
@@ -127,7 +150,7 @@ class _ChartScreenState extends State<ChartScreen> {
           ),
         ),
         leftTitles: AxisTitles(
-          axisNameWidget: Text('Amount Spent (£)', style: TextStyle(fontSize: 14)),
+          axisNameWidget: const Text('Amount Spent (£)', style: TextStyle(fontSize: 14)),
           axisNameSize: 25,
           sideTitles: SideTitles(
             showTitles: true,

@@ -109,7 +109,7 @@ class _FutureExpenseScreenState extends State<FutureExpenseScreen> {
     final model = LinearRegressor(df, 'amount');
 
     final prediction =
-        model.predict(DataFrame([['month'], [data.length + 1]]));
+        model.predict(DataFrame([['month'], [data.length]]));
     return prediction.rows.first.first as double;
   }
 
@@ -192,7 +192,7 @@ class _FutureExpenseScreenState extends State<FutureExpenseScreen> {
                 if (value % 1 != 0) return Container();
 
                 int index = value.toInt();
-                if (index < 0 || index > sortedMonths.length) return Container();
+                if (index < 0 || index >= sortedMonths.length + 1) return Container();
 
                 if (index == sortedMonths.length) {
                   return Text(
