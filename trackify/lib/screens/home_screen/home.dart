@@ -55,6 +55,9 @@ class _HomeState extends State<Home> {
           unselectedItemColor: Colors.white70,
           currentIndex: _selectedIndex,
           onTap: _onItemTapped,
+          iconSize: 25.0,
+          selectedLabelStyle: TextStyle(fontSize: 16.0, fontWeight: FontWeight.bold), 
+          unselectedLabelStyle: TextStyle(fontSize: 14.0), 
           items: const [
             BottomNavigationBarItem(
               icon: Icon(Icons.home),
