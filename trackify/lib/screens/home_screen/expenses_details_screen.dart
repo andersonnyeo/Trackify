@@ -646,7 +646,7 @@ class _ExpenseDetailsScreenState extends State<ExpenseDetailsScreen> {
                             elevation: 0,
                             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
                             child: ListTile(
-                              title: Text(expense['description'], style: const TextStyle(fontWeight: FontWeight.bold)),
+                              title: Text(expense['description'], style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 17.0)),
                               subtitle: Text(
                                 '${expense['category']} - ${DateFormat('yyyy-MM-dd').format((expense['date'] as Timestamp).toDate())}',
                               ),
