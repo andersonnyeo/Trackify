@@ -110,7 +110,7 @@ class _BudgetRecommendationScreenState extends State<BudgetRecommendationScreen>
               Padding(
                 padding: EdgeInsets.symmetric(horizontal: 20.0, vertical: 12.0),
                 child: Text(
-                  "Personalized Budget Recommendations Based on Your Spending.",
+                  "We have tailored these budget recommendation just for you! Curious how it works? Tap the '?' at the top right to learn more.",
                   style: TextStyle(
                     fontSize: 16,
                     color: Colors.grey[700],

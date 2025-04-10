@@ -34,9 +34,15 @@ class _ExpenseDetailsScreenState extends State<ExpenseDetailsScreen> {
   final Map<String, String> _categoryKeywords = {
     'food': 'Food',
     'restaurant': 'Food',
+    'lunch': 'Food',
+    'dinner': 'Food',
     'grocery': 'Groceries',
     'supermarket': 'Groceries',
+    'tesco': 'Groceries',
+    'lidl': 'Groceries',
+    'sainsbury': 'Groceries',
     'bus': 'Transport',
+    'bolt': 'Transport',
     'train': 'Transport',
     'fuel': 'Transport',
     'uber': 'Transport',
@@ -45,6 +51,7 @@ class _ExpenseDetailsScreenState extends State<ExpenseDetailsScreen> {
     'movie': 'Entertainment',
     'netflix': 'Entertainment',
     'game': 'Entertainment',
+    'bowling': 'Entertainment',
   };
 
   // NLP-based category prediction

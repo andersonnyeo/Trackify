@@ -23,9 +23,15 @@ class _ExpenseRecordScreenState extends State<ExpenseRecordScreen> {
   final Map<String, String> _categoryKeywords = {
     'food': 'Food',
     'restaurant': 'Food',
+    'lunch': 'Food',
+    'dinner': 'Food',
     'grocery': 'Groceries',
     'supermarket': 'Groceries',
+    'tesco': 'Groceries',
+    'lidl': 'Groceries',
+    'sainsbury': 'Groceries',
     'bus': 'Transport',
+    'bolt': 'Transport',
     'train': 'Transport',
     'fuel': 'Transport',
     'uber': 'Transport',
@@ -34,6 +40,7 @@ class _ExpenseRecordScreenState extends State<ExpenseRecordScreen> {
     'movie': 'Entertainment',
     'netflix': 'Entertainment',
     'game': 'Entertainment',
+    'bowling': 'Entertainment',
   };
 
   
@@ -166,6 +173,20 @@ class _ExpenseRecordScreenState extends State<ExpenseRecordScreen> {
               
             ),
           ),
+          Padding(
+            padding: const EdgeInsets.only(top: 5.0, left: 20.0, right: 20.0),
+            child: Text(
+              'Start your tracking journey today!',
+              style: TextStyle(
+                fontSize: 15,
+                fontWeight: FontWeight.bold,
+                color: Colors.grey,
+                
+              ),
+              textAlign: TextAlign.center,
+              
+            ),
+          ),
           const SizedBox(height: 10.0),
           // Main content (expenses list)
           Expanded(
@@ -187,7 +208,7 @@ class _ExpenseRecordScreenState extends State<ExpenseRecordScreen> {
                         return Center(
                           child: Column(
                             children: [
-                              const SizedBox(height: 150),
+                              const SizedBox(height: 140),
                               Icon(Icons.inbox, size: 80, color: Colors.grey[500]),
                               const SizedBox(height: 20),
                               const Text(
