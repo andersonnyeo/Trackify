@@ -4,7 +4,7 @@
 
 
 
-## 🧑‍💻 Getting Started
+## Getting Started
 
 To run the project locally:
 
@@ -22,7 +22,7 @@ flutter run
 
 ---
 
-## 🚀 Features
+## Features
 
 - 🔍 **Automatic Expense Categorization** using NLP
 - 📊 **Interactive Visual Reports & Charts**
@@ -33,7 +33,7 @@ flutter run
 
 ---
 
-## 🛠️ Tech Stack
+## Tech Stack
 
 - **Frontend**: Flutter + Dart  
 - **Backend**: Firebase (Authentication, Firestore, Cloud Functions)  
