@@ -10,13 +10,17 @@ To run the project locally:
 
 ```bash
 # 1. Get dependencies
-flutter pub get
+Run 'cd trackify' to go to the main file 
 
 
-# 2. Run the app
-flutter run
+# 2. Get dependencies
+Run 'flutter pub get'
 
-# 3. You can run this on an emulator or a physical device with Flutter installed.
+
+# 3. Run the app
+Run 'flutter run'
+
+# 4. You can run this on an emulator or a physical device with Flutter installed.
 
 ```
 
