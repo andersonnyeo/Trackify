@@ -3,15 +3,17 @@ import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:ml_algo/ml_algo.dart';
+// ignore: depend_on_referenced_packages
 import 'package:ml_dataframe/ml_dataframe.dart';
 import 'package:intl/intl.dart';
 
 class FutureExpenseScreen extends StatefulWidget {
   final String docId;
 
-  const FutureExpenseScreen({Key? key, required this.docId}) : super(key: key);
+  const FutureExpenseScreen({super.key, required this.docId});
 
   @override
+  // ignore: library_private_types_in_public_api
   _FutureExpenseScreenState createState() => _FutureExpenseScreenState();
 }
 
@@ -47,7 +49,7 @@ class _FutureExpenseScreenState extends State<FutureExpenseScreen> {
         setState(() {
           isLoading = false;
         });
-        print("No expenses data available.");
+        // print("No expenses data available.");
         return;
       }
 
@@ -95,7 +97,7 @@ class _FutureExpenseScreenState extends State<FutureExpenseScreen> {
       setState(() {
         isLoading = false;
       });
-      print("Error fetching historical data: $e");
+      // print("Error fetching historical data: $e");
     }
   }
 

@@ -1,3 +1,5 @@
+// ignore_for_file: use_build_context_synchronously
+
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -13,7 +15,7 @@ class ExpenseDetailsScreen extends StatefulWidget {
   final String docId;
   final String title;
 
-  ExpenseDetailsScreen({super.key, required this.docId, required this.title});
+  const ExpenseDetailsScreen({super.key, required this.docId, required this.title});
 
   @override
   State<ExpenseDetailsScreen> createState() => _ExpenseDetailsScreenState();
@@ -112,7 +114,7 @@ class _ExpenseDetailsScreenState extends State<ExpenseDetailsScreen> {
     }
   } catch (e) {
     // Handle any errors that occur during the Firestore operations
-    print('Error adding expense: $e');
+    // print('Error adding expense: $e');
     // Optionally, show an alert or feedback to the user
   }
 }
@@ -134,7 +136,7 @@ class _ExpenseDetailsScreenState extends State<ExpenseDetailsScreen> {
 
   bool isAddingCustomCategory = false;
   bool isCategoryLocked = false; // Flag to lock category
-  Timer? _debounceTimer;
+  Timer? debounceTimer;
 
   void fetchCategories() async {
     var categoryDocs = await _firestore.collection('users').doc(_uid).collection('categories').get();
@@ -143,9 +145,9 @@ class _ExpenseDetailsScreenState extends State<ExpenseDetailsScreen> {
 
   fetchCategories();
 
-  void _suggestCategoryWithDelay(String value, Function(String) updateCategory) {
-    if (_debounceTimer?.isActive ?? false) _debounceTimer!.cancel();
-    _debounceTimer = Timer(const Duration(milliseconds: 500), () {
+  void suggestCategoryWithDelay(String value, Function(String) updateCategory) {
+    if (debounceTimer?.isActive ?? false) debounceTimer!.cancel();
+    debounceTimer = Timer(const Duration(milliseconds: 500), () {
       _suggestCategory(value, updateCategory);
     });
   }
@@ -175,7 +177,7 @@ class _ExpenseDetailsScreenState extends State<ExpenseDetailsScreen> {
                       description = value;
                       setDialogState(() => descriptionError = value.isEmpty ? 'Description is required' : null);
                       if (!isCategoryLocked) {
-                        _suggestCategoryWithDelay(value, (suggestedCategory) {
+                        suggestCategoryWithDelay(value, (suggestedCategory) {
                           setDialogState(() => category = suggestedCategory);
                         });
                       }
@@ -274,7 +276,7 @@ class _ExpenseDetailsScreenState extends State<ExpenseDetailsScreen> {
               TextButton(
                 child: const Text('Cancel', style: TextStyle(color: Colors.grey)),
                 onPressed: () {
-                  _debounceTimer?.cancel(); // Cancel debounce when closing
+                  debounceTimer?.cancel(); // Cancel debounce when closing
                   Navigator.pop(context);
                 },
               ),
@@ -397,7 +399,7 @@ class _ExpenseDetailsScreenState extends State<ExpenseDetailsScreen> {
                         ),
                       );
                     } catch (e) {
-                      print("Error updating document name: $e");
+                      // print("Error updating document name: $e");
   
                       ScaffoldMessenger.of(context).showSnackBar(
                         SnackBar(

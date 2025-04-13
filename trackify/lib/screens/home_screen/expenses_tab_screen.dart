@@ -1,3 +1,5 @@
+// ignore_for_file: use_build_context_synchronously
+
 import 'dart:async';
 
 import 'package:flutter/material.dart';
@@ -291,9 +293,9 @@ class _ExpenseRecordScreenState extends State<ExpenseRecordScreen> {
       ),
       floatingActionButton: FloatingActionButton(
         backgroundColor: Colors.deepPurple,
-        child: const Icon(Icons.add),
         foregroundColor: Colors.white,
         onPressed: _showNewDocumentDialog,
+        child: const Icon(Icons.add),
       ),
     );
   }
@@ -399,7 +401,7 @@ class _ExpenseRecordScreenState extends State<ExpenseRecordScreen> {
     String? customCategoryError;
 
     // Timer for debounce
-    Timer? _debounceTimer;
+    Timer? debounceTimer;
 
     // Fetch categories from Firestore
     void fetchCategories() async {
@@ -410,10 +412,10 @@ class _ExpenseRecordScreenState extends State<ExpenseRecordScreen> {
     fetchCategories();
 
     // Debounce function to suggest category after typing stops
-    void _suggestCategoryWithDelay(String value, Function(String) updateCategory) {
-      if (_debounceTimer?.isActive ?? false) _debounceTimer!.cancel();
+    void suggestCategoryWithDelay(String value, Function(String) updateCategory) {
+      if (debounceTimer?.isActive ?? false) debounceTimer!.cancel();
 
-      _debounceTimer = Timer(const Duration(milliseconds: 500), () async {
+      debounceTimer = Timer(const Duration(milliseconds: 500), () async {
         _suggestCategory(value, updateCategory);
       });
     }
@@ -447,7 +449,7 @@ class _ExpenseRecordScreenState extends State<ExpenseRecordScreen> {
                         setDialogState(() => descriptionError = value.isEmpty ? 'Description is required' : null);
 
                         if (!isCategoryLocked) {
-                          _suggestCategoryWithDelay(value, (suggestedCategory) {
+                          suggestCategoryWithDelay(value, (suggestedCategory) {
                             setDialogState(() {
                               category = suggestedCategory;
                             });

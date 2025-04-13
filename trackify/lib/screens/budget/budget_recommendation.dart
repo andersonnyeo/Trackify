@@ -8,6 +8,7 @@ class BudgetRecommendationScreen extends StatefulWidget {
   const BudgetRecommendationScreen({super.key, required this.docId});
 
   @override
+  // ignore: library_private_types_in_public_api
   _BudgetRecommendationScreenState createState() => _BudgetRecommendationScreenState();
 }
 
@@ -274,7 +275,7 @@ class _BudgetRecommendationScreenState extends State<BudgetRecommendationScreen>
           ],
         ),
         content: SingleChildScrollView(  // Make the content scrollable
-          child: Container(
+          child: SizedBox(
             width: MediaQuery.of(context).size.width * 0.8,  // Set custom width, 80% of the screen width
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,

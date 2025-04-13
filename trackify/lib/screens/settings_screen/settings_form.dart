@@ -1,3 +1,5 @@
+// ignore_for_file: use_build_context_synchronously
+
 import 'package:flutter/material.dart';
 import 'package:trackify/models/user.dart';
 import 'package:trackify/screens/settings_screen/terms_condition.dart';
@@ -287,6 +289,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
             borderRadius: BorderRadius.circular(15),
             boxShadow: [
               BoxShadow(
+                // ignore: deprecated_member_use
                 color: Colors.grey.withOpacity(0.1),
                 spreadRadius: 1,
                 blurRadius: 5,
