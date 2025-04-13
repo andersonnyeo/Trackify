@@ -1,6 +1,6 @@
 # Trackify
 
-Trackify - An AI-Driven Personal Finance Management App (Powered by Flutter)
+Trackify - An AI-Driven Personal Expenses Tracker App (Powered by Flutter)
 
 
 
