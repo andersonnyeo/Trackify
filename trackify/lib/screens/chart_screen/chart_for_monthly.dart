@@ -68,7 +68,7 @@ class _ChartScreenState extends State<ChartScreen> {
           return const Center(
             child: Text(
               "No expenses available for Monthly Overview.",
-              style: TextStyle(fontSize: 18, color: Colors.grey, ),
+              style: TextStyle(fontSize: 18, color: Colors.grey),
               textAlign: TextAlign.center,
             ),
           );
@@ -95,10 +95,12 @@ class _ChartScreenState extends State<ChartScreen> {
           width: 20,
           backDrawRodData: BackgroundBarChartRodData(
             show: true,
-            toY: monthlyTotals.values.isNotEmpty ? monthlyTotals.values.reduce(max) : 0,
+            toY: monthlyTotals.values.isNotEmpty
+                ? monthlyTotals.values.reduce(max)
+                : 0,
             color: Colors.grey.shade300,
           ),
-        )
+        ),
       ],
     );
   }
@@ -111,11 +113,36 @@ class _ChartScreenState extends State<ChartScreen> {
 
   BarChartData mainBarData() {
     return BarChartData(
+      barTouchData: BarTouchData(
+        enabled: true,
+        touchTooltipData: BarTouchTooltipData(
+          tooltipPadding: const EdgeInsets.all(8),
+          tooltipMargin: 8,
+          tooltipRoundedRadius: 12,
+          getTooltipColor: (touchedSpot) => Colors.deepPurple.shade100,
+          getTooltipItem: (group, groupIndex, rod, rodIndex) {
+            final value = rod.toY;
+            return BarTooltipItem(
+              '£${value.toStringAsFixed(2)}',
+              const TextStyle(
+                color: Colors.deepPurple,
+                fontWeight: FontWeight.bold,
+                fontSize: 14,
+              ),
+            );
+          },
+          fitInsideVertically: true,
+          fitInsideHorizontally: true,
+        ),
+        touchCallback: (event, response) {},
+      ),
       titlesData: FlTitlesData(
         show: true,
         rightTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
         topTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
         bottomTitles: AxisTitles(
+          axisNameWidget: const Text('Month', style: TextStyle(fontSize: 14)),
+          axisNameSize: 28,
           sideTitles: SideTitles(
             showTitles: true,
             reservedSize: 38,
@@ -123,6 +150,8 @@ class _ChartScreenState extends State<ChartScreen> {
           ),
         ),
         leftTitles: AxisTitles(
+          axisNameWidget: const Text('Amount Spent (£)', style: TextStyle(fontSize: 14)),
+          axisNameSize: 25,
           sideTitles: SideTitles(
             showTitles: true,
             reservedSize: 40,
@@ -143,9 +172,11 @@ class _ChartScreenState extends State<ChartScreen> {
       fontSize: 14,
     );
 
-    List<String> monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    List<String> monthNames = [
+      'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
+      'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'
+    ];
     int index = value.toInt();
-
     String text = displayedMonths.contains(index) ? monthNames[index] : '';
 
     return SideTitleWidget(meta: meta, space: 8, child: Text(text, style: style));

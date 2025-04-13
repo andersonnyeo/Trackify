@@ -1,3 +1,5 @@
+// ignore_for_file: use_build_context_synchronously
+
 import 'dart:async';
 
 import 'package:flutter/material.dart';
@@ -19,15 +21,19 @@ class _ExpenseRecordScreenState extends State<ExpenseRecordScreen> {
   late String _uid;
   TextEditingController descriptionController = TextEditingController();
   
-
-
   // Local NLP-based categorization model (keywords)
   final Map<String, String> _categoryKeywords = {
     'food': 'Food',
     'restaurant': 'Food',
+    'lunch': 'Food',
+    'dinner': 'Food',
     'grocery': 'Groceries',
     'supermarket': 'Groceries',
+    'tesco': 'Groceries',
+    'lidl': 'Groceries',
+    'sainsbury': 'Groceries',
     'bus': 'Transport',
+    'bolt': 'Transport',
     'train': 'Transport',
     'fuel': 'Transport',
     'uber': 'Transport',
@@ -36,6 +42,7 @@ class _ExpenseRecordScreenState extends State<ExpenseRecordScreen> {
     'movie': 'Entertainment',
     'netflix': 'Entertainment',
     'game': 'Entertainment',
+    'bowling': 'Entertainment',
   };
 
   
@@ -120,7 +127,6 @@ class _ExpenseRecordScreenState extends State<ExpenseRecordScreen> {
   }
 
 
-
   // Edit Expense
   void _editExpense(String docId, String expenseId, String description, double amount, String category, DateTime date) async {
     if (_uid.isNotEmpty) {
@@ -158,11 +164,25 @@ class _ExpenseRecordScreenState extends State<ExpenseRecordScreen> {
           Padding(
             padding: const EdgeInsets.only(top: 8.0, left: 20.0, right: 20.0),
             child: Text(
-              'Expense Records 📒 ',
+              'Expenses Tab 📒 ',
               style: TextStyle(
                 fontSize: 22,
                 fontWeight: FontWeight.bold,
                 color: Colors.deepPurple,
+                
+              ),
+              textAlign: TextAlign.center,
+              
+            ),
+          ),
+          Padding(
+            padding: const EdgeInsets.only(top: 5.0, left: 20.0, right: 20.0),
+            child: Text(
+              'Start your tracking journey today!',
+              style: TextStyle(
+                fontSize: 15,
+                fontWeight: FontWeight.bold,
+                color: Colors.grey,
                 
               ),
               textAlign: TextAlign.center,
@@ -190,11 +210,11 @@ class _ExpenseRecordScreenState extends State<ExpenseRecordScreen> {
                         return Center(
                           child: Column(
                             children: [
-                              const SizedBox(height: 150),
+                              const SizedBox(height: 140),
                               Icon(Icons.inbox, size: 80, color: Colors.grey[500]),
                               const SizedBox(height: 20),
                               const Text(
-                                "You haven't added any expense records yet!",
+                                "You haven't added any expense tab yet!",
                                 style: TextStyle(fontSize: 18, color: Colors.grey),
                                 textAlign: TextAlign.center,
                               ),
@@ -241,11 +261,11 @@ class _ExpenseRecordScreenState extends State<ExpenseRecordScreen> {
                               child: ListTile(
                                 title: Text(doc['title'],
                                     style: const TextStyle(
-                                        fontWeight: FontWeight.bold)
+                                        fontWeight: FontWeight.bold, fontSize: 17.0)
                                         ),
-                                subtitle: const Text(
+                                subtitle: Text(
                                   "Tap to view or add expenses",
-                                  style: TextStyle(color: Colors.grey),
+                                  style: TextStyle(color: Colors.grey[600] , fontSize: 15.0),
                                 ),
 
                                 trailing: IconButton(
@@ -273,14 +293,12 @@ class _ExpenseRecordScreenState extends State<ExpenseRecordScreen> {
       ),
       floatingActionButton: FloatingActionButton(
         backgroundColor: Colors.deepPurple,
-        child: const Icon(Icons.add),
         foregroundColor: Colors.white,
         onPressed: _showNewDocumentDialog,
+        child: const Icon(Icons.add),
       ),
     );
   }
-
-  
 
 
   Future<bool?> _showDeleteConfirmationDialog(String docId) async {
@@ -310,14 +328,16 @@ class _ExpenseRecordScreenState extends State<ExpenseRecordScreen> {
         return StatefulBuilder(
           builder: (context, setDialogState) {
             return AlertDialog(
-              title: const Text('New Expense Document'),
+              title: const Text('Create New Expense Tab',
+                        style: TextStyle(fontSize: 20,fontWeight: FontWeight.bold,),
+                      ),
               content: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
 
-                  const Text(
-                    "Each document can represent a budget, trip, or a month of spending.",
-                    style: TextStyle(fontSize: 13, color: Colors.grey),
+                  Text(
+                    "Each Expense Tab can represent a budget, trip, or a month of spending.",
+                    style: TextStyle(fontSize: 15, color: Colors.grey[700],),
                   ),
                   const SizedBox(height: 20),
 
@@ -330,7 +350,7 @@ class _ExpenseRecordScreenState extends State<ExpenseRecordScreen> {
                       });
                     },
                     decoration: InputDecoration(
-                      labelText : 'Document title',
+                      labelText : 'Expense Tab title',
                       errorText: titleError, // Display error message if title is empty
                       border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
                       contentPadding: const EdgeInsets.symmetric(vertical: 15, horizontal: 10),
@@ -373,6 +393,7 @@ class _ExpenseRecordScreenState extends State<ExpenseRecordScreen> {
     List<String> categories = ['Food', 'Transport', 'Shopping', 'Groceries', 'Entertainment', 'Other'];
     TextEditingController customCategoryController = TextEditingController();
     bool isAddingCustomCategory = false;
+    bool isCategoryLocked = false; // Flag to lock category
 
     // Error messages
     String? descriptionError;
@@ -380,7 +401,7 @@ class _ExpenseRecordScreenState extends State<ExpenseRecordScreen> {
     String? customCategoryError;
 
     // Timer for debounce
-    Timer? _debounceTimer;
+    Timer? debounceTimer;
 
     // Fetch categories from Firestore
     void fetchCategories() async {
@@ -391,10 +412,10 @@ class _ExpenseRecordScreenState extends State<ExpenseRecordScreen> {
     fetchCategories();
 
     // Debounce function to suggest category after typing stops
-    void _suggestCategoryWithDelay(String value, Function(String) updateCategory) {
-      if (_debounceTimer?.isActive ?? false) _debounceTimer!.cancel();
+    void suggestCategoryWithDelay(String value, Function(String) updateCategory) {
+      if (debounceTimer?.isActive ?? false) debounceTimer!.cancel();
 
-      _debounceTimer = Timer(const Duration(milliseconds: 500), () async {
+      debounceTimer = Timer(const Duration(milliseconds: 500), () async {
         _suggestCategory(value, updateCategory);
       });
     }
@@ -409,30 +430,31 @@ class _ExpenseRecordScreenState extends State<ExpenseRecordScreen> {
               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
               title: Text(
                 expenseId == null ? 'Add Expense' : 'Edit Expense',
-                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 20, color: Colors.deepPurple),
+                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 22, color: Colors.deepPurple),
               ),
               content: SingleChildScrollView(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     // Description TextField
-
                     Text(
                       "Fill out the details below. We'll try to guess the category for you!",
-                      style: TextStyle(fontSize: 13, color: Colors.grey),
+                      style: TextStyle(fontSize: 14, color: Colors.grey[700]),
                     ),
-                    SizedBox(height: 15),
+                    SizedBox(height: 20),
                     TextField(
                       controller: descriptionController,
                       onChanged: (value) {
                         description = value;
                         setDialogState(() => descriptionError = value.isEmpty ? 'Description is required' : null);
 
-                        _suggestCategoryWithDelay(value, (suggestedCategory) {
-                          setDialogState(() {
-                            category = suggestedCategory;
+                        if (!isCategoryLocked) {
+                          suggestCategoryWithDelay(value, (suggestedCategory) {
+                            setDialogState(() {
+                              category = suggestedCategory;
+                            });
                           });
-                        });
+                        }
                       },
                       decoration: InputDecoration(
                         labelText: 'Expense Description',
@@ -476,20 +498,22 @@ class _ExpenseRecordScreenState extends State<ExpenseRecordScreen> {
                         if (value == 'custom') {
                           setDialogState(() {
                             isAddingCustomCategory = true;
+                            isCategoryLocked = true; // Lock category if custom is selected
                             customCategoryError = null;
                           });
                         } else {
                           setDialogState(() {
                             category = value!;
                             isAddingCustomCategory = false;
+                            isCategoryLocked = true; // Lock category if pre-selected
                           });
                         }
                       },
                     ),
-                    SizedBox(height: 10),
+                    SizedBox(height: 20),
                     Text(
                       "Tip: Type something like 'Netflix' to auto-suggest 'Entertainment'",
-                      style: TextStyle(fontSize: 12, color: Colors.deepPurple),
+                      style: TextStyle(fontSize: 14, color: Colors.deepPurple),
                     ),
 
                     SizedBox(height: 20),
@@ -514,7 +538,7 @@ class _ExpenseRecordScreenState extends State<ExpenseRecordScreen> {
                           context: context,
                           initialDate: selectedDate,
                           firstDate: DateTime(2000),
-                          lastDate: DateTime(2101),
+                          lastDate: DateTime.now(),
                         );
                         if (pickedDate != null) setDialogState(() => selectedDate = pickedDate);
                       },
@@ -555,6 +579,7 @@ class _ExpenseRecordScreenState extends State<ExpenseRecordScreen> {
                     if (isValid) {
                       if (isAddingCustomCategory) {
                         category = customCategoryController.text.trim();
+                        isCategoryLocked = true; // Lock after adding custom category
                         await _firestore.collection('users').doc(_uid).collection('categories').add({'name': category});
                       }
                       if (expenseId == null) {
@@ -572,8 +597,7 @@ class _ExpenseRecordScreenState extends State<ExpenseRecordScreen> {
         );
       },
     );
-  }
-
+  } 
 
 }
 

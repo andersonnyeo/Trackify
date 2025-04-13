@@ -3,15 +3,17 @@ import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:ml_algo/ml_algo.dart';
+// ignore: depend_on_referenced_packages
 import 'package:ml_dataframe/ml_dataframe.dart';
 import 'package:intl/intl.dart';
 
 class FutureExpenseScreen extends StatefulWidget {
   final String docId;
 
-  const FutureExpenseScreen({Key? key, required this.docId}) : super(key: key);
+  const FutureExpenseScreen({super.key, required this.docId});
 
   @override
+  // ignore: library_private_types_in_public_api
   _FutureExpenseScreenState createState() => _FutureExpenseScreenState();
 }
 
@@ -47,7 +49,7 @@ class _FutureExpenseScreenState extends State<FutureExpenseScreen> {
         setState(() {
           isLoading = false;
         });
-        print("No expenses data available.");
+        // print("No expenses data available.");
         return;
       }
 
@@ -57,7 +59,6 @@ class _FutureExpenseScreenState extends State<FutureExpenseScreen> {
         DateTime date = (doc['date'] as Timestamp).toDate();
 
         String monthKey = "${date.year}-${date.month}";
-
         monthlyExpenses[monthKey] =
             (monthlyExpenses[monthKey] ?? 0) + (doc['amount'] as num).toDouble();
       }
@@ -70,7 +71,6 @@ class _FutureExpenseScreenState extends State<FutureExpenseScreen> {
       historicalExpenses =
           sortedMonths.map((month) => monthlyExpenses[month] ?? 0).toList();
 
-      // 🔹 Keep the last 3 months, or less if there are not enough months
       int monthCount = historicalExpenses.length;
       if (monthCount > 3) {
         historicalExpenses = historicalExpenses.sublist(monthCount - 3);
@@ -83,11 +83,11 @@ class _FutureExpenseScreenState extends State<FutureExpenseScreen> {
         sortedMonths = sortedMonths.sublist(monthCount - 1);
       }
 
-      // Now make prediction based on the available months
       if (historicalExpenses.length >= 2) {
         predictedExpense = await _predictWithMLModel(historicalExpenses);
       } else {
-        predictedExpense = historicalExpenses.isNotEmpty ? historicalExpenses.last : null;
+        predictedExpense =
+            historicalExpenses.isNotEmpty ? historicalExpenses.last : null;
       }
 
       setState(() {
@@ -97,125 +97,170 @@ class _FutureExpenseScreenState extends State<FutureExpenseScreen> {
       setState(() {
         isLoading = false;
       });
-      print("Error fetching historical data: $e");
+      // print("Error fetching historical data: $e");
     }
   }
 
-  // Use ML model (Linear Regression) to predict next month's expense
   Future<double> _predictWithMLModel(List<double> data) async {
-    // Prepare data for training
     final dataset = [
       ['month', 'amount'],
-      for (int i = 0; i < data.length; i++) [i, data[i]],  // Using 0-based month index
+      for (int i = 0; i < data.length; i++) [i, data[i]],
     ];
 
-
     var df = DataFrame(dataset);
-
-    // Train the Linear Regression model
     final model = LinearRegressor(df, 'amount');
 
-    // Predict the next month's expense (next month is just the data length + 1)
-    final prediction = model.predict(DataFrame([['month'], [data.length + 1]]));
+    final prediction =
+        model.predict(DataFrame([['month'], [data.length]]));
     return prediction.rows.first.first as double;
   }
 
   Widget _buildLineChart() {
-    return Expanded(
-      child: LineChart(
-        LineChartData(
-          gridData: FlGridData(show: false),
-          titlesData: FlTitlesData(
-            leftTitles: AxisTitles(
-                sideTitles:
-                    SideTitles(showTitles: true, reservedSize: 40)),
-            bottomTitles: AxisTitles(
-              sideTitles: SideTitles(
-                showTitles: true,
-                getTitlesWidget: (value, meta) {
-                int index = value.toInt();
-                if (index < 0 || index >= sortedMonths.length) return Container();
-              
-                // Convert sortedMonths to month names safely
-                if (index < sortedMonths.length) {
-                  DateTime parsedDate = DateTime(
-                    int.parse(sortedMonths[index].split('-')[0]),  // Year
-                    int.parse(sortedMonths[index].split('-')[1]),  // Month
-                    1
-                  );
-                  return Text(
-                    DateFormat.MMM().format(parsedDate),
-                    style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold),
-                  );
-                } else {
-                  return Text("Next", style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold));
-                }
-              }
-              
-              ),
+    double maxY = predictedExpense != null
+        ? ([
+              ...historicalExpenses,
+              predictedExpense!
+            ].reduce((a, b) => a > b ? a : b))
+        : (historicalExpenses.isNotEmpty
+            ? historicalExpenses.reduce((a, b) => a > b ? a : b)
+            : 100);
+
+    double roundedMaxY = (maxY / 10).ceil() * 10;
+
+    return LineChart(
+      LineChartData(
+        minY: 0,
+        maxY: roundedMaxY,
+        gridData: FlGridData(show: false),
+        lineTouchData: LineTouchData(
+          handleBuiltInTouches: true,
+          touchTooltipData: LineTouchTooltipData(
+          tooltipRoundedRadius: 12,
+          getTooltipColor: (touchedSpot) => Colors.deepPurple.shade100,
+          getTooltipItems: (List<LineBarSpot> touchedSpots) {
+            return touchedSpots.map((spot) {
+              return LineTooltipItem(
+                '£${spot.y.toStringAsFixed(2)}',
+                const TextStyle(
+                  color: Colors.deepPurple,
+                  fontWeight: FontWeight.bold,
+                  fontSize: 14,
+                ),
+              );
+            }).toList();
+          },
+        ),
+        ),
+        titlesData: FlTitlesData(
+          leftTitles: AxisTitles(
+            axisNameWidget: Padding(
+              padding: const EdgeInsets.only(right: 8.0),
+              child: Text('Amount Spent (£)',
+                  style: TextStyle(
+                      color: Colors.black,
+                      fontWeight: FontWeight.bold,
+                      fontSize: 14)),
             ),
-            topTitles: AxisTitles(
-              sideTitles: SideTitles(showTitles: false), // Hide the top x-axis labels
+            axisNameSize: 26,
+            sideTitles: SideTitles(
+              showTitles: true,
+              reservedSize: 35,
+              interval: (roundedMaxY / 10),
+              getTitlesWidget: (value, meta) {
+                return Text(
+                  '£${value.toInt()}',
+                  style: TextStyle(
+                    color: Colors.black,
+                    fontWeight: FontWeight.bold,
+                    fontSize: 12,
+                  ),
+                );
+              },
             ),
           ),
-          borderData: FlBorderData(
-              show: true, border: Border.all(color: Colors.grey, width: 1)),
-          lineBarsData: [
+          bottomTitles: AxisTitles(
+            axisNameWidget: Padding(
+              padding: const EdgeInsets.only(top: 8.0),
+              child: Text('Month',
+                  style: TextStyle(
+                      color: Colors.black,
+                      fontWeight: FontWeight.bold,
+                      fontSize: 14)),
+            ),
+            axisNameSize: 26,
+            sideTitles: SideTitles(
+              showTitles: true,
+              getTitlesWidget: (value, meta) {
+                if (value % 1 != 0) return Container();
+
+                int index = value.toInt();
+                if (index < 0 || index >= sortedMonths.length + 1) return Container();
+
+                if (index == sortedMonths.length) {
+                  return Text(
+                    "Next",
+                    style: const TextStyle(
+                      color: Colors.red,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  );
+                }
+
+                DateTime parsedDate = DateTime(
+                  int.parse(sortedMonths[index].split('-')[0]),
+                  int.parse(sortedMonths[index].split('-')[1]),
+                  1,
+                );
+
+                return Text(
+                  DateFormat.MMM().format(parsedDate),
+                  style: const TextStyle(
+                    color: Colors.black,
+                    fontWeight: FontWeight.bold,
+                  ),
+                );
+              },
+            ),
+          ),
+          topTitles: AxisTitles(
+            sideTitles: SideTitles(showTitles: false),
+          ),
+          rightTitles: AxisTitles(
+            sideTitles: SideTitles(showTitles: false),
+          ),
+        ),
+        borderData: FlBorderData(
+          show: true,
+          border: Border.all(color: Colors.grey, width: 1),
+        ),
+        lineBarsData: [
+          LineChartBarData(
+            spots: List.generate(
+              historicalExpenses.length,
+              (index) =>
+                  FlSpot(index.toDouble(), historicalExpenses[index]),
+            ),
+            isCurved: true,
+            color: Colors.deepPurpleAccent,
+            barWidth: 4,
+            dotData: FlDotData(show: true),
+            belowBarData: BarAreaData(show: false),
+          ),
+          if (predictedExpense != null)
             LineChartBarData(
-              spots: List.generate(
-                historicalExpenses.length,
-                (index) =>
-                    FlSpot(index.toDouble(), historicalExpenses[index]),
-              ),
+              spots: [
+                FlSpot((historicalExpenses.length - 1).toDouble(),
+                    historicalExpenses.last),
+                FlSpot(historicalExpenses.length.toDouble(), predictedExpense!),
+              ],
               isCurved: true,
-              color: Colors.deepPurpleAccent,
+              color: Colors.red,
               barWidth: 4,
               dotData: FlDotData(show: true),
               belowBarData: BarAreaData(show: false),
+              dashArray: [5, 5],
             ),
-            if (predictedExpense != null)
-
-            // LineChartBarData(
-            //     spots: [
-            //       FlSpot(historicalExpenses.length.toDouble(),
-            //           predictedExpense!),
-            //     ],
-            //     isCurved: true,
-            //     color: Colors.red,
-            //     barWidth: 4,
-            //     dotData: FlDotData(show: true),
-            //     belowBarData: BarAreaData(show: false),
-            //     dashArray: [5, 5],
-            //   ),
-              // LineChartBarData(
-              //   spots: [
-              //     for (int i = 0; i < historicalExpenses.length; i++)
-              //       FlSpot(i.toDouble(), historicalExpenses[i]),
-              //     FlSpot(historicalExpenses.length.toDouble(), predictedExpense!),  // Ensure continuity
-              //   ],
-              //   isCurved: true,
-              //   color: Colors.red,
-              //   barWidth: 4,
-              //   dotData: FlDotData(show: true),
-              //   belowBarData: BarAreaData(show: false),
-              //   dashArray: [5, 5],
-              // ),
-
-              LineChartBarData(
-                spots: [
-                  FlSpot((historicalExpenses.length - 1).toDouble(), historicalExpenses.last), // Current month
-                  FlSpot(historicalExpenses.length.toDouble(), predictedExpense!), // Next month
-                ],
-                isCurved: true,
-                color: Colors.red,
-                barWidth: 4,
-                dotData: FlDotData(show: true),
-                belowBarData: BarAreaData(show: false),
-                dashArray: [5, 5], // Makes it dotted
-              ),
-
-          ],
-        ),
+        ],
       ),
     );
   }
@@ -230,7 +275,7 @@ class _FutureExpenseScreenState extends State<FutureExpenseScreen> {
                 color: Colors.white, fontWeight: FontWeight.bold)),
         backgroundColor: Colors.deepPurple,
         elevation: 0,
-        iconTheme: const IconThemeData(color: Colors.white), // Set back arrow color to white
+        iconTheme: const IconThemeData(color: Colors.white),
       ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
@@ -244,18 +289,31 @@ class _FutureExpenseScreenState extends State<FutureExpenseScreen> {
                 : Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
+                      Padding(
+                        padding: EdgeInsets.symmetric(horizontal: 10),
+                        child: Text(
+                          "Track your spending & preview next month with AI ",
+                          style: TextStyle(
+                            fontSize: 16,
+                            color: Colors.grey[700],
+                          ),
+                        ),
+                      ),
+                      SizedBox(height: 10),
                       Card(
                         elevation: 10,
                         shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(15)),
-                        child: Padding(
-                          padding: const EdgeInsets.all(20.0),
+                          borderRadius: BorderRadius.circular(15),
+                        ),
+                        child: Container(
+                          width: double.infinity,
+                          padding: const EdgeInsets.all(15.0),
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Text("Predicted Expense for Next Month",
                                   style: TextStyle(
-                                      fontSize: 20,
+                                      fontSize: 18,
                                       fontWeight: FontWeight.bold,
                                       color: Colors.deepPurple)),
                               SizedBox(height: 10),
@@ -266,13 +324,25 @@ class _FutureExpenseScreenState extends State<FutureExpenseScreen> {
                                   style: TextStyle(
                                       fontSize: 26,
                                       fontWeight: FontWeight.bold,
-                                      color: Colors.deepPurpleAccent)),
+                                      color: Colors.green)),
                             ],
                           ),
                         ),
                       ),
-                      SizedBox(height: 30),
-                      _buildLineChart(),
+                      SizedBox(height: 10),
+                      Card(
+                        elevation: 10,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(15),
+                        ),
+                        child: Padding(
+                          padding: const EdgeInsets.all(20.0),
+                          child: SizedBox(
+                            height: 430,
+                            child: _buildLineChart(),
+                          ),
+                        ),
+                      ),
                     ],
                   ),
       ),

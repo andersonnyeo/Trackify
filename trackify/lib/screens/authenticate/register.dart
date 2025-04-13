@@ -179,11 +179,11 @@ class _RegisterState extends State<Register> {
                           padding: const EdgeInsets.symmetric(vertical: 14),
                           minimumSize: const Size(double.infinity, 50),
                         ),
+                        onPressed: _register,
                         child: const Text(
                           'Register',
                           style: TextStyle(fontSize: 18, color: Colors.white),
                         ),
-                        onPressed: _register,
                       ),
                       const SizedBox(height: 20.0),
 

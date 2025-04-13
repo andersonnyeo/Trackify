@@ -7,7 +7,10 @@ class TermsAndConditionsScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Terms & Conditions', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+        title: const Text(
+          'Terms & Conditions',
+          style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+        ),
         backgroundColor: Colors.deepPurple,
         elevation: 0,
         leading: IconButton(
@@ -15,71 +18,82 @@ class TermsAndConditionsScreen extends StatelessWidget {
           onPressed: () => Navigator.pop(context),
         ),
       ),
-      backgroundColor: Colors.purple[50], 
-      body: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 15.0),
-        child: SingleChildScrollView(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              const Text(
-                'Privacy & Confidentiality',
-                style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+      backgroundColor: Colors.purple[50],
+      body: SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 5.0, vertical: 5.0),
+          child: SingleChildScrollView(
+            child: Card(
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(15),
               ),
-              const SizedBox(height: 10),
-              const Text(
-                'Your privacy is our top priority. This expense tracker ensures that all personal and financial data you provide is stored securely and is never shared with third parties.',
-                style: TextStyle(fontSize: 16),
-              ),
-              const SizedBox(height: 20),
+              elevation: 5,
+              child: Padding(
+                padding: const EdgeInsets.all(20.0),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text(
+                      'Privacy & Confidentiality',
+                      style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                    ),
+                    const SizedBox(height: 10),
+                    const Text(
+                      'Your privacy is our top priority. This expense tracker ensures that all personal and financial data you provide is stored securely and is never shared with third parties. '
+                      'We do not engage in any form of data selling, advertising, or unauthorized analytics tracking. All inputs you provide remain confidential and are strictly used to enhance your personal expense tracking experience.',
+                      style: TextStyle(fontSize: 16),
+                    ),
+                    const SizedBox(height: 20),
 
-              const Text(
-                'Data Security',
-                style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-              ),
-              const SizedBox(height: 10),
-              const Text(
-                'All expense records and personal details are encrypted and stored safely. No unauthorized access is allowed, and your data remains confidential at all times.',
-                style: TextStyle(fontSize: 16),
-              ),
-              const SizedBox(height: 20),
+                    const Text(
+                      'Data Security',
+                      style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                    ),
+                    const SizedBox(height: 10),
+                    const Text(
+                      'All expense records and personal details are encrypted using industry-standard methods and stored safely in a cloud database. Access to this data is protected by secure authentication methods. '
+                      'The app is continuously updated to fix vulnerabilities and improve protection mechanisms. No third-party services are allowed to access or process your information.',
+                      style: TextStyle(fontSize: 16),
+                    ),
+                    const SizedBox(height: 20),
 
-              const Text(
-                'Usage Agreement',
-                style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-              ),
-              const SizedBox(height: 10),
-              const Text(
-                'By using this app, you agree that your data will only be used for tracking your expenses and generating insights. We do not collect, store, or share any unnecessary personal information beyond what is required for app functionality.',
-                style: TextStyle(fontSize: 16),
-              ),
-              const SizedBox(height: 20),
+                    const Text(
+                      'Usage Agreement',
+                      style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                    ),
+                    const SizedBox(height: 10),
+                    const Text(
+                      'By using this app, you agree that your data will be used solely for the purpose of tracking your personal expenses, generating spending insights, and providing budgeting support. '
+                      'You understand that misuse of the application, such as inputting false data or attempting to breach app security, is strictly prohibited. Your continued use of the app implies acceptance of any future changes to these terms.',
+                      style: TextStyle(fontSize: 16),
+                    ),
+                    const SizedBox(height: 20),
 
-              const Text(
-                'Developer Commitment',
-                style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-              ),
-              const SizedBox(height: 10),
-              const Text(
-                'This application was developed by a dedicated Computer Science student with the goal of providing users with a secure, intuitive, and efficient expense tracking solution. Your trust is valued, and all measures have been taken to ensure a safe user experience.',
-                style: TextStyle(fontSize: 16),
-              ),
-              const SizedBox(height: 30),
+                    const Text(
+                      'User Responsibilities',
+                      style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                    ),
+                    const SizedBox(height: 10),
+                    const Text(
+                      'Users are responsible for keeping their login credentials secure and for ensuring the accuracy of the data they enter. Any loss resulting from the sharing of login details or intentional misuse of app features is the sole responsibility of the user.',
+                      style: TextStyle(fontSize: 16),
+                    ),
+                    const SizedBox(height: 20),
 
-              // Center(
-              //   child: ElevatedButton(
-              //     onPressed: () => Navigator.pop(context),
-              //     style: ElevatedButton.styleFrom(
-              //       backgroundColor: Colors.deepPurple,
-              //       padding: const EdgeInsets.symmetric(horizontal: 30, vertical: 12),
-              //     ),
-              //     child: const Text(
-              //       'Accept & Continue',
-              //       style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.white),
-              //     ),
-              //   ),
-              // ),
-            ],
+                    const Text(
+                      'Developer Commitment',
+                      style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                    ),
+                    const SizedBox(height: 10),
+                    const Text(
+                      'This application was developed by a passionate Computer Science student aiming to provide a reliable, transparent, and privacy-focused expense tracking solution. Feedback is welcome to help improve the app and ensure it continues to meet user needs.',
+                      style: TextStyle(fontSize: 16),
+                    ),
+                    const SizedBox(height: 20),
+                  ],
+                ),
+              ),
+            ),
           ),
         ),
       ),

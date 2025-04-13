@@ -1,3 +1,5 @@
+// ignore_for_file: use_build_context_synchronously
+
 import 'package:flutter/material.dart';
 import 'package:trackify/models/user.dart';
 import 'package:trackify/screens/settings_screen/terms_condition.dart';
@@ -30,11 +32,11 @@ class _SettingsScreenState extends State<SettingsScreen> {
               content: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  const Text(
+                  Text(
                     "Update your display name used across the app.",
-                    style: TextStyle(fontSize: 13, color: Colors.grey),
+                    style: TextStyle(fontSize: 15, color: Colors.grey[700]),
                   ),
-                  const SizedBox(height: 10),
+                  const SizedBox(height: 15),
                   TextField(
                     controller: nameController,
                     decoration: const InputDecoration(
@@ -94,11 +96,11 @@ class _SettingsScreenState extends State<SettingsScreen> {
               content: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  const Text(
+                  Text(
                     "Use at least 6 characters for your new password.",
-                    style: TextStyle(fontSize: 13, color: Colors.grey),
+                    style: TextStyle(fontSize: 15, color: Colors.grey[700]),
                   ),
-                  const SizedBox(height: 10),
+                  const SizedBox(height: 15),
 
                   TextField(
                     controller: passwordController,
@@ -222,9 +224,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   ),
                 ),
                 const SizedBox(height: 5),
-                const Text(
+                Text(
                   "Manage your account and app preferences below.",
-                  style: TextStyle(fontSize: 14, color: Colors.grey),
+                  style: TextStyle(fontSize: 16, color: Colors.grey[700]),
                 ),
                 // const SizedBox(height: 20),
 
@@ -287,6 +289,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
             borderRadius: BorderRadius.circular(15),
             boxShadow: [
               BoxShadow(
+                // ignore: deprecated_member_use
                 color: Colors.grey.withOpacity(0.1),
                 spreadRadius: 1,
                 blurRadius: 5,

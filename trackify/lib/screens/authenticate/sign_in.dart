@@ -169,11 +169,11 @@ class _SignInState extends State<SignIn> {
                           padding: const EdgeInsets.symmetric(vertical: 14),
                           minimumSize: const Size(double.infinity, 50),
                         ),
+                        onPressed: _signIn,
                         child: const Text(
                           'Sign in',
                           style: TextStyle(fontSize: 18, color: Colors.white),
                         ),
-                        onPressed: _signIn,
                       ),
                       const SizedBox(height: 20.0),
 
