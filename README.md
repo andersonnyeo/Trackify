@@ -1,9 +1,22 @@
-# 📊 Trackify
+# Trackify
 
 **Trackify** is an **AI-driven personal finance management app** built with Flutter. It helps users seamlessly **track, manage, and analyze** their expenses with the power of artificial intelligence.
 
-> **Smart. Simple. Insightful.**  
-> Make smarter financial decisions, effortlessly.
+---
+
+## 🧑‍💻 Getting Started
+
+To run the project locally:
+
+```bash
+# 1. Get dependencies
+flutter pub get
+
+# 2. Run the app
+flutter run
+
+# 3. You can run this on an emulator or a physical device with Flutter installed.
+
 
 ---
 
@@ -24,17 +37,3 @@
 - **Backend**: Firebase (Authentication, Firestore, Cloud Functions)  
 - **Database**: Firestore (NoSQL)
 
----
-
-## 🧑‍💻 Getting Started
-
-To run the project locally:
-
-```bash
-# 1. Get dependencies
-flutter pub get
-
-# 2. Run the app
-flutter run
-
-# 3. You can run this on an emulator or a physical device with Flutter installed.
