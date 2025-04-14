@@ -2,17 +2,21 @@
 
 **Trackify** is an **AI-driven personal expenses tracker app** built with Flutter. It helps users seamlessly **track, manage, and analyze** their expenses with the power of artificial intelligence
 
-
+---
 
 ## Getting Started
 
 These instructions will help you set up the project and run it on your local machine using Visual Studio Code.
+
+---
 
 ### Prerequisites
 
 - [Flutter SDK](https://flutter.dev/docs/get-started/install)
 - [Dart SDK](https://dart.dev/get-dart)
 - [Visual Studio Code](https://code.visualstudio.com/) with Flutter and Dart extensions
+
+---
 
 ### Installation (If extract the zip file)
 To run the project locally:
@@ -34,7 +38,7 @@ To run the project locally:
    flutter run
    ```
 
-
+---
 
 
 ### Installation (If clone from the repository)
@@ -87,7 +91,7 @@ To run the project locally:
 - **Web/Desktop** (not supported)
 
 
-
+---
 
 
 ## Author
