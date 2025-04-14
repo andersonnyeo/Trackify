@@ -57,7 +57,7 @@ To run the project locally:
    ```bash
    flutter run
    ```
-
+---
 
 ## Features
 
@@ -69,6 +69,8 @@ To run the project locally:
 - ☁️ **Real-Time Data Sync with Firebase**
 
 
+---
+
 ## Tech Stack
 
 - **Frontend**: Flutter + Dart  
@@ -76,7 +78,7 @@ To run the project locally:
 - **Database**: Firestore 
 
 
-
+---
 
 ## Platform Support
 
