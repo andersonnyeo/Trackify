@@ -37,7 +37,7 @@ To run the project locally:
 
 
 
-### Installation (If clone in the repository)
+### Installation (If clone from the repository)
 To run the project locally:
 
 1. **Clone the repository**:
@@ -68,15 +68,23 @@ To run the project locally:
 - 🔒 **Secure User Authentication**
 - ☁️ **Real-Time Data Sync with Firebase**
 
----
 
 ## Tech Stack
 
 - **Frontend**: Flutter + Dart  
 - **Backend**: Firebase (Authentication, Firestore, Cloud Functions)  
-- **Database**: Firestore (NoSQL)
+- **Database**: Firestore 
 
----
+
+
+
+## Platform Support
+
+- **Android**: tested
+- **iOS** (not supported)
+- **Web/Desktop** (not supported)
+
+
 
 
 
