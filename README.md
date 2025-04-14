@@ -20,8 +20,8 @@ To run the project locally:
 
 1. **Clone the repository**:
    ```bash
-   git clone https://github.com/andersonnyeo/expense-tracker-app.git
-   cd expense-tracker-app
+   git clone https://github.com/andersonnyeo/Trackify.git
+   cd Trackify
    ```
 
    
@@ -35,9 +35,7 @@ To run the project locally:
    ```bash
    flutter run
    ```
-```
 
----
 
 ## Features
 
