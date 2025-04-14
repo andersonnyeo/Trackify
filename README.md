@@ -14,8 +14,30 @@ These instructions will help you set up the project and run it on your local mac
 - [Dart SDK](https://dart.dev/get-dart)
 - [Visual Studio Code](https://code.visualstudio.com/) with Flutter and Dart extensions
 
+### Installation (If extract the zip file)
+To run the project locally:
 
-### Installation
+1. **Open terminal and navigate to the file**:
+   ```bash
+   cd Trackify
+   ```
+
+   
+2. **Install dependencies**:
+   ```bash
+   flutter pub get
+   ```
+
+
+3. **Run the app**:
+   ```bash
+   flutter run
+   ```
+
+
+
+
+### Installation (If clone in the repository)
 To run the project locally:
 
 1. **Clone the repository**:
@@ -31,7 +53,7 @@ To run the project locally:
    ```
 
 
-4. **Run the app**:
+3. **Run the app**:
    ```bash
    flutter run
    ```
