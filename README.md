@@ -6,22 +6,35 @@
 
 ## Getting Started
 
+These instructions will help you set up the project and run it on your local machine using Visual Studio Code.
+
+### Prerequisites
+
+- [Flutter SDK](https://flutter.dev/docs/get-started/install)
+- [Dart SDK](https://dart.dev/get-dart)
+- [Visual Studio Code](https://code.visualstudio.com/) with Flutter and Dart extensions
+
+
+### Installation
 To run the project locally:
 
-```bash
-# 1. Get dependencies
-Run 'cd trackify' to go to the main file 
+1. **Clone the repository**:
+   ```bash
+   git clone https://github.com/andersonnyeo/expense-tracker-app.git
+   cd expense-tracker-app
+   ```
+
+   
+2. **Install dependencies**:
+   ```bash
+   flutter pub get
+   ```
 
 
-# 2. Get dependencies
-Run 'flutter pub get'
-
-
-# 3. Run the app
-Run 'flutter run'
-
-# 4. You can run this on an emulator or a physical device with Flutter installed.
-
+4. **Run the app**:
+   ```bash
+   flutter run
+   ```
 ```
 
 ---
@@ -47,4 +60,8 @@ Run 'flutter run'
 
 
 
+## Author
 
+**Anderson Yeo**  
+Final Year CS with AI @ University of Nottingham  
+[GitHub Profile](https://github.com/andersonnyeo)
